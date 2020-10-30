@@ -1,0 +1,154 @@
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+%----------------------   BA Andreas Korb   ------------------------
+%-------------------------------------------------------------------
+%-------------------------------------------------------------------
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%  Preamble  %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[
+	11pt,			%Font size
+	a4paper,		%Sheet size
+	DIV=12,			%Type area (division into boxes)
+	parskip=half,	%No indentation but line spacing for new paragraph
+	headsepline,	%For dividing line on head side
+	automark
+	]{scrartcl}
+
+%Cross-platform
+\usepackage[utf8]{inputenc}
+
+%Font coding
+\usepackage[T1]{fontenc}
+
+%German Umlauts / Coding / Hyphenation
+%\usepackage[ngerman]{babel}
+%improved edge compensation
+\usepackage{microtype}		
+
+%Random text
+\usepackage{blindtext}
+
+\usepackage[hidelinks]{hyperref}
+
+%Embed references
+\usepackage{csquotes}
+\usepackage{xcolor}
+\definecolor{thi}{RGB}{0,90,155}
+\hypersetup{
+	colorlinks,
+	linkcolor={thi},
+	urlcolor={thi},
+	citecolor={thi},
+}
+
+\usepackage[
+	backend=biber,
+	style=IEEE,			%Numbers
+	block = ragged,		%Full justification
+]{biblatex}
+
+\addbibresource{references.bib}
+
+%Set font
+%Default cmr10 --> Computer Modern Roman 10pt (stored as bitmap)
+\usepackage{lmodern}	%Vector version of cmr10
+
+%\renewcommand{\familydefault}{\sfdefault}	%sf --> Without serifs
+
+%Embed fonts
+\usepackage{graphicx}
+\usepackage{import}
+\graphicspath{{images/}}
+
+%Embed maths
+\usepackage{amsmath,amssymb}
+
+%Use euro sign
+\usepackage[official]{eurosym}
+
+%Improved table display
+\usepackage{booktabs}
+
+%Display table and figures next to text
+\usepackage{wrapfig}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%  Cover page  %%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author{Andreas Diemo Korb\vspace{9ex}}
+\title{Evaluating procedures for a more efficient information gathering with automotive diagnostic protocols.}
+\subtitle{\vspace{1.5ex} to obtain the academic degree Bachelor of Science\vspace{3ex}}
+
+\date{}
+
+%Information on the bottom side of the cover sheet
+\publishers{
+	\begin{tabular}{rl}
+		\textbf{Study program}	    & Bachelor Computer Science \\ 
+		\textbf{Faculty}		    & Computer Science \\
+		\textbf{Issue date}	        & \today \\
+		\vspace{6ex}
+	\end{tabular}
+	
+	\begin{tabular}{rl}
+		\textbf{First supervisor}	& Prof. Dr. Hans-Michael Windisch \\
+		\textbf{Second supervisor}	& Prof. Dr. Ulrich Margull \\
+		\textbf{External company}	& eMundo GmbH
+	\end{tabular} 
+}
+
+
+%Header and footer
+\usepackage[automark,footsepline,plainfootsepline]{scrlayer-scrpage}
+\pagestyle{scrheadings}
+\clearpairofpagestyles
+\ihead{\leftmark}
+\ifoot{Andreas Korb}
+\ofoot*{\pagemark}
+
+%THI Logo at the beginning of the cover page
+\titlehead{
+	\hfil	%Horizontal gap
+	\includegraphics[width=0.5\textwidth]{thi_logo_cropped}
+	\hfil
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%  File includes  %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\includeonly{
+	chapters/chapter1,
+	chapters/erklaerung
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%  Document begin  %%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\include{chapters/erklaerung}
+
+\setcounter{tocdepth}{1} 	% Table of contents only Chapters and Sections
+\thispagestyle{empty}
+\tableofcontents
+
+
+
+\setcounter{page}{0}
+\include{chapters/chapter1}
+
+\newpage
+
+\ihead{References}
+\nocite{*}
+\printbibliography
+\end{document}
