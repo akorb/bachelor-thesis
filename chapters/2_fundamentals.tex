@@ -200,3 +200,34 @@ UDS not only allows to read data, but also to write. Which makes it especially c
 
 
 \subsection{The UDS Scanner}
+
+The UDS Scanner is a Python class implemented in Scapy. It executes so-called Enumerators which are service specific and create all possible packets for one service.
+For example, the enumerator for the DiagnosticSessionControl (DSC) service is called UDS\_DSCEnumerator. The most important member of the enumerator classes is the \_get\_initial\_requests method. The return value is an iterable object which contains all requests for this service. DSC has an eight bit identifier, leading to maximum 2\textsuperscript{8} packets for this enumerator. Each enumerator will be executed for each found state of the ECU. So, if enumerator x already ran, and afterwards a new state is found, this enumerator will run again within the same scan with the new-found state.
+
+For a better understanding the UDS\_DSCEnumerator implementation will be described.
+
+\begin{samepage}
+\begin{minted}{python}
+class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
+    def _get_initial_requests(self, **kwargs):
+        session_range = kwargs.pop('session_range', range(2, 0x100))
+        return list(UDS() / UDS_DSC(diagnosticSessionType=session_range))
+\end{minted}
+\end{samepage}
+
+The method can be given keyword parameters. The only used on here is "session\_range". If none is given, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 253 packets for each state. This state is also a StateGenerator, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
+
+
+The enumerators can output their results as a text-table. For example:
+
+\begin{samepage}
+\begin{minted}{text}
+---------------+---------------+---------------+---------------+
+               | session1      | session1tp1   | session3tp1   | 
+---------------+---------------+---------------+---------------+
+TesterPresent: | PR: Supported | PR: Supported | PR: Supported | 
+---------------+---------------+---------------+---------------+
+\end{minted}
+\end{samepage}
+
+This means, the packet of the TesterPresent service was positively answered by the ECU in all three found states. session1 is the default state of the ECU, and never detected but added in code at the beginning of each UDS Scanner run.
