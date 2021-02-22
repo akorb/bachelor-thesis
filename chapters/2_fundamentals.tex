@@ -51,8 +51,8 @@ class UDP(Packet):
 
 As in common programmer language, \textbf{short} specifies 16 bits. Since the UDP header only contains 16 bits fields, the Scapy definition only includes \textbf{short} fields. The first parameter of a field is always the name of this field. \textbf{sport} stands for source port, and \textbf{dport} for destination port.
 The next parameter sets the default value for this field. This is defined by the Scapy programmers in all conscience and not by the official UDP standard. \textbf{53} specifies the DNS protocol.
-\textbf{EnumField}s also contain a third argument. This is a simple dictionary mapping from machine-readable values to human-readable texts. For example, part of the \textbf{UDP\_SERVICES} dictionary is: \mintinline{python}{{53: 'domain', 80: 'www_http'}}
-The difference of ShortField and XShortField is only in the representation. The value of the XShortField will be displayed as a hex value and the ShortField as a decimal value.
+\textbf{EnumField}s also contain a third argument, a simple dictionary mapping from machine-readable values to human-readable texts. For example, part of the \textbf{UDP\_SERVICES} dictionary is: \mintinline{python}{{53: 'domain', 80: 'www_http'}}.
+The difference between ShortField and XShortField is only the representation. The value of the XShortField will be displayed as a hex value and the ShortField as a decimal value.
 
 The following snippets shows some examples of how to instantiate an object of the UDP class and also demonstrates how to append data to the headers with the “/” operator.
 
@@ -109,9 +109,9 @@ The SYN and ACK flags are set now as expected for the TCP handshake. Furthermore
 
 The UDS Scanner later described in this work is mainly, but not exclusively, used with the ISOTP protocol. It is the transport protocol for the CAN bus (Controller Area Network). Thus, it will be explained here as well.
 
-There are two ISOTP socket implementations in Scapy. A software and a native implementation. The native implementation is only usable for Linux but the preferred one because it uses the socket interface of Linux and brings all its advantages. Until including Linux kernel 5.9, the corresponding ISOTP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}.
+There are two ISOTP socket implementations in Scapy. A software and a native implementation. The native implementation is only usable for Linux but the preferred one because it uses the socket interface of Linux and brings all its advantages, such as waiting for answers asynchronously while the own process doesn't require any CPU time. Until including Linux kernel 5.9, the corresponding ISOTP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}.
 
-To create a virtual CAN interface, one line in a shell is sufficient:
+To create a virtual CAN interface, one command in a shell is sufficient:
 \begin{samepage}
 \begin{minted}{text}
 sudo ip link add vcan0 type vcan
@@ -146,7 +146,7 @@ UDS stands for \emph{Unified diagnostic services} and is an application protocol
 
 As shown in \autoref{fig:uds-stack}, the most common data links for the UDS protocol are the Ethernet and the CAN protocol. Others can and are used as well, explicitly stated in the UDS standard are FlexRay, K-Line and LIN.
 
-The UDS protocol defines various services with different purposes. For example the DiagnosticSessionControl service is used to enable different diagnostic sessions in the ECU. Its identifier is the number 0x10. All packets requesting this service specify this value as the first byte. The response identifiers are defined as 0x40 added to the request identifier. Thus, for the DiagnosticSessionControl the positive response identifier is 0x10 + 0x40 = 0x50. A negative response always has the identifier 0x7f. This service is able to change the state of the ECU. The ReadDataByIdentifier service is not able to change the state, yet it is very important. Data records in the ECU are stored with an identifier as the key. This service allows to read these values from an external device. Since there can be data stored, which is not meant to be read by everybody, there is another service called SecurityAccess, which allows to unlock these information for external devices. This mechanism is used for other services as well. The SecurityAccess uses the challenge–response authentication in which an algorithm is the secret. It follows the following sequence \cite{iso14229}:
+The UDS protocol defines various services with different purposes. For example the DiagnosticSessionControl service is used to enable different diagnostic sessions in the ECU. Its identifier is the number 0x10. All packets requesting this service specify this value as the first byte. The response identifiers are defined as 0x40 added to the request identifier. Thus, for the DiagnosticSessionControl the positive response identifier is 0x10 + 0x40 = 0x50. A negative response always has the identifier 0x7f. This service is able to change the state of the ECU. Although the ReadDataByIdentifier service is not able to change the state, it is still very important. Data records in the ECU are stored with an identifier as the key. This service allows to read these values from an external device. Since there can be data stored, which is not meant to be read by everybody, there is another service called SecurityAccess, which allows to unlock these information for external devices. This mechanism is used for other services as well. The SecurityAccess uses the challenge–response authentication in which an algorithm is the secret. It follows the following sequence \cite{iso14229}:
 
 \begin{samepage}
 \begin{enumerate}
@@ -176,7 +176,7 @@ class UDS(ISOTP):
 
 %TODO: Why inherting from ISOTP
 
-The UDS class contains only the service field. Even though the whole UDS protocol is in the application layer, the Scapy implementation starts a new class whenever the subsequent fields depend on one field of the current layer. This is the case here, since the next fields depend on the value in the service field. The service specific fields are defined in their own classes, for example:
+The UDS class contains only the service field. Even though the whole UDS protocol is in the application layer, the Scapy implementation starts a new class whenever the subsequent fields depend on one field of the current layer. This is the case here, since the next fields depend on the value of the service field. The service specific fields are defined in their own classes, for example:
 
 \begin{samepage}
 \begin{minted}{python}
@@ -202,7 +202,7 @@ UDS not only allows to read data, but also to write. Which makes it especially c
 \subsection{The UDS Scanner}
 
 The UDS Scanner is a Python class implemented in Scapy. It executes so-called Enumerators which are service specific and create all possible packets for one service.
-For example, the enumerator for the DiagnosticSessionControl (DSC) service is called UDS\_DSCEnumerator. The most important member of the enumerator classes is the \_get\_initial\_requests method. The return value is an iterable object which contains all requests for this service. DSC has an eight bit identifier, leading to maximum 2\textsuperscript{8} packets for this enumerator. Each enumerator will be executed for each found state of the ECU. So, if enumerator x already ran, and afterwards a new state is found, this enumerator will run again within the same scan with the new-found state.
+For example, the enumerator for the DiagnosticSessionControl (DSC) service is called UDS\_DSCEnumerator. The most important member of the enumerator classes is the \_get\_initial\_requests method. The return value is an iterable object which contains all requests for this service. DSC has an eight bit identifier, leading to a maximum of 2\textsuperscript{8} packets for this enumerator. Each enumerator will be executed for each found state of the ECU. So, if an enumerator already ran, and afterwards a new state is found, this enumerator will run again within the same scan with the new-found state.
 
 For a better understanding the UDS\_DSCEnumerator implementation will be described.
 
@@ -215,7 +215,7 @@ class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
 \end{minted}
 \end{samepage}
 
-The method can be given keyword parameters. The only used on here is "session\_range". If none is given, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 packets for each state. This state is also a StateGenerator, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
+The method can be given keyword parameters. The only used on here is "session\_range". If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 packets for each state. This service is a StateGenerator, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
 
 
 The enumerators can output their results as a text-table. For example:
