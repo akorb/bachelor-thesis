@@ -10,3 +10,9 @@ ISOTP
 XCP
 GMLAN
 OBD
+OTH
+Nürnberg
+EDAG
+sepp
+intive
+Scapy
