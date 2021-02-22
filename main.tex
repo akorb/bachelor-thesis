@@ -119,15 +119,6 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%  File includes  %%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\includeonly{
-	chapters/chapter1,
-	chapters/erklaerung
-}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%  Document begin  %%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
@@ -137,14 +128,22 @@
 
 \include{chapters/erklaerung}
 
-\setcounter{tocdepth}{1} 	% Table of contents only Chapters and Sections
+\setcounter{tocdepth}{2} 	% Table of contents only Chapters and Sections
 \thispagestyle{empty}
 \tableofcontents
 
 
 
 \setcounter{page}{0}
-\include{chapters/chapter1}
+\include{chapters/1_introduction}
+\include{chapters/2_fundamentals}
+\include{chapters/3_test-environment}
+\include{chapters/4_profiling}
+\include{chapters/5_approaches}
+\include{chapters/6_implementation}
+\include{chapters/7_conclusion-and-future-work}
+
+\include{chapters/8_closing-words}
 
 \newpage
 
