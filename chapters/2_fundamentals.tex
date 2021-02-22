@@ -215,7 +215,7 @@ class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
 \end{minted}
 \end{samepage}
 
-The method can be given keyword parameters. The only used on here is "session\_range". If none is given, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 253 packets for each state. This state is also a StateGenerator, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
+The method can be given keyword parameters. The only used on here is "session\_range". If none is given, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 packets for each state. This state is also a StateGenerator, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
 
 
 The enumerators can output their results as a text-table. For example:
