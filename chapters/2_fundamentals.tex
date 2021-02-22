@@ -1,6 +1,50 @@
 \section{Technical fundamentals}
 
+This section will explain the technical fundamentals which are necessary to understand the full bachelor thesis.
+
 \subsection{The Scapy library}
+
+Scapy \cite{scapy} is a Python program that enables the user to send, sniff and dissect and forge network packets. This capability allows construction of tools that can probe, scan or attack networks.
+
+It can be imagined similar to Wireshark, except that its usage happens in the terminal and not only allows reading network packets, but also crafting and sending them. It can also be used as a library by importing the necessary classes and interfaces into the own Python program. Scapy supports Python 3 and additionally Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains the reason behind that:
+
+\begin{displayquote}
+    Scapy is a tool that can be used in a very large number of situations. Often, you don't get to choose the Python interpreter you have when you run Scapy. So, [...] we need to keep supporting Python 2.7 as long as we can.
+\end{displayquote}
+
+One of the core classes in Scapy is the \textbf{Packet} class. All definitions of network packet layers, such as Ethernet, IP, TCP, CAN, UDS and so on, are defined in a class inheriting from that class.
+
+The well-known UDP protocol \cite{udp} serves as an illustrative example.
+
+For this it will be shown how the UDP header, shown in \autoref{fig:uds_header} is translated to such a Scapy class.
+
+%UDP header
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{udp_header}
+    \caption{UDP header format \cite{udp_header}}
+    \label{fig:uds_header}
+\end{figure}
+
+The UDP header format contains four fields and the data field. These four fields are translated literally into the Scapy class \textbf{UDP}. The data field is not part of it because Scapy uses an explicit operator to append data to the header information. This is shown later.
+
+The following code snippet shows the explained class in the Scapy library.
+
+\begin{minted}{python}
+class UDP(Packet):
+   fields_desc = [ShortEnumField("sport", 53, UDP_SERVICES),
+                  ShortEnumField("dport", 53, UDP_SERVICES),
+                  ShortField("len", None),
+                  XShortField("chksum", None)]
+\end{minted}
+
+As in common programmer language, \textbf{short} specifies 16 bits. Since the UDP header only contains 16 bits fields, the Scapy definition only includes \textbf{short} fields. The first parameter of a field is always the name of this field. \textbf{sport} stands for source port, and \textbf{dport} for destination port.
+The next parameter sets the default value for this field. This is defined by the Scapy programmers in all conscience and not by the official UDP standard. \textbf{53} specifies the DNS protocol.
+\textbf{EnumField}s also contain a third argument. This is a simple dictionary mapping from machine-readable values to human-readable texts. For example, part of the \textbf{UDP\_SERVICES} dictionary is: \mintinline{python}{{53: "DNS", 80: "HTTP"}}
+
+
+
+
 
 \subsection{The UDS protocol}
 
