@@ -42,16 +42,16 @@ The following code snippet shows the explained class in the Scapy library.
 \begin{samepage}
 \begin{minted}{python}
 class UDP(Packet):
-   fields_desc = [ShortEnumField("sport", 53, UDP_SERVICES),
-                  ShortEnumField("dport", 53, UDP_SERVICES),
-                  ShortField("len", None),
-                  XShortField("chksum", None)]
+   fields_desc = [ShortEnumField('sport', 53, UDP_SERVICES),
+                  ShortEnumField('dport', 53, UDP_SERVICES),
+                  ShortField('len', None),
+                  XShortField('chksum', None)]
 \end{minted}
 \end{samepage}
 
 As in common programmer language, \textbf{short} specifies 16 bits. Since the UDP header only contains 16 bits fields, the Scapy definition only includes \textbf{short} fields. The first parameter of a field is always the name of this field. \textbf{sport} stands for source port, and \textbf{dport} for destination port.
 The next parameter sets the default value for this field. This is defined by the Scapy programmers in all conscience and not by the official UDP standard. \textbf{53} specifies the DNS protocol.
-\textbf{EnumField}s also contain a third argument. This is a simple dictionary mapping from machine-readable values to human-readable texts. For example, part of the \textbf{UDP\_SERVICES} dictionary is: \mintinline{python}{{53: "domain", 80: "www_http"}}
+\textbf{EnumField}s also contain a third argument. This is a simple dictionary mapping from machine-readable values to human-readable texts. For example, part of the \textbf{UDP\_SERVICES} dictionary is: \mintinline{python}{{53: 'domain', 80: 'www_http'}}
 The difference of ShortField and XShortField is only in the representation. The value of the XShortField will be displayed as a hex value and the ShortField as a decimal value.
 
 The following snippets shows some examples of how to instantiate an object of the UDP class and also demonstrates how to append data to the headers with the “/” operator.
@@ -59,7 +59,7 @@ The following snippets shows some examples of how to instantiate an object of th
 \begin{samepage}
 \begin{minted}{python}
 packet = UDP(dport=80) # is equivalent to:
-packet = UDP(dport="www_http")
+packet = UDP(dport='www_http')
 
 # Append 0x00 as data
 packet = UDP(dport=80) / Raw(b'\x00')
@@ -73,11 +73,11 @@ Now it shall be explained, how to actually send a packet and receive a response.
 # import necessary classes
 from scapy.arch.linux import L2Socket
 # Create a layer 2 socket specifing the interface name
-socket = L2Socket("eth0")
+socket = L2Socket('eth0')
 # Create a packet covering layer 2 to 7, targeting the Google server
 # This packet starts a TCP handshake, thus the SYN flag is exclusively set
 # Set destination port to HTTP and a high source port
-packet = Ether() / IP(dst="142.250.185.163") / TCP(flags="S", dport=80, sport=60123)
+packet = Ether() / IP(dst='142.250.185.163') / TCP(flags='S', dport=80, sport=60123)
 # sr1 stands for: send receive one
 # it sends the given packet and returns the response
 response = socket.sr1(packet)
@@ -109,7 +109,7 @@ The SYN and ACK flags are set now as expected for the TCP handshake. Furthermore
 
 The UDS Scanner later described in this work is mainly, but not exclusively, used with the ISOTP protocol. It is the transport protocol for the CAN bus (Controller Area Network). Thus, it will be explained here as well.
 
-There are two ISOTP socket implementations in Scapy. A software and a native implementation. The native implementation is only usable for Linux but the preferred one, since it uses the socket interface of Linux and brings all its advantages. Until including Linux kernel 5.9, the corresponding ISOTP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}.
+There are two ISOTP socket implementations in Scapy. A software and a native implementation. The native implementation is only usable for Linux but the preferred one because it uses the socket interface of Linux and brings all its advantages. Until including Linux kernel 5.9, the corresponding ISOTP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}.
 
 To create a virtual CAN interface, one line in a shell is sufficient:
 \begin{samepage}
@@ -125,8 +125,8 @@ The usage of the native implementation is illustrated in the following code snip
 \begin{samepage}
 \begin{minted}{python}
 from scapy.contrib.isotp import ISOTPNativeSocket
-socket = ISOTPNativeSocket("vcan0", sid=0x123, did=0x456)
-packet = Raw(b"\x01\x02")
+socket = ISOTPNativeSocket('vcan0', sid=0x123, did=0x456)
+packet = Raw(b'\x01\x02')
 socket.send(packet)
 \end{minted}
 \end{samepage}
@@ -192,7 +192,7 @@ A UDS packet enabling the extendedDiagnosticSession would be created with:
 
 \begin{samepage}
 \begin{minted}{python}
-packet = UDS() / UDS_DSC(diagnosticSessionType="extendedDiagnosticSession")
+packet = UDS() / UDS_DSC(diagnosticSessionType='extendedDiagnosticSession')
 \end{minted}
 \end{samepage}
 
