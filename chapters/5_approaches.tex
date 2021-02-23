@@ -50,8 +50,8 @@ It can be seen that if an identifier is available in Type1, it is likely that th
 
 The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. So, 2\textsuperscript{16} is the minimum number of requests for each state with the new behavior. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. Moreover, it was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning nearby identifiers instead of just that identifier will result in higher coverage. What needs to be found out is the block size which leads to the best coverage, while maintaining an appropriate speed-up.
 
-The limits of the speed-up is defined as following:
-\[ 0\ \% \ \leq\  s(n)\  \leq 66.\overline{66}\ \% \quad \forall \  n \in \left\{0, 1, ..., 2^{16 * 3}\right\} \]
+The limits of the speed-up are defined as following:
+\[ 0\ \% \ \leq\  s(n)\  \leq 66.\overline{66}\ \% \quad \forall \  n \in \left\{0, 1, ..., 2^{16} * 3\right\} \]
 %\[ 0\  \ \leq\  s(n)\  \leq \frac{2}{3} \quad \forall \  n \in \left\{0, 1, ..., 2^{16 * 3}\right\} \]
 wherin $s$ is the speed-up function and $n$ the number of generated requests.
 
