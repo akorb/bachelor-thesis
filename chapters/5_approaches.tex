@@ -42,7 +42,7 @@ As a first step to find a way to apply the approach to the RCEnumerator, the dis
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\textwidth]{rc-distribution}
-    \caption{Distribution of the RC identifiers. A color is one ECU.}
+    \caption{Distribution of the RC identifiers. Each color is one ECU.}
     \label{fig:rc-distribution}
 \end{figure}
 
@@ -94,6 +94,75 @@ Since the speed-up is high for each simulated block size, the highest coverage w
 
 
 \subsection{Reduction of scan range}
+Most services are simpler and don't have a type as the RC service but only an identifier. So, reusing information within the same scan is limited. Here the second approach will be applied to reduce the scan range. The idea is to scan more heavily the blocks where positive behavior is more likely than others. The approach will be applied to the Read Data By Identifier (RDBI) enumerator.
+
+The Read Data By Identifier service allows the client to request data record values from the server identified by one or more dataIdentifiers \cite{iso14229}. Again, for a quick overview of the service a simplified code snippet of the Scapy implementation is used.
+
+\begin{samepage}
+\begin{minted}{python}
+class UDS_RDBI(Packet):
+    fields_desc = [
+        XShortField('identifier', 0)
+    ]
+\end{minted}
+\end{samepage}
+
+To specify which data record to retrieve, there is the identifier field. Hence, because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
+\[f(n)=2^{16} * n\]
+wherin $n$ stands for the number of detected states. 
+
+So, the current RDBIEnumerator is very simple. It generates 2\textsuperscript{16} packets counting up from 0 to 65535 and generating for each number a packet with this number as identifier for each state.
+
+As a first step, the distribution of identifiers over all ECUs is visualized in a histogram, to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{rdbi-distribution}
+    \caption{Distribution of the RDBI identifiers. Each color is one ECU.}
+    \label{fig:rdbi-distribution}
+\end{figure}
+
+It can be clearly seen that there are some areas where not a single identifier was answered positively, and some areas that are particularly covered, such as the beginning and the end. This behavior will be exploited in the remainder of this section.
+
+As the procedure to reduce this range, first, the 2\textsuperscript{16} area has to be split up in blocks. Then, it is calculated how likely a positive response is for each of these blocks. Based on this information, the number of requests for each block will be calculated individually. For that, the probability is multiplied with the block size.
+\[c(p, s)=\max(p * s, 1)\]
+wherin p stands for the probability of the requested block and s for the block size. For each block should be generated at least one request. The requested identifiers within one block are generated randomly. If any of these requests is answered positively in a block, the whole block will be scanned.
+This leads to one question. Which block size leads to best results? This is again answered in a simulation.
+
+The simulation is performed for every possible block size, as such block sizes of $2^2, 2^3, ..., 2^{15}, 2^{16}$ are chosen because they are divisors for 2\textsuperscript{16}. For the current block size to simulate the probabilities for each block are calculated based on all ECUs together. The resulting coverage and speed-up are then calculated for each ECU specifically and averaged. The approach has one more feature which makes the simulation more complex than the former simulation. Since the blocks are first scanned randomly, the scan can lead to a great coverage, but also a low one, depending on the goodness of the generated identifiers. To reduce this effect, the calculation of the coverage and speed-up are made 100 times, each time with newly created identifiers. The 100 resulting values are averaged to the value corrected from the random factor.
+The following pseudocode shows the procedure more clearly.
+
+\begin{samepage}
+\begin{minted}{python}
+for exponent in range(2, 16):
+    block_size = 2 ** exponent
+    coverages = []
+    samples = []
+    probabilities = get_probabilities(ecus, block_size)
+    for ecu in ecus:
+        for i in range(100):
+            samples = random_samples(block_size, probabilities)
+            positive_identifiers = ecu.get_positive_identifiers(samples)
+            block_list = to_blocks(positive_identifiers, block_size)
+            positive_identifiers = ecu.get_positive_identifiers(block_list)
+
+            coverages.append(get_coverage(ecu, positive_identifiers))
+            samples.append(len(block_list))
+        avg_coverages, avg_samples = avg(coverages, samples)
+\end{minted}
+\end{samepage}
+
+This simulation leads to \autoref{fig:rdbi-simulation-result}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{rdbi-simulation-result}
+    \caption{Simulation result for the RDBI service.}
+    \label{fig:rdbi-simulation-result}
+\end{figure}
+
+The speed-up is not linear anymore, instead, the speed-up is the highest in the medium block sizes. From block sizes 64 to 128, the coverage decreases by 4\% while the speed-up remains the same. Thus, it was decided for \textbf{64} as the block size leading to best results.
+
 
 
 \subsection{Avoid the scan of unsupported services}

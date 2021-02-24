@@ -202,6 +202,10 @@ UDS not only allows to read data, but also to write. Which makes it especially c
 
 \subsection{The UDS Scanner}
 
+% TODO: Add that it was still work in progress while doing this work
+% and thus, that problems occured and had to be fixed.
+% Out of scope of this work.
+
 The UDS Scanner is a Python class implemented in Scapy. It executes so-called Enumerators which are service specific and create all possible packets for one service.
 For example, the enumerator for the DiagnosticSessionControl (DSC) service is called UDS\_DSCEnumerator. The most important member of the enumerator classes is the \_get\_initial\_requests method. The return value is an iterable object which contains all requests for this service. DSC has an eight bit identifier, leading to a maximum of 2\textsuperscript{8} packets for this enumerator. Each enumerator will be executed for each found state of the ECU. So, if an enumerator already ran, and afterwards a new state is found, this enumerator will run again within the same scan with the new-found state.
 
