@@ -164,5 +164,36 @@ This simulation leads to \autoref{fig:rdbi-simulation-result}.
 The speed-up is not linear anymore, instead, the speed-up is the highest in the medium block sizes. From block sizes 64 to 128, the coverage decreases by 4\% while the speed-up remains the same. Thus, it was decided for \textbf{64} as the block size leading to best results.
 
 
-
 \subsection{Avoid the scan of unsupported services}
+
+Each ECU usually only supports of a subset of the offered services by the UDS standard. This approach aims to avoid scanning them to save requests and therefore, time.
+
+The first thing to understand is how to tell if a service is supported or not. Figure 5 of the UDS standard shows the general server response behavior \cite{iso14229}. In this work, it can be found in \autoref{fig:server-response-behaviour} and the important area has been highlighted.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{server-response-behaviour}
+    \caption{General server response behavior. SID = service identifier.}
+    \label{fig:server-response-behaviour}
+\end{figure}
+
+Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current enumerator with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because in this behavior, in the worst case, a request for a service is generated for each state, which in turn receives 0x11 NRC. The number of states detected is usually one-digit, so the number of packets generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
+
+\autoref{fig:serviceNotSupported-savings} illustrates the approximate number of saved packets for each ECU. It is only an approximation because for this graph, the responses with the both described NRCs have been counted. Of course, not every response can be saved with these NRCs, since at least one request must first be made to see the NRC of that service for that state. But these numbers, as described in the previous paragraph, are very low and negligible, especially when considering that the minimum value of \autoref{fig:serviceNotSupported-savings} is ~70,000.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{serviceNotSupported-savings}
+    \caption{Saved number of requests with this approach (approx). Each color is one enumerator.}
+    \label{fig:serviceNotSupported-savings}
+\end{figure}
+
+There is one last potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is imaginable that the ECU responds with 0x11 or 0x7f at one identifier, even though a higher identifier would have actually been responded positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. This occurs only three ECUs.
+And in comparison to the potential savings (\autoref{fig:serviceNotSupported-savings}), the losses are negligible.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{serviceNotSupported-losses}
+    \caption{Lost number of positive responses if stopping after ECU indicated the service not supported.}
+    \label{fig:serviceNotSupported-losses}
+\end{figure}
