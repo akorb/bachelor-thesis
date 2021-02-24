@@ -18,3 +18,5 @@ intive
 Scapy
 Datagram
 DiagnosticSessionControl
+ShortField
+XShortField

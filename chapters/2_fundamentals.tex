@@ -12,21 +12,19 @@ This section will explain the technical fundamentals which are necessary to unde
     %\label{fig:scapy-logo}
 \end{wrapfigure}
 
-Scapy \cite{scapy} is a Python program that enables the user to send, sniff and dissect and forge network packets. This capability allows construction of tools that can probe, scan or attack networks.
+Scapy is a powerful interactive packet manipulation program. It is able to forge or decode packets of a wide number of protocols, send them on the wire, capture them, match requests and replies, and much more \cite{scapy}.
 
-It can be imagined similar to Wireshark, except that its usage happens in the terminal and not only allows reading network packets, but also crafting and sending them. It can also be used as a library by importing the necessary classes and interfaces into the own Python program. Scapy supports Python 3 and additionally Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains the reason behind that \cite{scapy-py2}:
+It is used through a text-based user interface. This has the advantage of being very lightweight, and also work via a ssh connection out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into the own Python program. Scapy supports Python 3 and additionally Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains the reason behind that \cite{scapy-py2}:
 
 \begin{displayquote}
     Scapy is a tool that can be used in a very large number of situations. Often, you don't get to choose the Python interpreter you have when you run Scapy. So, [...] we need to keep supporting Python 2.7 as long as we can.
 \end{displayquote}
 
-Understanding Scapy will be important for the later implementation in this work, since the UDS Scanner to be modified in this work is built within Scapy.
+Understanding Scapy will be important for the later implementation in this work, since the UDS Scanner to be modified is built within Scapy.
 
 One of the core classes in Scapy is the \textbf{Packet} class. All definitions of network packet layers, such as Ethernet, IP, TCP, CAN, UDS and so on, are defined in a class inheriting from that class.
 
-The well-known and simple UDP protocol \cite{rfc768} serves as an illustrative example.
-
-For this it will be shown how the UDP header, shown in \autoref{fig:uds_header} is translated to such a Scapy class.
+The well-known and simple UDP protocol \cite{rfc768} serves as an illustrative example. It will be shown how the UDP header, shown in \autoref{fig:uds_header}, is translated to such a Scapy class.
 
 %UDP header
 \begin{figure}[h]
@@ -38,7 +36,7 @@ For this it will be shown how the UDP header, shown in \autoref{fig:uds_header} 
 
 The UDP header format contains four fields and the data field. These four fields are translated literally into the Scapy class \textbf{UDP}. The data field is not part of it because Scapy uses an explicit operator to append data to the header information. This is shown later.
 
-The following code snippet shows the explained class in the Scapy library.
+The following code snippet shows the mentioned class in the Scapy library.
 
 \begin{samepage}
 \begin{minted}{python}
@@ -55,7 +53,7 @@ The next parameter sets the default value for this field. This is defined by the
 \textbf{EnumField}s also contain a third argument, a simple dictionary mapping from machine-readable values to human-readable texts. For example, part of the \textbf{UDP\_SERVICES} dictionary is: \mintinline{python}{{53: 'domain', 80: 'www_http'}}.
 The difference between ShortField and XShortField is only the representation. The value of the XShortField will be displayed as a hex value and the ShortField as a decimal value.
 
-The following snippets shows some examples of how to instantiate an object of the UDP class and also demonstrates how to append data to the headers with the “/” operator.
+The following snippet shows some examples of how to instantiate an object of the UDP class and also demonstrates how to append data to the headers with the “/” operator.
 
 \begin{samepage}
 \begin{minted}{python}
@@ -106,13 +104,13 @@ The .show() command gives the following output. It has been slightly edited to b
 \end{minted}
 \end{samepage}
 
-The SYN and ACK flags are set now as expected for the TCP handshake. Furthermore, the dport of the response is the sport of the request.
+The SYN and ACK flags are set now as expected for the TCP handshake. Furthermore, the sport of the request is the dport of the response.
 
-The UDS Scanner later described in this work is mainly, but not exclusively, used with the ISOTP protocol. It is the transport protocol for the CAN bus (Controller Area Network). Thus, it will be explained here as well.
+The UDS Scanner later described in this work is mainly, but not exclusively, used with the ISOTP protocol. It is the transport protocol for the Controller Area Network bus (CAN bus). Thus, it is explained here as well.
 
 There are two ISOTP socket implementations in Scapy. A software and a native implementation. The native implementation is only usable for Linux but the preferred one because it uses the socket interface of Linux and brings all its advantages, such as waiting for answers asynchronously while the own process doesn't require any CPU time. Until including Linux kernel 5.9, the corresponding ISOTP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}.
 
-To create a virtual CAN interface, one command in a shell is sufficient:
+To create a virtual CAN interface, only one command in a shell is required:
 \begin{samepage}
 \begin{minted}{text}
 sudo ip link add vcan0 type vcan
@@ -135,7 +133,7 @@ socket.send(packet)
 
 \subsection{The UDS protocol}
 
-UDS stands for \emph{Unified diagnostic services} and is an application protocol defined in ISO 14229 \cite{iso14229}. This protocol defines the structure of diagnostic request and response packets sent over an arbitrary data link.
+UDS stands for \emph{Unified diagnostic services} and is an application protocol defined in ISO 14229 \cite{iso14229}. This protocol defines the structures of request and response packets for diagnostic purposes sent over an arbitrary data link.
 
 %UDS stack
 \begin{figure}[h]
@@ -145,9 +143,9 @@ UDS stands for \emph{Unified diagnostic services} and is an application protocol
     \label{fig:uds-stack}
 \end{figure}
 
-As shown in \autoref{fig:uds-stack}, the most common data links for the UDS protocol are the Ethernet and the CAN protocol. Others can and are used as well, explicitly stated in the UDS standard are FlexRay, K-Line and LIN.
+As shown in \autoref{fig:uds-stack}, the most common data links for the UDS protocol are the Ethernet and the CAN bus. Others can and are used as well, explicitly stated in the UDS standard are FlexRay, K-Line and LIN.
 
-The UDS protocol defines various services with different purposes. For example the DiagnosticSessionControl service is used to enable different diagnostic sessions in the ECU. Its identifier is the number 0x10. All packets requesting this service specify this value as the first byte. The response identifiers are defined as 0x40 added to the request identifier. Thus, for the DiagnosticSessionControl the positive response identifier is 0x10 + 0x40 = 0x50. A negative response always has the identifier 0x7f. This service is able to change the state of the ECU. Although the ReadDataByIdentifier service is not able to change the state, it is still very important. Data records in the ECU are stored with an identifier as the key. This service allows to read these values from an external device. Since there can be data stored, which is not meant to be read by everybody, there is another service called SecurityAccess, which allows to unlock these information for external devices. This mechanism is used for other services as well. The SecurityAccess uses the challenge–response authentication in which an algorithm is the secret. It follows the following sequence \cite{iso14229}:
+The UDS protocol defines various services with different purposes. For example, the DiagnosticSessionControl service is used to enable different diagnostic states in the ECU. Its identifier is the number 0x10. All packets requesting this service specify this value as the first byte. The identifiers in the responses are defined as 0x40 added to the request identifier. Thus, for the DiagnosticSessionControl the positive response identifier is 0x10 + 0x40 = 0x50. A negative response always has the identifier 0x7f. This service is able to change the state of the ECU. Although the ReadDataByIdentifier service is not able to change the state, it is still very important. Data records in an ECU are stored with an identifier as the key. This service allows to read these values from an external device. Since there can be data stored, which is not meant to be read by everybody, there is another service called SecurityAccess, which allows to unlock these information for external devices. This mechanism is used for other services as well. The SecurityAccess service uses the challenge–response authentication in which an algorithm is the secret. It follows the following sequence \cite{iso14229}:
 
 \begin{samepage}
 \begin{enumerate}
@@ -158,13 +156,13 @@ The UDS protocol defines various services with different purposes. For example t
 \end{enumerate}
 \end{samepage}
 
-Now the implementation in Scapy will be described.
+Now the implementation of UDS in Scapy is described.
 
 \begin{samepage}
 \begin{minted}{python}
 class UDS(ISOTP):
-    services = ObservableDict(
-        {0x10: 'DiagnosticSessionControl',
+    services = {
+         0x10: 'DiagnosticSessionControl',
          # [...]
          0x22: 'ReadDataByIdentifier',
          # [...]
@@ -182,7 +180,7 @@ The UDS class contains only the service field. Even though the whole UDS protoco
 \begin{samepage}
 \begin{minted}{python}
 class UDS_DSC(Packet):
-    diagnosticSessionTypes = ObservableDict({ ... })
+    diagnosticSessionTypes = { ... }
     fields_desc = [
         ByteEnumField('diagnosticSessionType', 0,  diagnosticSessionTypes)
     ]
@@ -206,22 +204,21 @@ UDS not only allows to read data, but also to write. Which makes it especially c
 % and thus, that problems occured and had to be fixed.
 % Out of scope of this work.
 
-The UDS Scanner is a Python class implemented in Scapy. It executes so-called Enumerators which are service specific and create all possible packets for one service.
-For example, the enumerator for the DiagnosticSessionControl (DSC) service is called UDS\_DSCEnumerator. The most important member of the enumerator classes is the \_get\_initial\_requests method. The return value is an iterable object which contains all requests for this service. DSC has an eight bit identifier, leading to a maximum of 2\textsuperscript{8} packets for this enumerator. Each enumerator will be executed for each found state of the ECU. So, if an enumerator already ran, and afterwards a new state is found, this enumerator will run again within the same scan with the new-found state.
+The UDS Scanner is a Python class implemented in Scapy. It executes so-called Enumerators which are service-specific and create all possible packets for a service.
+For example, the enumerator for the DiagnosticSessionControl (DSC) service is called UDS\_DSCEnumerator. The most important member of the enumerator classes is the \mintinline{python}{_get_initial_requests} method. The return value is an iterable object which contains all requests for this service. DSC has an eight bit identifier, leading to a maximum of 2\textsuperscript{8} packets for this enumerator. Each enumerator will be executed for each found state of the ECU. So, if an enumerator already ran, and afterwards a new state is found, this enumerator will run again within the same scan with the new-found state.
 
-For a better understanding the UDS\_DSCEnumerator implementation will be described.
+For a better understanding, the UDS\_DSCEnumerator implementation will be described.
 
 \begin{samepage}
 \begin{minted}{python}
 class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
     def _get_initial_requests(self, **kwargs):
         session_range = kwargs.pop('session_range', range(2, 0x100))
-        return list(UDS() / UDS_DSC(diagnosticSessionType=session_range))
+        return (UDS() / UDS_DSC(diagnosticSessionType=session_range))
 \end{minted}
 \end{samepage}
 
-The method can be given keyword parameters. The only used on here is "session\_range". If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 packets for each state. This service is a StateGenerator, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
-
+The method can be given keyword parameters. The only one used here is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 packets for each state. This service is a StateGenerator, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
 
 The enumerators can output their results as a text-table. For example:
 
@@ -235,4 +232,4 @@ TesterPresent: | PR: Supported | PR: Supported | PR: Supported |
 \end{minted}
 \end{samepage}
 
-This means, the packet of the TesterPresent service was positively answered by the ECU in all three found states. session1 is the default state of the ECU, and never detected but added in code at the beginning of each UDS Scanner run.
+This means, the request of the TesterPresent service was positively answered by the ECU in all three found states. Session1 is the initial state the UDS Scanner starts with.
