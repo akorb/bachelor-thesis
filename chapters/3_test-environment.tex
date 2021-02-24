@@ -93,7 +93,7 @@ The former contains which enumerator ran under which state and when. It contains
     \end{minted}
 \end{samepage}
 
-Each line in the milestones.csv contains a timestamp and the name of the final state of a found state path and its timestamp:
+Each line in the milestones.csv contains a timestamp and the name of the final state of a found state path and its timestamp. Hence, a state name can occur multiple times in this file, if there are more paths to the same state. What path is taken is decided later in the UDS scanner with finding the shortest path using the Dijkstra algorithm.
 
 \begin{samepage}
     \begin{minted}{text}
@@ -104,19 +104,15 @@ Each line in the milestones.csv contains a timestamp and the name of the final s
     \end{minted}
 \end{samepage}
 
-From this follows that a name can occur multiple times in this file, if there are more paths to the same state. What path will be taken is decided later in the UDS scanner after detecting it with the Dijkstra algorithm to find the shortest path.
-
 Last but not least, the data.pkl file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The data.pkl file is the UDS scanner object after the scan, thus containing all results. This is helpful for debugging, analysis and also for simulation.
 
 \subsection{Profiling the UDS Scanner}
 
-The Pareto principle indicates that small number of causes can be responsible for a large percentage of effects \cite{pareto}. This is also applicable to optimization problems. Usually only a few number of code lines are responsible for the majority of the runtime. Optimizing them is far more effective than performing micro-optimizations as they naturally improve the performance to a great extent. Moreover, micro-optimizations are usually even more difficult to accomplish.
+The Pareto principle indicates that small number of causes can be responsible for a large percentage of effects \cite{pareto}. This is also applicable to optimization problems. Usually only a few number of code lines are responsible for the majority of the runtime. Optimizing them is far more effective than performing micro-optimizations as they naturally improve the performance to a great extent. Moreover, micro-optimizations are usually even more difficult to accomplish. For example, before profiling, one idea was to improve the scheduling of the enumerators to avoid ECU resets. Each reset takes a few seconds of cool-down time. With the profiling results (see \autoref{fig:tesla-gantt}), it turned out that the ECU Reset times are negligible compared to the times required by some enumerators.
 
-This is where the profiling.csv and the milestones.csv come into play to profile the UDS Scanner to find those places in need of optimization.
+For profiling the UDS Scanner its profiling.csv and milestones.csv files are used. They are used to create Gantt charts that show which parts of the UDS scanner take up most of its runtime. All diagrams in this work, including the Gantt charts, are generated with the library plotly for Python \cite{plotly}.
 
-These files are used to create Gantt charts that show which parts of the UDS scanner take up most of its runtime. All diagrams in this work, including the Gantt charts, are generated with the library plotly for Python \cite{plotly}.
-
-These Gantt charts have been created for each available ECU. For illustration one is sufficient since each chart showed the same gist (see \autoref{fig:tesla-gantt}).
+These charts have been created for each available ECU. For illustration one is sufficient since each chart showed the same gist (see \autoref{fig:tesla-gantt}).
 
 \begin{figure}[h]
     \centering
