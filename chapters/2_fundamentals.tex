@@ -214,7 +214,7 @@ For a better understanding, the UDS\_DSCEnumerator implementation will be descri
 class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
     def _get_initial_requests(self, **kwargs):
         session_range = kwargs.pop('session_range', range(2, 0x100))
-        return (UDS() / UDS_DSC(diagnosticSessionType=session_range))
+        return UDS() / UDS_DSC(diagnosticSessionType=session_range)
 \end{minted}
 \end{samepage}
 

@@ -17,7 +17,7 @@ The infrastructure of Laboratory for Safe and Secure Systems (LaS3) was used for
     \label{fig:gitlab-screenshot}
 \end{figure}
 
-Fourteen ECUs are available for testing on this server. Three of them are from Opel and thus only support GMLAN but not UDS.
+Fourteen ECUs are available for testing on this server. However, three of them are from Opel and therefore only support GMLAN but not UDS.
 
 For each ECU a YAML configuration file has been created. Various work is done here, for example installing this CAN-ISOTP module, if the running device is not at least on Linux 5.10 (see \autoref{sec:scapy}). Also, the current Scapy tree from the currently working branch is pulled and checked out.
 
@@ -49,7 +49,7 @@ The candump.log file is created by the candump program from the can-utils \cite{
 \end{minted}
 \end{samepage}
 
-Unfortunately, these resulting files contain a lot of information that is not only not needed, but also unwanted, as it leads to more difficult analysis and to higher storage usage. \autoref{fig:can-unwanted-information} shows the unnecessary information as it is ECU specific and does not add any value for the analysis.
+Unfortunately, these files contain a lot of information that is not only not needed, but also unwanted, as it leads to more difficult analysis and to higher storage usage. \autoref{fig:can-unwanted-information} shows the information that is not needed because it is ECU specific and does not add any value for the analysis.
 
 %CAN unwanted information
 \begin{figure}[h]
@@ -59,7 +59,7 @@ Unfortunately, these resulting files contain a lot of information that is not on
     \label{fig:can-unwanted-information}
 \end{figure}
 
-Consequently, an abstraction is desirable. The newly created format is called the generic format. It removes the interface, the padding, resolves the transport protocol information (ISOTP) and replaced the identifier with mnemonics (s = Server, c = Client). Each line represents a full UDS packet, instead of a CAN packet as in the candump logs. \autoref{fig:candump-generic-conversion} illustrates the input and output of a conversion.
+Consequently, an abstraction is desirable. The newly created format is called the generic format. It removes the interface, the padding, resolves the transport protocol information (ISOTP) and replaces the identifier with representatives (s = Server, c = Client). Each line represents a full UDS packet, instead of a lower layer CAN packet as in the candump logs. \autoref{fig:candump-generic-conversion} illustrates the input and output of a conversion.
 
 %candump to generic conversion
 \begin{figure}[h]
@@ -71,7 +71,7 @@ Consequently, an abstraction is desirable. The newly created format is called th
 
 This format proved to be very useful as it allows quick analysis by chaining common Linux programs.
 
-For instance, counting the number of requests of one scan is a single command:
+For instance, counting the number of requests of a scan is a single command:
 \begin{samepage}
     \begin{minted}{bash}
         $ grep '^c.*' -c generic.log
@@ -79,9 +79,9 @@ For instance, counting the number of requests of one scan is a single command:
     \end{minted}
 \end{samepage}
 
-For profiling, two csv files have been added as output for the UDS scanner, namely profiling.csv and milestones.csv.
+For profiling, two files have been added as output to the UDS scanner, namely profiling.csv and milestones.csv.
 
-The former contains which enumerator ran under which state and when. It contains a fairly simple format, only containing the expected information:
+The former contains which enumerator ran under which state and when. It follows a fairly simple structure:
 
 \begin{samepage}
     \begin{minted}{text}
@@ -92,6 +92,8 @@ The former contains which enumerator ran under which state and when. It contains
         [session1],UDS_DSCEnumerator,1611770231.756320,1611770231.895722
     \end{minted}
 \end{samepage}
+
+Although an ECU Reset has no state, all occurrences of it get the same named state for better visualization of the log later.
 
 Each line in the milestones.csv contains a timestamp and the name of the final state of a found state path and its timestamp. Hence, a state name can occur multiple times in this file, if there are more paths to the same state. What path is taken is decided later in the UDS scanner with finding the shortest path using the Dijkstra algorithm.
 
@@ -104,27 +106,27 @@ Each line in the milestones.csv contains a timestamp and the name of the final s
     \end{minted}
 \end{samepage}
 
-Last but not least, the data.pkl file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The data.pkl file is the UDS scanner object after the scan, thus containing all results. This is helpful for debugging, analysis and also for simulation.
+Last but not least, the data.pkl file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The data.pkl file is the serialized UDS scanner object after the scan, thus it contains all the results consisting of the responses for each request with the current state of the ECU. This is helpful for debugging, analysis and also for simulation.
+
 
 \subsection{Profiling the UDS Scanner}
 
-The Pareto principle indicates that small number of causes can be responsible for a large percentage of effects \cite{pareto}. This is also applicable to optimization problems. Usually only a few number of code lines are responsible for the majority of the runtime. Optimizing them is far more effective than performing micro-optimizations as they naturally improve the performance to a great extent. Moreover, micro-optimizations are usually even more difficult to accomplish. For example, before profiling, one idea was to improve the scheduling of the enumerators to avoid ECU resets. Each reset takes a few seconds of cool-down time. With the profiling results (see \autoref{fig:tesla-gantt}), it turned out that the ECU Reset times are negligible compared to the times required by some enumerators.
+The Pareto principle indicates that small number of causes can be responsible for a large percentage of effects \cite{pareto}. This is also applicable to optimization problems. Usually only a few number of code lines are responsible for the majority of the runtime. Optimizing them is far more effective than performing micro-optimizations as they naturally improve the performance to a great extent. Moreover, micro-optimizations are usually even more difficult to accomplish. For example, before profiling, an idea was to improve the scheduling of the enumerators to avoid ECU resets. Each reset takes a few seconds of cool-down time. With the profiling results (see \autoref{fig:tesla-gantt}), it turned out that the ECU Reset times are negligible compared to the times required by some enumerators.
 
-For profiling the UDS Scanner its profiling.csv and milestones.csv files are used. They are used to create Gantt charts that show which parts of the UDS scanner take up most of its runtime. All diagrams in this work, including the Gantt charts, are generated with the library plotly for Python \cite{plotly}.
+To profile the UDS Scanner its profiling.csv and milestones.csv files are used. With their help Gantt charts are created which show the sequence and duration of enumerators within a scan. This visualizes what parts of the UDS scanner take up most of its runtime.
 
 These charts have been created for each available ECU. For illustration one is sufficient since each chart showed the same gist (see \autoref{fig:tesla-gantt}).
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=1\textwidth]{tesla-gantt}
-    \caption{Gantt chart of the Tesla-Airbag-ECU.}
+    \includegraphics[width=0.9\textwidth]{tesla-gantt}
+    \caption{Gantt chart of the Tesla-Airbag-ECU. One color represents one state of the ECU.}
     \label{fig:tesla-gantt}
 \end{figure}
 
-The time is represented on the x-axis and the enumerators and events are listed on the y-axis. One color represents one state of the ECU.
 Although it seems that some enumerators and events do not require time, their time consumption is only so small that they are not or hardly visible in this scaled-down version of the diagram.
 
 The main cause of runtime is the RCEnumerator. This was expected, since this is the enumerator with the most generated requests. In second place are the IOCBIEnumerator and the WDBISelectiveEnumerator. The latter consists of actually two enumerators, the RDBIEnumerator and the WDBIEnumerator. The RDBIEnumerator generates more requests than the WDBIEnumerator to a large extent, which accordingly hardly contributes to the runtime. Therefore, for simplicity, this enumerator will be called RDBIEnumerator from here on.
-The IOCBIEnumerator and RDBIEnumerator generate about the same runtime, this was to be expected since they generate the same number of requests. The RDBI service is much more frequently supported by ECUs than the IOCBI service, resulting in a smaller database, so it was decided that the RDBI service would be optimized instead of the IOCBI service.
+The IOCBIEnumerator and RDBIEnumerator generate about the same runtime, this was to be expected since they generate the same number of requests. The RDBI service is more frequently supported by ECUs than the IOCBI service, resulting in a smaller database. So it was decided that the RDBIEnumerator would be optimized instead of the IOCBIEnumerator.
 
 In summary, the RCEnumerator and the RDBIEnumerator are the most critical performance barriers of the UDS scanner and therefore belong to the subjects to optimize.

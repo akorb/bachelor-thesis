@@ -23,11 +23,11 @@ class UDS_RC(Packet):
 \end{minted}
 \end{samepage}
 
-The routineControlType field specifies what to do with a routine. Possible are starting, stopping and requesting the results. To specify which routine is to be controlled, there is the routineIdentifier field. Hence, there are three control types, and because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
-\[f(n)=3 * 2^{16} * n\]
+The \mintinline{python}{routineControlType} field specifies what to do with a routine. Possible are starting, stopping and requesting the results. To specify which routine is to be controlled, there is the \mintinline{python}{routineIdentifier} field. Hence, there are three control types, and because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
+\[f(n)=3 * 2^{16} \cdot n\]
 wherin $n$ stands for the number of detected states.
 
-The current RCEnumerator does exactly this, it generates the full range for each states. That's what needs to be reduced. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas show the scanned regions.
+The current RCEnumerator does exactly this, it generates the full range for each state. That's what needs to be reduced. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas show the scanned regions.
 
 \begin{figure}[h]
     \centering
@@ -41,7 +41,7 @@ As a first step to find a way to apply the approach to the RCEnumerator, the dis
 % TODO: maybe to attachments
 \begin{figure}[h]
     \centering
-    \includegraphics[width=1\textwidth]{rc-distribution}
+    \includegraphics[width=0.9\textwidth]{rc-distribution}
     \caption{Distribution of the RC identifiers. Each color is one ECU.}
     \label{fig:rc-distribution}
 \end{figure}
@@ -51,28 +51,28 @@ It can be seen that if an identifier is available in Type1, it is likely that th
 The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. So, 2\textsuperscript{16} is the minimum number of requests for each state with the new behavior. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. Moreover, it was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning nearby identifiers instead of just that identifier will result in higher coverage. What needs to be found out is the block size which leads to the best coverage, while maintaining an appropriate speed-up.
 
 The limits of the speed-up are defined as following:
-\[ 0\ \% \ \leq\  s(n)\  \leq 66.\overline{66}\ \% \quad \forall \  n \in \left\{0, 1, ..., 2^{16} * 3\right\} \]
+\[ 0\ \% \ \leq\  s(n)\  \leq 66.\overline{66}\ \% \quad \forall \  n \in \left\{0, 1, ..., 2^{16} \cdot 3\right\} \]
 %\[ 0\  \ \leq\  s(n)\  \leq \frac{2}{3} \quad \forall \  n \in \left\{0, 1, ..., 2^{16 * 3}\right\} \]
 wherin $s$ is the speed-up function and $n$ the number of generated requests.
 
-The reason for the upper limit of $66.\overline{66}$ \% of this approach for this enumerator is because the first third is type1 and this is always scanned completely.
+The reason for the upper limit of $66.\overline{66}$ \% of this approach for this enumerator is that Type1, which is one third of all possible requests, is always scanned completely.
 
 To find out the best value, scans with different block sizes are simulated. For a quick simulation another observation is used. If one identifier is available in one state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still very close to the real ECUs. The simulation only uses information gathered from the real ECUs as described in \autoref{sec:data-gathering}. Specifically, the required information is extracted from the generic.log file.
 
-As described, the simulation starts with getting all identifiers which have been positively answered of the currently simulated ECU. Subsequently, these identifiers are expanded to blocks of the size from 1 to 200. Overlapping blocks are resolved to one continuous space. With these blocks the coverage and the number of requests can be calculated. The number of requests can be converted to the speed-up. The results are averaged.
-The blocks are expanded in both directions. So, for example, if the identifier 500 has been answered positively and the block size is 100, it leads to range from 400 to 600. A simulation was also run with expanding individual identifiers in one direction only, which yielded very similar results. Thus, it was left with the expansion in both directions. 
+As described, the simulation starts with getting all identifiers which have been positively answered by the currently simulated ECU. Subsequently, these identifiers are expanded to both sites from 0 to 200. Overlapping blocks are resolved to one continuous space. With these blocks the coverage and the number of requests can be calculated. The number of requests can be converted to the speed-up. The results are averaged.
+The blocks are expanded to both sites. So, for example, if the identifier 500 has been answered positively and the expansion size is 100, it leads to block from 400 to 600. A simulation was also run with expanding individual identifiers in to one site only, which yielded very similar results. Thus, it was left with the expansion in both directions. 
 The following pseudocode shows the procedure more clearly.
 
 \begin{samepage}
 \begin{minted}{python}
 coverages = []
 speedups = []
-for block_width in range(200):
+for expansion_size in range(200):
     coverages_block = []
     speedups_block = []
     for ecu in ecus:
         ids_type1 = get_type1_ids(ecu)
-        to_scan = ids_to_block(ids_type1, block_width)
+        to_scan = ids_to_block(ids_type1, expansion_size)
         coverages_block.append(get_coverage(ecu, to_scan))
         count_requests = len(to_scan)
         speedups_block.append(get_speedup(ecu, count_requests))
@@ -81,7 +81,7 @@ for block_width in range(200):
 \end{minted}
 \end{samepage}
 
-The results of this simulation are plotted in \autoref{fig:rc-simulation-result}. The speed-up is linear to the block size. That makes sense, because the larger the blocks are, the more requests are generated, since the positively answered identifiers are independent of the block size. The block size of zero represents the results without using the locality effect. The maximum difference in coverage of with and without locality effect are 22\%, even though the maximum speed-up difference is only 1\%.
+The results of this simulation are plotted in \autoref{fig:rc-simulation-result}. The speed-up is linear to the expansion size. That makes sense, because the larger the blocks are, the more requests are generated. The expanion size of zero represents the results without using the locality effect. The maximum difference in coverage between with and without locality effect are 22\%, even though the maximum speed-up difference is only 1\%.
 
 \begin{figure}[h]
     \centering
@@ -107,13 +107,13 @@ class UDS_RDBI(Packet):
 \end{minted}
 \end{samepage}
 
-To specify which data record to retrieve, there is the identifier field. Hence, because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
-\[f(n)=2^{16} * n\]
+To specify which data record to retrieve, there is the \mintinline{python}{identifier} field. Hence, because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
+\[f(n)=2^{16} \cdot n\]
 wherin $n$ stands for the number of detected states. 
 
 So, the current RDBIEnumerator is very simple. It generates 2\textsuperscript{16} packets counting up from 0 to 65535 and generating for each number a packet with this number as identifier for each state.
 
-As a first step, the distribution of identifiers over all ECUs is visualized in a histogram, to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
+As a first step, the distribution of identifiers over all ECUs is visualized in a histogram to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
 
 \begin{figure}[h]
     \centering
@@ -122,14 +122,14 @@ As a first step, the distribution of identifiers over all ECUs is visualized in 
     \label{fig:rdbi-distribution}
 \end{figure}
 
-It can be clearly seen that there are some areas where not a single identifier was answered positively, and some areas that are particularly covered, such as the beginning and the end. This behavior will be exploited in the remainder of this section.
+It is clearly visible that there are some areas where not a single identifier was answered positively, and some areas that are particularly covered, such as the beginning and the end. This behavior will be exploited in the remainder of this section.
 
 As the procedure to reduce this range, first, the 2\textsuperscript{16} area has to be split up in blocks. Then, it is calculated how likely a positive response is for each of these blocks. Based on this information, the number of requests for each block will be calculated individually. For that, the probability is multiplied with the block size.
-\[c(p, s)=\max(p * s, 1)\]
+\[c(p, s)=\max(p \cdot s, 1)\]
 wherin p stands for the probability of the requested block and s for the block size. For each block should be generated at least one request. The requested identifiers within one block are generated randomly. If any of these requests is answered positively in a block, the whole block will be scanned.
 This leads to one question. Which block size leads to best results? This is again answered in a simulation.
 
-The simulation is performed for every possible block size, as such block sizes of $2^2, 2^3, ..., 2^{15}, 2^{16}$ are chosen because they are divisors for 2\textsuperscript{16}. For the current block size to simulate the probabilities for each block are calculated based on all ECUs together. The resulting coverage and speed-up are then calculated for each ECU specifically and averaged. The approach has one more feature which makes the simulation more complex than the former simulation. Since the blocks are first scanned randomly, the scan can lead to a great coverage, but also a low one, depending on the goodness of the generated identifiers. To reduce this effect, the calculation of the coverage and speed-up are made 100 times, each time with newly created identifiers. The 100 resulting values are averaged to the value corrected from the random factor.
+The simulation is performed for every possible block size, as such block sizes of $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. For the current block size to simulate the probabilities for each block are calculated based on all ECUs together. The resulting coverage and speed-up are then calculated for each ECU specifically and averaged. The approach has one more feature which makes the simulation more complex than the former simulation. Since the blocks are first scanned randomly, the scan can lead to a great coverage, but also a low one, depending on the goodness of the generated identifiers. To reduce this effect, the calculation of the coverage and speed-up are made 100 times, each time with newly created random identifiers. The 100 results are averaged to the value corrected from the random factor.
 The following pseudocode shows the procedure more clearly.
 
 \begin{samepage}
@@ -161,23 +161,23 @@ This simulation leads to \autoref{fig:rdbi-simulation-result}.
     \label{fig:rdbi-simulation-result}
 \end{figure}
 
-The speed-up is not linear anymore, instead, the speed-up is the highest in the medium block sizes. From block sizes 64 to 128, the coverage decreases by 4\% while the speed-up remains the same. Thus, it was decided for \textbf{64} as the block size leading to best results.
+The speed-up is no longer linear; instead, the speed-up is highest for medium block sizes. From block sizes 64 to 128, the coverage decreases by 4\% while the speed-up remains the same. Thus, it was decided for \textbf{64} as the block size leading to best results.
 
 
 \subsection{Avoid the scan of unsupported services}
 
-Each ECU usually only supports of a subset of the offered services by the UDS standard. This approach aims to avoid scanning them to save requests and therefore, time.
+Each ECU usually only supports a subset of the offered services by the UDS standard. This approach aims to avoid scanning them to save requests and therefore, time.
 
-The first thing to understand is how to tell if a service is supported or not. Figure 5 of the UDS standard shows the general server response behavior \cite{iso14229}. In this work, it can be found in \autoref{fig:server-response-behaviour} and the important area has been highlighted.
+The first thing to understand is how to tell if a service is supported or not. Figure 5 of the UDS standard shows the general server response behavior. In this work, it can be found in \autoref{fig:server-response-behaviour} and the important area has been highlighted.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\textwidth]{server-response-behaviour}
-    \caption{General server response behavior. SID = service identifier.}
+    \caption{General server response behavior \cite{iso14229}. SID = service identifier.}
     \label{fig:server-response-behaviour}
 \end{figure}
 
-Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current enumerator with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because in this behavior, in the worst case, a request for a service is generated for each state, which in turn receives 0x11 NRC. The number of states detected is usually one-digit, so the number of packets generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
+Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current enumerator with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service for each state, which in turn receives 0x11 NRC again and then stops the enumerator. The number of states detected is usually one-digit, so the number of packets generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
 
 \autoref{fig:serviceNotSupported-savings} illustrates the approximate number of saved packets for each ECU. It is only an approximation because for this graph, the responses with the both described NRCs have been counted. Of course, not every response can be saved with these NRCs, since at least one request must first be made to see the NRC of that service for that state. But these numbers, as described in the previous paragraph, are very low and negligible, especially when considering that the minimum value of \autoref{fig:serviceNotSupported-savings} is ~70,000.
 
@@ -188,7 +188,7 @@ Each request is answered by a response, either positive or negative. A negative 
     \label{fig:serviceNotSupported-savings}
 \end{figure}
 
-There is one last potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is imaginable that the ECU responds with 0x11 or 0x7f at one identifier, even though a higher identifier would have actually been responded positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. This occurs only three ECUs.
+There is one last potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is conceivable that the ECU responds at to an identifier with 0x11 or 0x7f, although a subsequent identifier would actually have been answered positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. This occurs only three ECUs.
 And in comparison to the potential savings (\autoref{fig:serviceNotSupported-savings}), the losses are negligible.
 
 \begin{figure}[h]
