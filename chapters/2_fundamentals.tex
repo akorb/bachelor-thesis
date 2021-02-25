@@ -106,16 +106,31 @@ The .show() command gives the following output. It has been slightly edited to b
 
 The SYN and ACK flags are set now as expected for the TCP handshake. Furthermore, the sport of the request is the dport of the response.
 
-The UDS Scanner later described in this work is mainly, but not exclusively, used with the ISOTP protocol. It is the transport protocol for the Controller Area Network bus (CAN bus). Thus, it is explained here as well.
 
-There are two ISOTP socket implementations in Scapy. A software and a native implementation. The native implementation is only usable for Linux but the preferred one because it uses the socket interface of Linux and brings all its advantages, such as waiting for answers asynchronously while the own process doesn't require any CPU time. Until including Linux kernel 5.9, the corresponding ISOTP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}.
+\subsection{The CAN bus}
 
-To create a virtual CAN interface, only one command in a shell is required:
+All communication performed and recorded in this paper with an ECU is done via the Control Area Network bus (CAN bus). Its standard is released in the ISO 11898. The maximum data rate is 1 Mbit/sec \cite{Sharma2016}.
+
+This bus is robust because it is half-duplex, but still using two wires for the communication with differential signals. This means that if one wire is driven high, the other one is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
+
+Moreover, CAN busses are using the bus network topology. This results in a smaller number of wires compared to star topologies, resulting in lower weight, which is an important factor for manufacturers.
+
+Last but not least, an important feature for the automotive application domain is the priority support. Each CAN packet has an identifier which a length of either 11 or 29-bits, the former being more common. The lower the identifier, the higher the priority. Hence, if ECU1 and ECU2 transmit a CAN packet at exactly the same time, the packet with the lower identifier wins, the other one is discarded and will be retransmitted. This is called the Carrier Sense Multiple Access with Collision Detection (CSMA/CD) protocol \cite{Sharma2016}. Thinking this one step further, CAN is vulnerable to denial of service attacks. This attack can be performed by flooding the CAN bus with zero-identifier messages resulting in drops of legitimate packets \cite{Buttigieg2017}.
+
+Furthermore, Robert Buttigieg et al. \cite{Buttigieg2017} describe three more security issues of the CAN bus protocol in their paper {Security Issues in Controller Area Networks in Automobiles}. First, CAN packets do not contain any authentication information. An ECU receiving a message is not able to distinguish between a message from a legitimate ECU and a malicious one. So, for example, if an ECUs state is changed to a higher privileged state, all devices, including malicious ones, will have access to its newly unlocked services. Also, originally, CAN bus networks lacked network segmentation, since each message is broadcasted and received by each node of the network. Nowadays, car networks of higher-class cars like Audi and BMW are usually divided into less and more critical segments. The final security vulnerability is the lack of data encryption. Although encryption could be implemented in higher network layers, it is difficult to implement robust cryptographic algorithms due to the limited computing power of ECUs.
+
+To create a virtual CAN interface, only one command in a Linux shell is required:
 \begin{samepage}
 \begin{minted}{text}
 sudo ip link add vcan0 type vcan
 \end{minted}
 \end{samepage}
+
+\subsection{The ISOTP transport protocol for CAN}
+
+The UDS Scanner later described in this work is mainly, but not exclusively, used with the ISOTP protocol. It is the transport protocol for the Controller Area Network bus (CAN bus). Thus, it is explained here as well.
+
+There are two ISOTP socket implementations in Scapy. A software and a native implementation. The native implementation is only usable for Linux but the preferred one because it uses the socket interface of Linux and brings all its advantages, such as waiting for answers asynchronously while the own process doesn't require any CPU time. Until including Linux kernel 5.9, the corresponding ISOTP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}.
 
 An ISOTP socket contains a source and destination identifier. The source identifier is the identifier the outgoing CAN packets will contain. The destination identifier is the identifier expected for incoming packets.
 
@@ -129,7 +144,6 @@ packet = Raw(b'\x01\x02')
 socket.send(packet)
 \end{minted}
 \end{samepage}
-
 
 \subsection{The UDS protocol}
 
