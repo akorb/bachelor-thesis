@@ -113,7 +113,30 @@ All communication performed and recorded in this paper with an ECU is done via t
 
 \subsubsection{Basic information}
 
- Its specification is released in the ISO 11898. The maximum data rate is 1 Mbit/sec \cite{Sharma2016}.
+ Its specification is released in the ISO 11898. One packet on this bus can only transmit 8 bytes of payload.
+ Each CAN packet has an identifier which a length of either 11 or 29-bits, the former being more common. An identifier does not necessarily have to designate a physical device; it can also specify one of several modules in that device.
+ The maximum data rate is 1 Mbit/sec with a network length below 40 m. The higher the length, the lower the possible data rate, as can be seen in \autoref{tab:can-speed}.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|}
+    \hline
+    \textbf{Bus Length (m)} & \textbf{Signaling Rate (Mbps)}\\
+    \hline
+    40 & 1 \\
+    \hline
+    100 & 0.5 \\
+    \hline
+    200 & 0.25 \\
+    \hline
+    500 & 0.10 \\
+    \hline
+    1000 & 0.05 \\
+    \hline
+\end{tabular}
+\caption{Suggested Cable Length vs Signaling Rate \cite{slla270}.}
+\label{tab:can-speed}
+\end{table}
 
 \subsubsection{Advantages}
 
@@ -129,7 +152,7 @@ Moreover, CAN busses are using the bus network topology. This results in a small
     \label{fig:with-without-can}
 \end{figure}
 
-Last but not least, an important feature for the automotive application domain is the priority support. Each CAN packet has an identifier which a length of either 11 or 29-bits, the former being more common. The lower the identifier, the higher the priority. Hence, if ECU1 and ECU2 transmit a CAN packet at exactly the same time, the packet with the lower identifier wins, the other one is discarded and will be retransmitted. This is called the Carrier Sense Multiple Access with Collision Detection (CSMA/CD) protocol \cite{Sharma2016}.
+Last but not least, an important feature for the automotive application domain is the priority support. The lower the identifier, the higher the priority. Hence, if ECU1 and ECU2 transmit a CAN packet at exactly the same time, the packet with the lower identifier wins, the other one is discarded and will be retransmitted. This is called the Carrier Sense Multiple Access with Collision Detection (CSMA/CD) protocol \cite{Sharma2016}.
 
 \subsubsection{Security vulnerabilities}
 
