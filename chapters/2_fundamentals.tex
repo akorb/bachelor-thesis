@@ -109,15 +109,41 @@ The SYN and ACK flags are set now as expected for the TCP handshake. Furthermore
 
 \subsection{The CAN bus}
 
-All communication performed and recorded in this paper with an ECU is done via the Control Area Network bus (CAN bus). Its standard is released in the ISO 11898. The maximum data rate is 1 Mbit/sec \cite{Sharma2016}.
+All communication performed and recorded in this paper with an ECU is done via the Control Area Network bus.
+
+\subsubsection{Basic information}
+
+ Its specification is released in the ISO 11898. The maximum data rate is 1 Mbit/sec \cite{Sharma2016}.
+
+\subsubsection{Advantages}
 
 This bus is robust because it is half-duplex, but still using two wires for the communication with differential signals. This means that if one wire is driven high, the other one is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
 
-Moreover, CAN busses are using the bus network topology. This results in a smaller number of wires compared to star topologies, resulting in lower weight, which is an important factor for manufacturers.
+Moreover, CAN busses are using the bus network topology. This results in a smaller number of wires compared to star topologies, resulting in lower weight, which is an important factor for manufacturers (see \autoref{fig:with-without-can}).
 
-Last but not least, an important feature for the automotive application domain is the priority support. Each CAN packet has an identifier which a length of either 11 or 29-bits, the former being more common. The lower the identifier, the higher the priority. Hence, if ECU1 and ECU2 transmit a CAN packet at exactly the same time, the packet with the lower identifier wins, the other one is discarded and will be retransmitted. This is called the Carrier Sense Multiple Access with Collision Detection (CSMA/CD) protocol \cite{Sharma2016}. Thinking this one step further, CAN is vulnerable to denial of service attacks. This attack can be performed by flooding the CAN bus with zero-identifier messages resulting in drops of legitimate packets \cite{Buttigieg2017}.
+%with-without-can
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{with-without-can}
+    \caption{CAN effect on decreasing the wire quantity \cite{Sharma2016}.}
+    \label{fig:with-without-can}
+\end{figure}
 
-Furthermore, Robert Buttigieg et al. \cite{Buttigieg2017} describe three more security issues of the CAN bus protocol in their paper {Security Issues in Controller Area Networks in Automobiles}. First, CAN packets do not contain any authentication information. An ECU receiving a message is not able to distinguish between a message from a legitimate ECU and a malicious one. So, for example, if an ECUs state is changed to a higher privileged state, all devices, including malicious ones, will have access to its newly unlocked services. Also, originally, CAN bus networks lacked network segmentation, since each message is broadcasted and received by each node of the network. Nowadays, car networks of higher-class cars like Audi and BMW are usually divided into less and more critical segments. The final security vulnerability is the lack of data encryption. Although encryption could be implemented in higher network layers, it is difficult to implement robust cryptographic algorithms due to the limited computing power of ECUs.
+Last but not least, an important feature for the automotive application domain is the priority support. Each CAN packet has an identifier which a length of either 11 or 29-bits, the former being more common. The lower the identifier, the higher the priority. Hence, if ECU1 and ECU2 transmit a CAN packet at exactly the same time, the packet with the lower identifier wins, the other one is discarded and will be retransmitted. This is called the Carrier Sense Multiple Access with Collision Detection (CSMA/CD) protocol \cite{Sharma2016}.
+
+\subsubsection{Security vulnerabilities}
+
+Thinking this one step further, CAN is vulnerable to denial of service attacks. This attack can be performed by flooding the CAN bus with zero-identifier messages resulting in drops of legitimate packets \cite{Buttigieg2017}.
+
+Furthermore, Buttigieg et al. \cite{Buttigieg2017} describe three more security issues of the CAN bus protocol in their paper {Security Issues in Controller Area Networks in Automobiles}.
+First, CAN packets do not contain any authentication information. An ECU receiving a message is not able to distinguish between a message from a legitimate ECU and a malicious one \cite{Buttigieg2017}. So, for example, if an ECUs state is changed to a higher privileged state, all devices, including malicious ones, will have access to its newly unlocked services. Countermeasures exist in the form of performing authentication, but there is no satisfying solution yet, which fulfills cost-effectiveness, backward compatibility, support for vehicle repair and maintenance, sufficient implementation details, and acceptable overhead \cite{Bozdal2020}.
+Also, originally, CAN bus networks lacked network segmentation, since each message is broadcasted and received by each node of the network \cite{Buttigieg2017}. Nowadays, car networks of higher-class cars like Audi and BMW are usually divided into less and more critical segments by so-called Gateway ECUs \cite{Bozdal2020}. Despite the increase in the level of security, this makes it more difficult to maintain the system, which is associated with increased costs \cite{Bozdal2020}.
+The final security vulnerability is the lack of data encryption \cite{Buttigieg2017}. Lightweight encryption systems could be implemented, but are limited by the short length of the data field (8 bytes) and the limited computing power of the ECUs \cite{Bozdal2020}.
+
+Since all countermeasures described in the previous paragraph are limited, Intrusion Detection Systems (IDS) are emerging, with the advantages of not having to change the current CAN controller and not increasing bus traffic \cite{Bozdal2020}. Such a system has been implemented in the context of the PetS3 project \cite{spahn2018}.
+
+\subsubsection{How to work with the CAN bus}
+
 
 To create a virtual CAN interface, only one command in a Linux shell is required:
 \begin{samepage}
