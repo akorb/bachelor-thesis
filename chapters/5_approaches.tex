@@ -6,6 +6,8 @@ This section discusses the optimization of the two enumerators from the previous
 
 This approach aims to reuse information from one enumerator in a later enumerator within the same scan. This will be applied to the RCEnumerator.
 
+\subsubsection{Current behavior}
+
 The Routine Control service is used by the client to execute a defined sequence of steps and obtain any relevant results \cite{iso14229}. For a quick overview of the service a simplified code snippet of the Scapy implementation is used.
 
 \begin{samepage}
@@ -23,39 +25,48 @@ class UDS_RC(Packet):
 \end{minted}
 \end{samepage}
 
-The \mintinline{python}{routineControlType} field specifies what to do with a routine. Possible are starting, stopping and requesting the results. To specify which routine is to be controlled, there is the \mintinline{python}{routineIdentifier} field. Hence, there are three control types, and because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
+The \mintinline{python}{routineControlType} field specifies what should happen to a routine. Possible are starting, stopping and requesting the results. To specify which routine is to be controlled, there is the \mintinline{python}{routineIdentifier} field. Hence, there are three control types, and because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
 \[f(n)=3 \cdot 2^{16} \cdot n\]
 wherin $n$ stands for the number of detected states.
 
-The current RCEnumerator does exactly this, it generates the full range for each state. That's what needs to be reduced. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas show the scanned regions.
+The current RCEnumerator does exactly this, it generates the full range for each state. That's what needs to be reduced. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas symbolize the scanned ranges.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=1\textwidth]{rc-behavior-current}
-    \caption{Behavior of the current RCEnumerator implementation.}
+    \includegraphics[width=0.8\textwidth]{rc-behavior-current}
+    \caption{Current procedure for scanning the RC service.}
     \label{fig:rc-behavior-current}
 \end{figure}
+
+\subsubsection{Elaborating the new behavior}
 
 As a first step to find a way to apply the approach to the RCEnumerator, the distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
 
 % TODO: maybe to attachments
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\textwidth]{rc-distribution}
+    \includegraphics[width=0.8\textwidth]{rc-distribution}
     \caption{Distribution of the RC identifiers. Each color is one ECU.}
     \label{fig:rc-distribution}
 \end{figure}
 
 It can be seen that if an identifier is available in Type1, it is likely that this identifier also occurs in Type2. Consequently, if an identifier does not respond positively in Type1, it is also very unlikely that it will respond in Type2 or Type3. This appearance is used to reduce the scan range for this service.
 
-The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. So, 2\textsuperscript{16} is the minimum number of requests for each state with the new behavior. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. Moreover, it was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning nearby identifiers instead of just that identifier will result in higher coverage. What needs to be found out is the block size which leads to the best coverage, while maintaining an appropriate speed-up.
+The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. So, 2\textsuperscript{16} is the minimum number of requests for each state with the new behavior. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. Moreover, it was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning nearby identifiers instead of just that identifier will result in higher coverage. What needs to be found out is the block size which leads to the best coverage, while maintaining an appropriate speed-up. \autoref{fig:rc-behavior-new} illustrates that. The green areas again show the scanned ranges, additionally, the red areas are the found identifiers in Type1 and their resulting ranges for Type2 and Type3 and the gray areas show the areas that were not scanned and thus how much time was saved.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{rc-behavior-new}
+    \caption{New procedure for scanning the RC service.}
+    \label{fig:rc-behavior-new}
+\end{figure}
 
 The limits of the speed-up are defined as following:
-\[ 0\ \% \ \leq\  s(n)\  \leq 66.\overline{66}\ \% \quad \forall \  n \in \left\{0, 1, ..., 2^{16} \cdot 3\right\} \]
+\[ 0\ \% \ \leq\  s(n)\  \leq 66.\overline{6}\ \% \quad \forall \  n \in \left\{0, 1, ..., 2^{16} \cdot 3\right\} \]
 %\[ 0\  \ \leq\  s(n)\  \leq \frac{2}{3} \quad \forall \  n \in \left\{0, 1, ..., 2^{16 * 3}\right\} \]
-wherin $s$ is the speed-up function and $n$ the number of generated requests.
+wherin $s$ is the speed-up function and $n$ the number of generated requests for this service.
 
-The reason for the upper limit of $66.\overline{66}$ \% of this approach for this enumerator is that Type1, which is one third of all possible requests, is always scanned completely.
+The reason for the upper limit of $66.\overline{6}$ \% is that Type1, which is one third of all possible requests, is always scanned completely.
 
 To find out the best value, scans with different block sizes are simulated. For a quick simulation another observation is used. If one identifier is available in one state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still very close to the real ECUs. The simulation only uses information gathered from the real ECUs as described in \autoref{sec:data-gathering}. Specifically, the required information is extracted from the generic.log file.
 
@@ -81,16 +92,60 @@ for expansion_size in range(200):
 \end{minted}
 \end{samepage}
 
-The results of this simulation are plotted in \autoref{fig:rc-simulation-result}. The speed-up is linear to the expansion size. That makes sense, because the larger the blocks are, the more requests are generated. The expanion size of zero represents the results without using the locality effect. The maximum difference in coverage between with and without locality effect are 22\%, even though the maximum speed-up difference is only 1\%.
+The results of this simulation are plotted in \autoref{fig:rc-simulation-result}. The speed-up is linear to the expansion size. That makes sense, because the larger the blocks are, the more requests are generated. The expansion size of zero represents the results without using the locality effect. The maximum difference in coverage between with and without locality effect are 22\%, even though the maximum speed-up difference is only 1\%.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\textwidth]{rc-simulation-result}
-    \caption{Simulation result for the RC service.}
+    \caption{Simulation result for the RC enumerator.}
     \label{fig:rc-simulation-result}
 \end{figure}
 
 Since the speed-up is high for each simulated block size, the highest coverage was chosen which starts with block size \textbf{132}. Hence, this value is the chosen and implemented block size.
+
+\subsubsection{Implementation}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{rc-schematic}
+    \caption{Schematic illustration of the new RCSelectiveEnumerator.}
+    \label{fig:rc-schematic}
+\end{figure}
+
+The old behavior remains in the RCEnumerator, the new behavior is implemented in the RCSelectiveEnumerator and the RCStartEnumerator, the former being a two-stage enumerator. The initial one is the RCStartEnumerator, which only scans Type1, and the second one is the RCEnumerator, which scans by default the whole range of Type1, Type2 and Type3. The RCSelectiveEnumerator connects them with a registered connector function. It is called as soon as the first stage is done and the second is to be started and expands the found identifiers of the RCStartEnumerator to ranges and also resolves any overlaps to a continuous range. The connector then creates the configuration for the RCEnumerator of the next stage. It restricts the scan area to the identifiers just created and additionally to Type2 and Type3.
+
+% TODO: Put classes into Appendix
+
+\subsubsection{Evaluation}
+
+\begin{table}[h]
+    \begin{center}
+    \begin{tabular}{ccc}
+        \hline
+        & \textbf{Coverage} & \textbf{Speed-up} \\
+        \hline
+        \textbf{audi\_cgw} & 87.6\% & 65.4\% \\
+        \textbf{bfft-ecu} & 100\% & 66.2\% \\
+        \textbf{bmw-gateway-ecu-bdc} & 100\% & 66.2\% \\
+        \textbf{bmw-gateway-ecu-zgw} & 100\% & 64.5\% \\
+        \textbf{bmw-gateway-ecu2} & 100\% & 64.6\% \\
+        \textbf{bmw-tcu} & 100\% & 66.7\% \\
+        \textbf{bosch-ecu} & 100\% & 64.6\% \\
+        \textbf{dashboard} & 50.0\% & 66.2\% \\
+        \textbf{mercedes-ezs} & 100\% & 65.1\% \\
+        \textbf{seppmed} & 100\% & 66.2\% \\
+        \textbf{tesla-airbag-ecu} & 100\% & 66.7\% \\
+        \hline
+
+    \end{tabular}
+    \end{center}
+    \caption{Measured coverages and speed-ups on real ECUs.}
+    \label{tab:evaluation-approach1}
+\end{table}
+
+9 of 11 ECUs had a full coverage. The coverage for the dashboard ECU notable low. Therefore, a closer look was taken there again. It turned out that the Dashboard only supports two identifiers. The identifier 515 for Type1 and identifier 61,728 for Type3. The former is detected, but the resulting range for Type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\%.
+
+The speed-up is calculated by comparing the number of requests sent with the selective enumerator and the number of requests that would have been sent with the old enumerator. For each ECU it is close to the theoretical maximum of $66.\overline{6}$ \%, leading to the evaluation that there is a great potential in this approach.
 
 
 \subsection{Reduction of scan range}
