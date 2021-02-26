@@ -157,7 +157,9 @@ The speed-up is calculated by comparing the number of requests sent with the sel
 
 
 \subsection{Reduction of scan range}
-Most services are simpler and don't have a type as the RC service but only an identifier. So, reusing information within the same scan is limited. Here the second approach will be applied to reduce the scan range. The idea is to scan more heavily the blocks where positive behavior is more likely than others. The approach will be applied to the Read Data By Identifier (RDBI) enumerator.
+Most services are simpler and don't have a type as the RC service but only an identifier. So, reusing information within the same scan is limited. Here the second approach will be applied to the Read Data By Identifier (RDBI) enumerator. The idea is to scan more heavily the blocks where positive behavior is more likely than others. The approach will be applied.
+
+\subsubsection{Current behavior}
 
 The Read Data By Identifier service allows the client to request data record values from the server identified by one or more dataIdentifiers \cite{iso14229}. Again, for a quick overview of the service a simplified code snippet of the Scapy implementation is used.
 
@@ -175,6 +177,8 @@ To specify which data record to retrieve, there is the \mintinline{python}{ident
 wherin $n$ stands for the number of detected states. 
 
 So, the current RDBIEnumerator is very simple. It generates 2\textsuperscript{16} packets counting up from 0 to 65535 and generating for each number a packet with this number as identifier for each state.
+
+\subsubsection{Elaborating the new behavior}
 
 As a first step, the distribution of identifiers over all ECUs is visualized in a histogram to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
 
@@ -226,10 +230,16 @@ This simulation leads to \autoref{fig:rdbi-simulation-result}.
 
 The speed-up is no longer linear; instead, the speed-up is highest for medium block sizes. From block sizes 64 to 128, the coverage decreases by 4\% while the speed-up remains the same. Thus, it was decided for \textbf{64} as the block size leading to best results.
 
+\subsubsection{Implementation}
+
+\subsubsection{Evaluation}
+
 
 \subsection{Avoid the scan of unsupported services}
 
 Each ECU usually only supports a subset of the offered services by the UDS standard. This approach aims to avoid scanning them to save requests and therefore, time.
+
+\subsubsection{Detecting unsupported services}
 
 The first thing to understand is how to tell if a service is supported or not. Figure 5 of the UDS standard shows the general server response behavior. In this work, it can be found in \autoref{fig:server-response-behaviour} and the important area has been highlighted.
 
@@ -241,6 +251,12 @@ The first thing to understand is how to tell if a service is supported or not. F
 \end{figure}
 
 Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current enumerator with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service for each state, which in turn receives 0x11 NRC again and then stops the enumerator. The number of states detected is usually one-digit, so the number of packets generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
+
+\subsubsection{Implementation}
+
+In contrast to the previous approaches, this one is not applied to an enumerator, but to the UDS Scanner itself. The UDS Scanner evaluates each response, for example to detect if a new state was found. Here, a check was added for negative responses if they have the NRC 0x11 or 0x7f. If they do, the enumerator is set to completed for the currently executed state. This behavior has to be enabled explicitly, because as the next section explains, it might result in losses.
+
+\subsubsection{Evaluation}
 
 \autoref{fig:serviceNotSupported-savings} illustrates the approximate number of saved packets for each ECU. It is only an approximation because for this graph, the responses with the both described NRCs have been counted. Of course, not every response can be saved with these NRCs, since at least one request must first be made to see the NRC of that service for that state. But these numbers, as described in the previous paragraph, are very low and negligible, especially when considering that the minimum value of \autoref{fig:serviceNotSupported-savings} is ~70,000.
 
