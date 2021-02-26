@@ -6,7 +6,7 @@ eMundo
 Margull
 ECUs
 FlexRay
-ISOTP
+ISO-TP
 XCP
 GMLAN
 OBD
@@ -20,3 +20,4 @@ Datagram
 DiagnosticSessionControl
 ShortField
 XShortField
+defragmentation

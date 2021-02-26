@@ -167,7 +167,7 @@ Since all countermeasures described in the previous paragraph are limited, Intru
 
 \subsubsection{How to work with the CAN bus}
 
-
+CAN interfaces are quite expensive, to communicate with ECUs paper the PCAN-USB from PEAK System was used in this work which costs by time of writing 180€. Instead, a virtual CAN interface can be used for simulations or simple tests. This is supported natively by Linux without additional actions.
 To create a virtual CAN interface, only one command in a Linux shell is required:
 \begin{samepage}
 \begin{minted}{text}
@@ -175,13 +175,50 @@ sudo ip link add vcan0 type vcan
 \end{minted}
 \end{samepage}
 
-\subsection{The ISOTP transport protocol for CAN}
+The most common tool set to work with the CAN bus are the can-utils \cite{can-utils}, which can be usually installed with the package manager of the distributions. For example, the following command displays all messages of the CAN bus on interface \emph{vcan0}:
+\begin{samepage}
+\begin{minted}{text}
+candump vcan0
+\end{minted}
+\end{samepage}
 
-The UDS Scanner later described in this work is mainly, but not exclusively, used with the ISOTP protocol. It is the transport protocol for the Controller Area Network bus (CAN bus). Thus, it is explained here as well.
+Another important task is to send a packet, which can be done with:
+\begin{samepage}
+\begin{minted}{text}
+cansend vcan0 123#01.02
+\end{minted}
+\end{samepage}
 
-There are two ISOTP socket implementations in Scapy. A software and a native implementation. The native implementation is only usable for Linux but the preferred one because it uses the socket interface of Linux and brings all its advantages, such as waiting for answers asynchronously while the own process doesn't require any CPU time. Until including Linux kernel 5.9, the corresponding ISOTP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}.
+This sends a CAN packet with the identifier 0x123 and the payload \emph{01 02}.
 
-An ISOTP socket contains a source and destination identifier. The source identifier is the identifier the outgoing CAN packets will contain. The destination identifier is the identifier expected for incoming packets.
+Alternatively, Scapy can be used. There are two implementations of CAN sockets, namely a native one, which uses the native Linux kernel module, and a software-based one, which uses the Python-CAN package.  The native implementation is only usable for Linux but the preferred one because it uses the socket interface of Linux and brings all its advantages, such as waiting for answers asynchronously while the own process doesn't require any CPU time. Python-CAN has the advantage of also working on Windows and macOS.
+
+An equivalent Scapy script which accomplishes the same as the just described \mintinline{text}{cansend} command, is:
+
+\begin{samepage}
+\begin{minted}{python}
+from scapy.contrib.cansocket_native import CANSocket
+from scapy.layers.can import CAN
+socket = CANSocket("vcan0")
+socket.send(CAN(identifier=0x123, data=b"\x01\x02"))
+\end{minted}
+\end{samepage}
+
+\subsection{The ISO-TP transport protocol for CAN}
+
+CAN packets have a payload size of 8 bytes. This is sufficient for most UDS requests, but not for many UDS responses. Thus, ISO-TP is used as the transport protocol on the CAN bus for UDS communication.
+
+\subsubsection{Basic information}
+
+It is defined in ISO 15765-2 and increases the payload size from 8 bytes to 4095 bytes per message. At least one byte of each CAN packet is then transport protocol information, indicating whether this packet is a single frame or if this packet only contains a fragment of the actual payload.
+
+\subsubsection{How to work with the ISO-TP protocol}
+
+The can-utils tools also contain applications to handle ISO-TP communication. Since this is never used in this work, but the Scapy implementation is, only the Scapy implementation is explained.
+
+As for the CAN implementation, there are two ISO-TP socket implementations in Scapy. A software and a native implementation. Until including Linux kernel 5.9, the corresponding ISO-TP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}. Both implementations handle the ISO-TP metadata themselves, i.e.  fragmentation, defragmentation, etc.
+
+An ISO-TP socket contains a source and destination identifier. They offer the same functionality as the ports for TCP or UDP. The source identifier is the identifier the outgoing CAN packets will contain. The destination identifier is the identifier expected for incoming packets.
 
 The usage of the native implementation is illustrated in the following code snippet:
 
