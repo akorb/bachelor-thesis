@@ -33,14 +33,14 @@ jobs:
           root_file: main.tex
           
       - name: Rename document
-        run: mv main.pdf bachelor-thesis.pdf
+        run: mv main.pdf my-bachelor-thesis.pdf
           
       - name: deploy file
-        uses: wlixcc/SFTP-Deploy-Action@v1.0
+        uses: wlixcc/SFTP-Deploy-Action@v1
         with:
           username: 'minjun'
           server: '185.26.156.129'
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }} 
-          local_path: 'bachelor-thesis.pdf'
+          local_path: 'my-bachelor-thesis.pdf'
           remote_path: '/home/minjun/html/downloads'
           args: '-o ConnectTimeout=5'
