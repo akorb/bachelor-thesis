@@ -25,7 +25,7 @@ Then, the actual tests are executed that are written in the pytest framework. He
 
 Finally, the resulting files are uploaded to the GitLab server so that they can be downloaded via a browser program.
 
-\subsection{Explaining the stored data from one scan}
+\subsection{Explaining the generated data of a scan}
 
 In total, five files are stored after a scan, which will be explained in this section.
 
@@ -37,7 +37,9 @@ In total, five files are stored after a scan, which will be explained in this se
     \item data.pkl
 \end{itemize}
 
-The candump.log file is created by the candump program from the can-utils \cite{can-utils}. The generated files have a simple structure, each line representing one CAN packet.
+\subsubsection{candump.log and generic.log}
+
+The candump.log file is created by the candump program with the \mintinline{text}{-t} parameter. The generated files have a simple structure, each line representing one CAN packet.
 
 \begin{samepage}
 \begin{minted}{text}
@@ -49,7 +51,7 @@ The candump.log file is created by the candump program from the can-utils \cite{
 \end{minted}
 \end{samepage}
 
-Unfortunately, these files contain a lot of information that is not only not needed, but also unwanted, as it leads to more difficult analysis and to higher storage usage. \autoref{fig:can-unwanted-information} shows the information that is not needed because it is ECU specific and does not add any value for the analysis.
+Unfortunately, these files contain a lot of information that is not only not needed, but also unwanted, as it leads to more difficult analysis because of higher storage and processing power usage. \autoref{fig:can-unwanted-information} shows the information that is not needed because it is ECU specific and does not add any value for the analysis.
 
 %CAN unwanted information
 \begin{figure}[h]
@@ -79,6 +81,8 @@ For instance, counting the number of requests of a scan is a single command:
     \end{minted}
 \end{samepage}
 
+\subsubsection{profiling.csv and milestones.csv}
+
 For profiling, two files have been added as output to the UDS scanner, namely profiling.csv and milestones.csv.
 
 The former contains which enumerator ran under which state and when. It follows a fairly simple structure:
@@ -106,14 +110,20 @@ Each line in the milestones.csv contains a timestamp and the name of the final s
     \end{minted}
 \end{samepage}
 
+\subsubsection{data.pkl}
+
 Last but not least, the data.pkl file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The data.pkl file is the serialized UDS scanner object after the scan, thus it contains all the results consisting of the responses for each request with the current state of the ECU. This is helpful for debugging, analysis and also for simulation.
 
 
 \subsection{Profiling the UDS Scanner}
 
+\subsubsection{Why profiling?}
+
 The Pareto principle indicates that small number of causes can be responsible for a large percentage of effects \cite{pareto}. This is also applicable to optimization problems. Usually only a few number of code lines are responsible for the majority of the runtime. Optimizing them is far more effective than performing micro-optimizations as they naturally improve the performance to a great extent. Moreover, micro-optimizations are usually even more difficult to accomplish. For example, before profiling, an idea was to improve the scheduling of the enumerators to avoid ECU resets. Each reset takes a few seconds of cool-down time. With the profiling results (see \autoref{fig:tesla-gantt}), it turned out that the ECU Reset times are negligible compared to the times required by some enumerators.
 
-To profile the UDS Scanner its profiling.csv and milestones.csv files are used. With their help Gantt charts are created which show the sequence and duration of enumerators within a scan. This visualizes what parts of the UDS scanner take up most of its runtime.
+\subsubsection{How it works}
+
+To profile the UDS Scanner its profiling.csv and milestones.csv files are used. With their help Gantt charts are created which show the sequence and duration of enumerators within a scan. This visualizes what parts of the UDS Scanner take up most of its runtime.
 
 These charts have been created for each available ECU. For illustration one is sufficient since each chart showed the same gist (see \autoref{fig:tesla-gantt}).
 
@@ -124,9 +134,16 @@ These charts have been created for each available ECU. For illustration one is s
     \label{fig:tesla-gantt}
 \end{figure}
 
+
+
+\subsubsection{Evaluation}
+
 Although it seems that some enumerators and events do not require time, their time consumption is only so small that they are not or hardly visible in this scaled-down version of the diagram.
 
-The main cause of runtime is the RCEnumerator. This was expected, since this is the enumerator with the most generated requests. In second place are the IOCBIEnumerator and the WDBISelectiveEnumerator. The latter consists of actually two enumerators, the RDBIEnumerator and the WDBIEnumerator. The RDBIEnumerator generates more requests than the WDBIEnumerator to a large extent, which accordingly hardly contributes to the runtime. Therefore, for simplicity, this enumerator will be called RDBIEnumerator from here on.
-The IOCBIEnumerator and RDBIEnumerator generate about the same runtime, this was to be expected since they generate the same number of requests. The RDBI service is more frequently supported by ECUs than the IOCBI service, resulting in a smaller database. So it was decided that the RDBIEnumerator would be optimized instead of the IOCBIEnumerator.
+The main cause of runtime is the RCEnumerator. This was expected, since this is the enumerator with the most generated requests.
+In second place are the IOCBIEnumerator and the WDBISelectiveEnumerator.
+The latter consists of actually two enumerators, the RDBIEnumerator and the WDBIEnumerator. The reason for that is, that the WDBI enumerator writes data to an identifier. This requires the expected data length for each identifier, and also to ensure that the new data does not break the ECU, so the RDBIEnumerator is run first to extract this information.
+The RDBIEnumerator generates more requests than the WDBIEnumerator to a large extent, which accordingly hardly contributes to the runtime.
+The IOCBIEnumerator and WDBISelectiveEnumerator generate about the same runtime, this was to be expected since they generate a similar number of requests. The RDBI service is more frequently supported by ECUs than the IOCBI service, resulting in a smaller database. So it was decided that the RDBIEnumerator would be optimized instead of the IOCBIEnumerator.
 
 In summary, the RCEnumerator and the RDBIEnumerator are the most critical performance barriers of the UDS scanner and therefore belong to the subjects to optimize.

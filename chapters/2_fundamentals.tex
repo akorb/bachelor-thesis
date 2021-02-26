@@ -104,7 +104,7 @@ The .show() command gives the following output. It has been slightly edited to b
 \end{minted}
 \end{samepage}
 
-The SYN and ACK flags are set now as expected for the TCP handshake. Furthermore, the sport of the request is the dport of the response.
+The SYN and ACK flags are now set as expected for the TCP handshake. Furthermore, the sport of the request is the dport of the response.
 
 
 \subsection{The CAN bus}
@@ -210,7 +210,7 @@ CAN packets have a payload size of 8 bytes. This is sufficient for most UDS requ
 
 \subsubsection{Basic information}
 
-It is defined in ISO 15765-2 and increases the payload size from 8 bytes to 4095 bytes per message. At least one byte of each CAN packet is then transport protocol information, indicating whether this packet is a single frame or if this packet only contains a fragment of the actual payload.
+It is defined in ISO 15765-2 and increases the payload size from 8 bytes to 4095 bytes per message. At least one byte of each CAN packet is then transport protocol information, indicating whether this packet is a single frame or if it only contains a fragment of the actual payload.
 
 \subsubsection{How to work with the ISO-TP protocol}
 
@@ -233,17 +233,21 @@ socket.send(packet)
 
 \subsection{The UDS protocol}
 
+\subsubsection{Basic information}
+
 UDS stands for \emph{Unified diagnostic services} and is an application protocol defined in ISO 14229 \cite{iso14229}. This protocol defines the structures of request and response packets for diagnostic purposes sent over an arbitrary data link.
 
 %UDS stack
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\textwidth]{uds-stack}
-    \caption{The most common protocol stack for UDS \cite{Weiss2020}}
+    \caption{The most common protocol stack for UDS \cite{Weiss2020}.}
     \label{fig:uds-stack}
 \end{figure}
 
 As shown in \autoref{fig:uds-stack}, the most common data links for the UDS protocol are the Ethernet and the CAN bus. Others can and are used as well, explicitly stated in the UDS standard are FlexRay, K-Line and LIN.
+
+\subsubsection{Services}
 
 The UDS protocol defines various services with different purposes. For example, the DiagnosticSessionControl service is used to enable different diagnostic states in the ECU. Its identifier is the number 0x10. All packets requesting this service specify this value as the first byte. The identifiers in the responses are defined as 0x40 added to the request identifier. Thus, for the DiagnosticSessionControl the positive response identifier is 0x10 + 0x40 = 0x50. A negative response always has the identifier 0x7f. This service is able to change the state of the ECU. Although the ReadDataByIdentifier service is not able to change the state, it is still very important. Data records in an ECU are stored with an identifier as the key. This service allows to read these values from an external device. Since there can be data stored, which is not meant to be read by everybody, there is another service called SecurityAccess, which allows to unlock these information for external devices. This mechanism is used for other services as well. The SecurityAccess service uses the challenge–response authentication in which an algorithm is the secret. It follows the following sequence \cite{iso14229}:
 
@@ -300,12 +304,27 @@ UDS not only allows to read data, but also to write. Which makes it especially c
 
 \subsection{The UDS Scanner}
 
+The UDS Scanner was implemented in Scapy for the PetS3 project.
+
+\subsubsection{Purpose}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{automotive-security-testing-process}
+    \caption{The Automotive Security Testing process \cite{Bayer2015}.}
+    \label{fig:automotive-security-testing-process}
+\end{figure}
+
+As \autoref{fig:automotive-security-testing-process} shows, the security testing process in the automotive domain consists of a scanning step. This step aims detect which services of a protocol are implemented and what information can be retrieved there. The UDS Scanner fulfills these tasks. It can also be used for fuzzing and functional testing, even though scanning is its main use-case. The retrieved information assists for the manual PenTesting, the last step in this process.
+
+\subsubsection{Enumerators}
+
 % TODO: Add that it was still work in progress while doing this work
 % and thus, that problems occured and had to be fixed.
 % Out of scope of this work.
 
-The UDS Scanner is a Python class implemented in Scapy. It executes so-called Enumerators which are service-specific and create all possible packets for a service.
-For example, the enumerator for the DiagnosticSessionControl (DSC) service is called UDS\_DSCEnumerator. The most important member of the enumerator classes is the \mintinline{python}{_get_initial_requests} method. The return value is an iterable object which contains all requests for this service. DSC has an eight bit identifier, leading to a maximum of 2\textsuperscript{8} packets for this enumerator. Each enumerator will be executed for each found state of the ECU. So, if an enumerator already ran, and afterwards a new state is found, this enumerator will run again within the same scan with the new-found state.
+It executes so-called Enumerators which are service-specific and create all possible packets for a service.
+For example, the enumerator for the DiagnosticSessionControl (DSC) service is called UDS\_DSCEnumerator. The most important member of the enumerator classes is the \mintinline{python}{_get_initial_requests} method. The return value is an iterable object which contains all requests for this service. DSC has an eight bit identifier, leading to a maximum of 2\textsuperscript{8} packets for this service. Each enumerator will be executed for each found state of the ECU. So, if an enumerator already ran, and afterwards a new state is found, this enumerator will run again within the same scan with the new-found state.
 
 For a better understanding, the UDS\_DSCEnumerator implementation will be described.
 

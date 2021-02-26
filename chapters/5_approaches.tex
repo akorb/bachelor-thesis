@@ -1,6 +1,6 @@
 \section{Approaches}
 
-This section discusses the optimization of the enumerators with two different approaches in each case. In addition, a third approach evaluated is the avoidance of scanning unsupported services. 
+This section discusses the optimization of the two enumerators from the previous section, each using a different approach. In addition, a third approach discussed is to avoid scanning unsupported services. 
 
 \subsection{Use information of a former service scan}
 
@@ -24,7 +24,7 @@ class UDS_RC(Packet):
 \end{samepage}
 
 The \mintinline{python}{routineControlType} field specifies what to do with a routine. Possible are starting, stopping and requesting the results. To specify which routine is to be controlled, there is the \mintinline{python}{routineIdentifier} field. Hence, there are three control types, and because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
-\[f(n)=3 * 2^{16} \cdot n\]
+\[f(n)=3 \cdot 2^{16} \cdot n\]
 wherin $n$ stands for the number of detected states.
 
 The current RCEnumerator does exactly this, it generates the full range for each state. That's what needs to be reduced. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas show the scanned regions.
