@@ -105,6 +105,14 @@ Since the speed-up is high for each simulated block size, the highest coverage w
 
 \subsubsection{Implementation}
 
+Three classes are of interest:
+
+\begin{itemize}
+    \item \textbf{RCEnumerator}: Defaults to scanning the whole RC service, including all three types.
+    \item \textbf{RCStartEnumerator}: Only scanning Type1 of the RC service.
+    \item \textbf{RCSelectiveEnumerator}: Staged enumerator containing a RCStartEnumerator and a RCEnumerator.
+\end{itemize}
+
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\textwidth]{rc-schematic}
@@ -112,7 +120,7 @@ Since the speed-up is high for each simulated block size, the highest coverage w
     \label{fig:rc-schematic}
 \end{figure}
 
-The old behavior remains in the RCEnumerator, the new behavior is implemented in the RCSelectiveEnumerator and the RCStartEnumerator, the former being a two-stage enumerator. The initial one is the RCStartEnumerator, which only scans Type1, and the second one is the RCEnumerator, which scans by default the whole range of Type1, Type2 and Type3. The RCSelectiveEnumerator connects them with a registered connector function. It is called as soon as the first stage is done and the second is to be started and expands the found identifiers of the RCStartEnumerator to ranges and also resolves any overlaps to a continuous range. The connector then creates the configuration for the RCEnumerator of the next stage. It restricts the scan area to the identifiers just created and additionally to Type2 and Type3.
+The RCSelectiveEnumerator connects its two stages with a connector function that is called as soon as the first stage is done and the second is to be started. It expands the found identifiers of the RCStartEnumerator to ranges and also resolves any overlaps to a continuous range and forwards these ranges to the second stage, the RCEnumerator. Additionally, the connector configures the RCEnumerator to only scan Type2 and Type3.
 
 % TODO: Put classes into Appendix
 
