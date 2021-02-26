@@ -36,7 +36,7 @@ jobs:
         run: mv main.pdf my-bachelor-thesis.pdf
           
       - name: deploy file
-        uses: wlixcc/SFTP-Deploy-Action@v1.1
+        uses: wlixcc/SFTP-Deploy-Action@v1.0
         with:
           username: 'minjun'
           server: '185.26.156.129'
