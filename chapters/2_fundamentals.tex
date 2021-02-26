@@ -311,11 +311,11 @@ The UDS Scanner was implemented in Scapy for the PetS3 project.
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\textwidth]{automotive-security-testing-process}
-    \caption{The Automotive Security Testing process \cite{Bayer2015}.}
+    \caption{The Automotive Security Testing process.}
     \label{fig:automotive-security-testing-process}
 \end{figure}
 
-As \autoref{fig:automotive-security-testing-process} shows, the security testing process in the automotive domain consists of a scanning step. This step aims detect which services of a protocol are implemented and what information can be retrieved there. The UDS Scanner fulfills these tasks. It can also be used for fuzzing and functional testing, even though scanning is its main use-case. The retrieved information assists for the manual PenTesting, the last step in this process.
+As \autoref{fig:automotive-security-testing-process} shows, the security testing process in the automotive domain consists of a scanning step \cite{Bayer2015}. This step aims detect which services of a protocol are implemented and what information can be retrieved there. The UDS Scanner fulfills these tasks. It can also be used for fuzzing and functional testing, even though scanning is its main use-case. The retrieved information assists for the manual PenTesting, the last step in this process.
 
 \subsubsection{Enumerators}
 
@@ -326,7 +326,7 @@ As \autoref{fig:automotive-security-testing-process} shows, the security testing
 It executes so-called Enumerators which are service-specific and create all possible packets for a service.
 For example, the enumerator for the DiagnosticSessionControl (DSC) service is called UDS\_DSCEnumerator. The most important member of the enumerator classes is the \mintinline{python}{_get_initial_requests} method. The return value is an iterable object which contains all requests for this service. DSC has an eight bit identifier, leading to a maximum of 2\textsuperscript{8} packets for this service. Each enumerator will be executed for each found state of the ECU. So, if an enumerator already ran, and afterwards a new state is found, this enumerator will run again within the same scan with the new-found state.
 
-For a better understanding, the UDS\_DSCEnumerator implementation will be described.
+For a better understanding, the UDS\_DSCEnumerator implementation will be described exemplary.
 
 \begin{samepage}
 \begin{minted}{python}
