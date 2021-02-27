@@ -110,7 +110,7 @@ Three classes are of interest:
 \begin{itemize}
     \item \textbf{RCEnumerator}: Defaults to scanning the whole RC service, including all three types.
     \item \textbf{RCStartEnumerator}: Only scanning Type1 of the RC service.
-    \item \textbf{RCSelectiveEnumerator}: Staged enumerator containing a RCStartEnumerator and a RCEnumerator.
+    \item \textbf{RCSelectiveEnumerator}: Staged enumerator containing an RCStartEnumerator and an RCEnumerator.
 \end{itemize}
 
 \begin{figure}[h]
@@ -121,6 +121,8 @@ Three classes are of interest:
 \end{figure}
 
 The RCSelectiveEnumerator connects its two stages with a connector function that is called as soon as the first stage is done and the second is to be started. It expands the found identifiers of the RCStartEnumerator to ranges and also resolves any overlaps to a continuous range and forwards these ranges to the second stage, the RCEnumerator. Additionally, the connector configures the RCEnumerator to only scan Type2 and Type3.
+
+Each positively answered identifier of Type1 in any state will also be probed for all subsequent states in Type2 and Type3, even if this identifier is not found in Type1 for another state. This increases the coverage in cases, where a routine can be started in a state, but its result, or to stop it, may only be requested in another state. It also hardly leads to more requests, which can be seen at the speed-ups in \autoref{fig:rc-schematic}.
 
 % TODO: Put classes into Appendix
 
@@ -147,7 +149,7 @@ The RCSelectiveEnumerator connects its two stages with a connector function that
 
     \end{tabular}
     \end{center}
-    \caption{Measured coverages and speed-ups on real ECUs.}
+    \caption{Measured coverages and speed-ups on ECUs with approach 1.}
     \label{tab:evaluation-approach1}
 \end{table}
 
@@ -232,12 +234,57 @@ The speed-up is no longer linear; instead, the speed-up is highest for medium bl
 
 \subsubsection{Implementation}
 
+Three classes are of interest again:
+
+\begin{itemize}
+    \item \textbf{RDBIEnumerator}: Defaults to scanning the whole RDBI service.
+    \item \textbf{RDBIRandomEnumerator}: Scanning block-based with random identifiers.
+    \item \textbf{RDBISelectiveEnumerator}: Staged enumerator containing an RDBIRandomEnumerator and an RDBIEnumerator.
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{rdbi-schematic}
+    \caption{Schematic illustration of the new RDBISelectiveEnumerator.}
+    \label{fig:rdbi-schematic}
+\end{figure}
+
+Similar to the previous approach, the new implementation is two-staged. First, the RDBIRandomEnumerator is executed. The connector creates requests for whole blocks, if any identifier of them answered positively. These requests are passed to the configurable RDBIEnumerator. Of course, it is ensured that for a single block each identifier is generated only once.
+
+Also, as with the RCSelectiveEnumerator, each positively answered identifier will be remembered for all subsequent states. This increases the coverage because most identifiers are also available in other states, but the RandomEnumerator might not detect them for each state.
+
 \subsubsection{Evaluation}
+
+\begin{table}[h]
+    \begin{center}
+    \begin{tabular}{ccc}
+        \hline
+        & \textbf{Coverage} & \textbf{Speed-up} \\
+        \hline
+        \textbf{audi\_cgw} & 87.8\% & 85.0\% \\
+        \textbf{bfft-ecu} & 88.4\% & 96.6\% \\
+        \textbf{bmw-gateway-ecu-bdc} & 100\% & 96.1\% \\
+        \textbf{bmw-gateway-ecu-zgw} & 94.3\% & 95.8\% \\
+        \textbf{bmw-gateway-ecu2} & 83.3\% & 96.1\% \\
+        \textbf{bmw-tcu} & 72.2\% & 96.3\% \\
+        \textbf{bosch-ecu} & 90.7\% & 93.3\% \\
+        \textbf{dashboard} & 92.4\% & 94.4\% \\
+        \textbf{mercedes-ezs} & 89.3\% & 94.7\% \\
+        \textbf{seppmed} & 83.0\% & 95.9\% \\
+        \textbf{tesla-airbag-ecu} & 100\% & 96.4\% \\
+        \hline
+    \end{tabular}
+    \end{center}
+    \caption{Measured coverages and speed-ups on ECUs with approach 2.}
+    \label{tab:evaluation-approach2}
+\end{table}
+
+Overall, the coverages are lower with this approach as for approach 1. Only for two ECUs a coverage of 100\% is reached. It should be noted, that it varies slightly for each run because a random scan is used. The speed-ups are consistently high at approximately 95\%. Nevertheless, the speed-ups of approach 1 are higher in practice, because that approach can be applied to larger service scans, and then a speed-up of about 66\% saves more time there than a speed-up of 95\% here.
 
 
 \subsection{Avoid the scan of unsupported services}
 
-Each ECU usually only supports a subset of the offered services by the UDS standard. This approach aims to avoid scanning them to save requests and therefore, time.
+Each ECU usually supports only a subset of the services offered  by the UDS standard. This approach aims to avoid scanning them in order to save requests and therefore, time.
 
 \subsubsection{Detecting unsupported services}
 
