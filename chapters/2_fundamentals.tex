@@ -14,7 +14,7 @@ This section will explain the technical fundamentals which are necessary to unde
 
 Scapy is a powerful interactive packet manipulation program. It is able to forge or decode packets of a wide number of protocols, send them on the wire, capture them, match requests and replies, and much more \cite{scapy}.
 
-It is used through a text-based user interface. This has the advantage of being very lightweight, and also work via a ssh connection out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into the own Python program. Scapy supports Python 3 and additionally Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains the reason behind that \cite{scapy-py2}:
+It is used through a text-based user interface. This has the advantage of being very lightweight, and working via ssh connections out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into the own Python program. Scapy supports Python 3 and additionally Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains the reason behind that \cite{scapy-py2}:
 
 \begin{displayquote}
     Scapy is a tool that can be used in a very large number of situations. Often, you don't get to choose the Python interpreter you have when you run Scapy. So, [...] we need to keep supporting Python 2.7 as long as we can.
@@ -49,7 +49,7 @@ class UDP(Packet):
 \end{samepage}
 
 As in common programmer language, \textbf{short} specifies 16 bits. Since the UDP header only contains 16 bits fields, the Scapy definition only includes \textbf{short} fields. The first parameter of a field is always the name of this field. \textbf{sport} stands for source port, and \textbf{dport} for destination port.
-The next parameter sets the default value for this field. This is defined by the Scapy programmers in all conscience and not by the official UDP standard. \textbf{53} specifies the DNS protocol.
+The next parameter sets the default value for this field. This is defined by the Scapy programmers to the best of their knowledge and not by the official UDP standard. \textbf{53} specifies the DNS protocol.
 \textbf{EnumField}s also contain a third argument, a simple dictionary mapping from machine-readable values to human-readable texts. For example, part of the \textbf{UDP\_SERVICES} dictionary is: \mintinline{python}{{53: 'domain', 80: 'www_http'}}.
 The difference between ShortField and XShortField is only the representation. The value of the XShortField will be displayed as a hex value and the ShortField as a decimal value.
 
