@@ -117,11 +117,9 @@ Last but not least, the data.pkl file. Pickle is the object serialization module
 
 \subsection{Profiling the UDS Scanner}
 
-\subsubsection{Why profiling?}
+The Pareto principle indicates that small number of causes can be responsible for a large percentage of effects \cite{pareto}. This is also applicable to optimization problems. Usually only a few number of code lines cause the majority of the runtime. Optimizing them is far more effective than performing micro-optimizations as they naturally improve the performance to a greater extent. Moreover, micro-optimizations are usually even more difficult to accomplish.
 
-The Pareto principle indicates that small number of causes can be responsible for a large percentage of effects \cite{pareto}. This is also applicable to optimization problems. Usually only a few number of code lines are responsible for the majority of the runtime. Optimizing them is far more effective than performing micro-optimizations as they naturally improve the performance to a great extent. Moreover, micro-optimizations are usually even more difficult to accomplish. For example, before profiling, an idea was to improve the scheduling of the enumerators to avoid ECU resets. Each reset takes a few seconds of cool-down time. With the profiling results (see \autoref{fig:tesla-gantt}), it turned out that the ECU Reset times are negligible compared to the times required by some enumerators.
-
-\subsubsection{How it works}
+\subsubsection{Creating Gantt charts}
 
 To profile the UDS Scanner its profiling.csv and milestones.csv files are used. With their help Gantt charts are created which show the sequence and duration of enumerators within a scan. This visualizes what parts of the UDS Scanner take up most of its runtime.
 
@@ -135,10 +133,11 @@ These charts have been created for each available ECU. For illustration one is s
 \end{figure}
 
 
-
 \subsubsection{Evaluation}
 
-Although it seems that some enumerators and events do not require time, their time consumption is only so small that they are not or hardly visible in this scaled-down version of the diagram.
+Before profiling, an idea was to improve the scheduling of the enumerators to avoid ECU resets. Each reset takes a few seconds of cool-down time. With the profiling results (see \autoref{fig:tesla-gantt}), it turned out that the reset times are negligible compared to the times required by some enumerators.
+
+Although it seems that some enumerators and events do not require any time, their time consumption is only so small that they are not or hardly visible in this scaled-down version of the diagram.
 
 The main cause of runtime is the RCEnumerator. This was expected, since this is the enumerator with the most generated requests.
 In second place are the IOCBIEnumerator and the WDBISelectiveEnumerator.
