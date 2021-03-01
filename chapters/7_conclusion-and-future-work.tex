@@ -2,7 +2,7 @@
 
 \subsection{Conclusion}
 
-In this thesis, three approaches were evaluated to improve the efficiency of a UDS scan. The use of information within the same scan (approach 1), reducing the scan range (approach 2) and avoiding scanning unsupported services (approach 3).
+In this thesis, three approaches were evaluated to improve the efficiency of a UDS scan. Reusing information within the same service (approach 1), using probabilities of positive answers based on blocks (approach 2) and avoiding scanning unsupported services (approach 3).
 
 All three approaches turned out to maintain a high speed-up while still offering a high coverage.
 Nevertheless, all three approaches are not able to provide a 100\% coverage at all times. 
@@ -10,7 +10,7 @@ If a coverage of 100\% is desired, a full scan might be the preferred solution, 
 
 \subsection{Future Work}
 
-Reducing the scan range could also be applied to the IOCBI service. Theoretically, to many more services, but most of them only have 8-bit identifiers, leading to almost no time savings, thus not worth lower coverages.
+Approach 2 could also be applied to the IOCBI service. Theoretically, to many more services, but most of them only have 8-bit identifiers, leading to almost no time savings, thus not worth lower coverages.
 
 Also, another approach can be evaluated. While elaborating this work, it was observed that manufacturers tend to use the same identifiers across their ECUs for the RDBI service. So, these identifiers could be collected, grouped by manufacturers and used for more precise scanning through fixing some requests accordingly instead of only scanning randomly. One could go one step further here and not only group by manufacturers, but also by ECU type.
 For example, all available BMW ECUs turned out to have 11 identifiers in common. On the other site, the both available BMW central gateway ECUs turned out to have 61 identifiers in common. But for this approach, more data is necessary. For this work were ten unique ECUs available, which support UDS, wherein only from BMW more than one ECU was available. This is the reason why this approach was not pursued further.

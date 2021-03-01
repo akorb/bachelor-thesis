@@ -158,7 +158,7 @@ The full implementation can be seen in \autoref{app:rc-implementation}.
 
 The speed-up is calculated by comparing the number of requests sent with the selective enumerator and the number of requests that would have been sent with the old enumerator for an entire scan. For each ECU it is close to the theoretical maximum of $66.\overline{6}$ \%, leading to the evaluation that there is a great potential in this approach.
 
-The use of information within the same scan is applicable to scans of services with multiple fields, as it is the case with the RC service that has the \mintinline{text}{routineControlType} and \mintinline{text}{routineIdentifier} fields. This results in a high scan time for this service and thus a high potential time savings. However, if an identifier is not recognized in the first scan, it will not be recognized in the next scans as well.
+This approach is applicable to scans of services with multiple fields, as it is the case with the RC service that has the \mintinline{text}{routineControlType} and \mintinline{text}{routineIdentifier} fields. This results in a high scan time for this service and thus a high potential time savings. However, if an identifier is not recognized in the first scan, it will not be recognized in the next scans as well.
 
 
 \subsection{Use probabilities of positive answers block based}
@@ -295,7 +295,7 @@ The non-compact version is shown in \autoref{app:random-not-compact} and the fin
 
 Overall, the coverages are lower with this approach as for approach 1. Only for two ECUs a coverage of 100\% is reached. It should be noted, that it varies slightly for each run because a random scan is used. The speed-ups are consistently high at approximately 95\%. Nevertheless, the speed-ups of approach 1 are higher in practice, because that approach can be applied to larger service scans, and then a speed-up of about 66\% saves more time there than a speed-up of 95\% here.
 
-The biggest problem with reducing the scan range is the newly added random factor. The coverage can be great for one scan, but low for the next one. This would require performing multiple scans using the new implementation to ensure that most identifiers were found.
+The biggest problem with this approach is the newly added random factor. The coverage can be great for one scan, but low for the next one. This would require performing multiple scans using the new implementation to ensure that most identifiers were found.
 
 
 \subsection{Avoid the scan of unsupported services}
