@@ -2,7 +2,7 @@
 \label{sec:introduction}
 
 \subsection{Motivation}
-Nowadays a car is full of small computers handling tasks for the whole system. Without these helpers, functions like driver-assistance or self-diagnostic would not be possible. Those computers are generally called electronic control unit (ECU). Modern cars can contain over 100 of those. The complexity of ECU networks in a car is increasing quickly. The next generation of car networks is expected to be more centralized with less ECUs \cite{car-architecture}. This reduces complexity and its inherent risk of security vulnerabilities and high costs, as shown in \autoref{fig:centralized-architecture}.
+Nowadays a car is full of small computers handling tasks for the whole system. Without these helpers, functions like driver-assistance or self-diagnostic would not be possible. Those computers are generally called electronic control unit (ECU). Modern cars can contain over 100 of those. The complexity of ECU networks in a car is increasing quickly. The next generation of car networks is expected to be more centralized with less ECUs, as shown in \autoref{fig:centralized-architecture}. This reduces complexity and its inherent risk of security vulnerabilities and high costs.
 
 \begin{figure}[h]
     \centering
@@ -11,7 +11,11 @@ Nowadays a car is full of small computers handling tasks for the whole system. W
     \label{fig:centralized-architecture}
 \end{figure}
 
-ECUs communicate with each other via bus systems. The most common ones are CAN, FlexRay and the Automotive Ethernet, which is becoming increasingly popular. Transport protocols usually sit on top of these physical layers. For Ethernet this is the well known TCP protocol, while the most common one for CAN is the ISO-TP protocol. Application protocols are used to ultimately transfer payload. For example, some protocols were created specifically for the development of units like Universal Measurement and Calibration Protocol (XCP) and some others were defined for diagnostic purposes such as Unified Diagnostic Services (UDS), General Motors Local Area Network (GMLAN) and On-board diagnostics (OBD). Both types are security critical. The XCP protocol is able to read and even write into the flash memory of an ECU. It shall be disabled on shipped ECUs. The UDS and GMLAN protocol provide definitions for diagnostic related tasks. However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II port (see \autoref{fig:obd-port}), which by regulation must be present near the steering wheel on at least every car built after 2003. This fact makes them a great first target for gathering information. This work puts the UDS protocol in focus since it is the widest adopted protocol which allows extended functionality, for example flashing ECUs. The OBD protocol is excluded because it does not offer any valuable information and the GMLAN protocol because it is restricted to vehicles from the General Motors corporation.
+ECUs communicate with each other via bus systems. The most common ones are CAN, FlexRay and the Automotive Ethernet, which is becoming increasingly popular. Transport protocols sit on top of these physical layers. For Ethernet these are the well known TCP or UDP protocol, while the most common one for CAN is the ISO-TP protocol.
+
+Application protocols are used to ultimately transfer payload. Some protocols were created specifically for the development of units like Universal Measurement and Calibration Protocol (XCP) and some others were defined for diagnostic purposes such as Unified Diagnostic Services (UDS), General Motors Local Area Network (GMLAN) and On-board diagnostics (OBD). Both types are security critical. The XCP protocol is able to read and even write into the flash memory of an ECU. It shall be disabled on shipped ECUs. The UDS and GMLAN protocol provide definitions for diagnostic related tasks.
+
+However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II port (see \autoref{fig:obd-port}), which by regulation must be present near the steering wheel on at least every car built after 2003, making them a great first target for gathering information. This thesis focuses on the UDS protocol, as it is the most widely used protocol that allows extended functionality, such as flashing ECUs. The OBD protocol is excluded because it does not provide valuable information, and the GMLAN protocol because it is limited to General Motors vehicles.
 
 \begin{figure}[h]
     \centering
@@ -43,7 +47,7 @@ This paper evaluates three approaches to improve the efficiency of the UDS proto
 
 Efficiency improvement is understood as the ratio between the speed-up and the coverage. Coverage is here defined as the ratio of finds in the unmodified scanner to the finds of the modified scanner, and the speed-up as the ratio of requests in comparison between these two. For both metrics, the higher the better.
 
-Nevertheless, the coverage and speed-up have to be in balance. A speed-up of 90\% is not helpful if this results in 0\% coverage. The speed-up is achieved by reducing the number of generated packets. Hence, the challenge is to narrow down the scanning area to where positive responses are expected.
+Nevertheless, the coverage and speed-up have to be in balance. A speed-up of 90\% is not helpful if this results in 0\% coverage. Hence, the challenge is to narrow down the scanning area to where positive responses are expected.
 
 In concrete terms, the following questions are to be answered:
 
