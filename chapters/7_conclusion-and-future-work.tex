@@ -2,7 +2,7 @@
 
 All three approaches maintain a high speed-up while still offering a high coverage.
 
-For each ECU, the same scan as in \autoref{sec:introduction} was executed, they differ only in the use of the new implementations. As \autoref{fig:durations-diff} illustrates, the speed-up is severe.
+For each ECU, the same scan as in \autoref{sec:introduction} was executed again, they differ only in the use of the new implementations. As \autoref{fig:durations-diff} illustrates, the speed-up is severe.
 
 \begin{figure}[h]
     \centering
@@ -11,7 +11,7 @@ For each ECU, the same scan as in \autoref{sec:introduction} was executed, they 
     \label{fig:durations-diff}
 \end{figure}
 
-The use of information within the same scan (approach 1) is applicable to scans of services multiple fields, as it is the case with the RC service that has the type and identifier field. This results in a high scan time for this service and thus a high potential time savings. However, if an identifier is not recognized in the first scan, it will not be recognized in the next scans as well.
+The use of information within the same scan (approach 1) is applicable to scans of services with multiple fields, as it is the case with the RC service that has the \mintinline{text}{routineControlType} and \mintinline{text}{routineIdentifier} fields. This results in a high scan time for this service and thus a high potential time savings. However, if an identifier is not recognized in the first scan, it will not be recognized in the next scans as well.
 
 The biggest problem with reducing the scan range (approach 2) is the newly added random factor. The coverage can be great for one scan, but low for the next one. This would require performing multiple scans using the new implementation to ensure that most identifiers were found.
 
