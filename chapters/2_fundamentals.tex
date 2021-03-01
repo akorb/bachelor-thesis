@@ -339,7 +339,9 @@ class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
 
 The method can be given keyword parameters. The only one used here is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 packets for each state. This service is a StateGenerator, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
 
-The enumerators can output their results as a text-table. For example:
+Special enumerators, called staged enumerators, can contain enumerators where each enumerator is a stage. They start scanning with the first stage for each state, followed by each subsequent stage in the same way. For each stage transition (for example $1 \rightarrow 2$ or $2 \rightarrow 3$) connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here the results of the previous enumerator can be evaluated and the new enumerator can be configured accordingly.
+
+Enumerators can output their results as a text-table. For example:
 
 \begin{samepage}
 \begin{minted}{text}
