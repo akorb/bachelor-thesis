@@ -1,21 +1,12 @@
-\section{Conclusion}
+\section{Conclusion and Future Work}
 
-All three approaches maintain a high speed-up while still offering a high coverage.
+Three approaches have been evaluated to improve the efficiency of a UDS scan. The use of information within the same scan (approach 1), reducing the scan range (approach 2) and avoiding scanning unsupported services (approach 3).
 
-For each ECU, the same scan as in \autoref{sec:introduction} was executed again, they differ only in the use of the new implementations. As \autoref{fig:durations-diff} illustrates, the speed-up is severe.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=1\textwidth]{durations-diff}
-    \caption{Observed runtimes for a UDS scan with new implementations.}
-    \label{fig:durations-diff}
-\end{figure}
-
-The use of information within the same scan (approach 1) is applicable to scans of services with multiple fields, as it is the case with the RC service that has the \mintinline{text}{routineControlType} and \mintinline{text}{routineIdentifier} fields. This results in a high scan time for this service and thus a high potential time savings. However, if an identifier is not recognized in the first scan, it will not be recognized in the next scans as well.
-
-The biggest problem with reducing the scan range (approach 2) is the newly added random factor. The coverage can be great for one scan, but low for the next one. This would require performing multiple scans using the new implementation to ensure that most identifiers were found.
-
-Avoiding scanning unsupported services (approach 3) is the safest way to save time. It is unlikely that identifiers will be missed, but the speed gain can still be very high.
-
+All three approaches turned out to maintain a high speed-up while still offering a high coverage.
 Nevertheless, all three approaches are not able to provide a 100\% coverage at all times. 
-If a coverage of 100\% is desired, a full scan might be the preferred solution, even if it takes much longer. This may be acceptable, ff this scan will be executed only once. For fast results and good, but possibly not complete coverage, the new implementation should be preferred. It depends on the use case.
+If a coverage of 100\% is desired, a full scan might be the preferred solution, even if it takes much longer. This may be acceptable, if this scan will be executed only once. For fast results and good, but possibly not complete coverage, the new implementation should be preferred. It depends on the use case.
+
+Reducing the scan range could also be applied to the IOCBI service. Theoretically, to many more services, but most of them only have 8-bit identifiers, leading to almost no time savings, thus not worth lower coverages. Also, another approach can be evaluated. While elaborating this work, it was observed that manufacturers tend to use the same identifiers across their ECUs for the RDBI service. So, these identifiers could be collected, grouped by manufacturers and used for more precise scanning through fixing some requests accordingly instead of only scanning randomly. One could go one step further here and not only group by manufacturers, but also by ECU type.
+For example, all available BMW ECUs turned out to have 11 identifiers in common. On the other site, the both available BMW central gateway ECUs turned out to have 61 identifiers in common. But for this approach, more data is necessary. For this work were ten unique ECUs available, which support UDS, wherein only from BMW more than one ECU was available. This is the reason why this approach was not pursued further.
+For example, it turned out that all available BMW ECUs have 11 identifiers in common. On the other hand, it turned out that the two available BMW Central Gateway ECUs have 61 identifiers in common. However, more data is needed for this approach. For this work, ten unique ECUs supporting UDS were available, with only BMW having more than one available. This is the reason why this approach was not pursued.
+In addition, the UDS Scanner and enumerators are not yet part of the official Scapy repository at press time. They will be refined and gradually added to the official repository.

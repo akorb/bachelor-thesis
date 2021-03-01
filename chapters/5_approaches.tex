@@ -124,8 +124,6 @@ The RCSelectiveEnumerator connects its two stages with a connector function that
 
 Each positively answered identifier of Type1 in any state will also be probed for all subsequent states in Type2 and Type3, even if this identifier is not found in Type1 for another state. This increases the coverage in cases, where a routine can be started in a state, but its result, or to stop it, may only be requested in another state. It also hardly leads to more requests, which can be seen at the speed-ups in \autoref{fig:rc-schematic}.
 
-% TODO: Put classes into Appendix
-
 \subsubsection{Evaluation}
 
 \begin{table}[h]
@@ -156,6 +154,8 @@ Each positively answered identifier of Type1 in any state will also be probed fo
 9 of 11 ECUs had a full coverage. The coverage for the dashboard ECU notable low. Therefore, a closer look was taken there again. It turned out that the Dashboard only supports two identifiers. The identifier 515 for Type1 and identifier 61,728 for Type3. The former is detected, but the resulting range for Type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\%.
 
 The speed-up is calculated by comparing the number of requests sent with the selective enumerator and the number of requests that would have been sent with the old enumerator for an entire scan. For each ECU it is close to the theoretical maximum of $66.\overline{6}$ \%, leading to the evaluation that there is a great potential in this approach.
+
+The use of information within the same scan is applicable to scans of services with multiple fields, as it is the case with the RC service that has the \mintinline{text}{routineControlType} and \mintinline{text}{routineIdentifier} fields. This results in a high scan time for this service and thus a high potential time savings. However, if an identifier is not recognized in the first scan, it will not be recognized in the next scans as well.
 
 
 \subsection{Reduction of scan range}
@@ -290,6 +290,8 @@ Implementing the RDBIRandomEnumerator was a challenge because it must include th
 
 Overall, the coverages are lower with this approach as for approach 1. Only for two ECUs a coverage of 100\% is reached. It should be noted, that it varies slightly for each run because a random scan is used. The speed-ups are consistently high at approximately 95\%. Nevertheless, the speed-ups of approach 1 are higher in practice, because that approach can be applied to larger service scans, and then a speed-up of about 66\% saves more time there than a speed-up of 95\% here.
 
+The biggest problem with reducing the scan range is the newly added random factor. The coverage can be great for one scan, but low for the next one. This would require performing multiple scans using the new implementation to ensure that most identifiers were found.
+
 
 \subsection{Avoid the scan of unsupported services}
 
@@ -332,3 +334,19 @@ And in comparison to the potential savings (\autoref{fig:serviceNotSupported-sav
     \caption{Lost number of positive responses with this approach.}
     \label{fig:serviceNotSupported-losses}
 \end{figure}
+
+Avoiding scanning unsupported services is the safest way to save time of all three approaches. It is unlikely that identifiers will be missed, but the speed gain can still be very high.
+
+\subsection{Actual time savings}
+
+For each ECU, the same scans as for gathering information and profiling were executed again, they differ only in the use of the new implementations.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{durations-diff}
+    \caption{Observed runtimes for a UDS scan with new implementations.}
+    \label{fig:durations-diff}
+\end{figure}
+
+As \autoref{fig:durations-diff} illustrates, the speed-up is severe. Especially for the Tesla ECU the difference is huge.
+This results from this ECU having a relatively high average response time (about 0.02 seconds) compared to the others (0.001 to 0.008 seconds).
