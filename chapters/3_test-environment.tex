@@ -119,7 +119,7 @@ Last but not least, the data.pkl file. Pickle is the object serialization module
 
 The Pareto principle indicates that small number of causes can be responsible for a large percentage of effects \cite{pareto}. This is also applicable to optimization problems. Usually only a few number of code lines cause the majority of the runtime. Optimizing them is far more effective than performing micro-optimizations as they naturally improve the performance to a greater extent. Moreover, micro-optimizations are usually even more difficult to accomplish.
 
-\subsubsection{Creating Gantt charts}
+\subsubsection{Visualizing a UDS Scanner run}
 
 To profile the UDS Scanner its profiling.csv and milestones.csv files are used. With their help Gantt charts are created which show the sequence and duration of enumerators within a scan. This visualizes what parts of the UDS Scanner take up most of its runtime.
 
@@ -128,14 +128,12 @@ These charts have been created for each available ECU. For illustration one is s
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.9\textwidth]{tesla-gantt}
-    \caption{Gantt chart of the Tesla-Airbag-ECU. One color represents one state of the ECU.}
+    \caption{Gantt chart of the Tesla-Airbag-ECU. Each color is a state.}
     \label{fig:tesla-gantt}
 \end{figure}
 
 
-\subsubsection{Evaluation}
-
-Before profiling, an idea was to improve the scheduling of the enumerators to avoid ECU resets. Each reset takes a few seconds of cool-down time. With the profiling results (see \autoref{fig:tesla-gantt}), it turned out that the reset times are negligible compared to the times required by some enumerators.
+\subsubsection{Identifying the enumerators causing the most runtime}
 
 Although it seems that some enumerators and events do not require any time, their time consumption is only so small that they are not or hardly visible in this scaled-down version of the diagram.
 
@@ -145,4 +143,4 @@ The latter consists of actually two enumerators, the RDBIEnumerator and the WDBI
 The RDBIEnumerator generates more requests than the WDBIEnumerator to a large extent, which accordingly hardly contributes to the runtime.
 The IOCBIEnumerator and WDBISelectiveEnumerator generate about the same runtime, this was to be expected since they generate a similar number of requests. The RDBI service is more frequently supported by ECUs than the IOCBI service, resulting in a smaller database. So it was decided that the RDBIEnumerator would be optimized instead of the IOCBIEnumerator.
 
-In summary, the RCEnumerator and the RDBIEnumerator are the most critical performance barriers of the UDS scanner and therefore belong to the subjects to optimize.
+In summary, the RCEnumerator and the RDBIEnumerator are the most critical runtime causes of the UDS scanner and therefore belong to the matters to be optimized.
