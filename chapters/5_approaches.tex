@@ -307,7 +307,7 @@ In contrast to the previous approaches, this one is not applied to an enumerator
 
 \subsubsection{Evaluation}
 
-\autoref{fig:serviceNotSupported-savings} illustrates the approximate number of saved packets for each ECU. It is only an approximation because for this graph, the responses with the both described NRCs have been counted. Of course, not every response can be saved with these NRCs, since at least one request must first be made to see the NRC of that service for that state. But these numbers, as described in the previous paragraph, are very low and negligible, especially when considering that the minimum value of \autoref{fig:serviceNotSupported-savings} is ~70,000.
+\autoref{fig:serviceNotSupported-savings} illustrates the number of saved packets for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs have been counted. Of course, not every response can be saved with these NRCs, since at least one request must first be made to see the NRC of that service for a state. But this number of requests, as described in the previous paragraph, is very small and negligible, especially considering that the minimum value of saved requests is about 70,000.
 
 \begin{figure}[h]
     \centering
@@ -316,7 +316,7 @@ In contrast to the previous approaches, this one is not applied to an enumerator
     \label{fig:serviceNotSupported-savings}
 \end{figure}
 
-There is one last potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is conceivable that the ECU responds at to an identifier with 0x11 or 0x7f, although a subsequent identifier would actually have been answered positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. This occurs only three ECUs.
+There is one last potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is conceivable that the ECU responds to an identifier with 0x11 or 0x7f, although a subsequent identifier would actually have been answered positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. It was calculated by evaluating the responses for each enumerator for each state. Once a negative response with NRC 0x11 or 0x7f was received, an internal counter was incremented with each subsequent positive response.
 And in comparison to the potential savings (\autoref{fig:serviceNotSupported-savings}), the losses are negligible.
 
 \begin{figure}[h]
