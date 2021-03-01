@@ -1,10 +1,23 @@
-\section{Approaches}
+\section{Approaches to reduce scan ranges}
 
-This section discusses the optimization of the two enumerators from the previous section, each using a different approach. In addition, a third approach discussed is to avoid scanning unsupported services. 
+This section discusses the optimization of the two enumerators from the previous section, each using a different approach. In addition, the third approach discussed is to avoid scanning unsupported services. 
 
-\subsection{Use information of a former service scan}
+\subsection{Reuse information within same service}
 
-This approach aims to reuse information from one enumerator in a later enumerator within the same scan. This will be applied to the RCEnumerator.
+This approach aims to reuse information from one part of a service for another part of this service. First, it must be checked to which enumerator this approach should be applied to.
+
+The Routine Control (RC) service has two fields, the type and identifier. The distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{rc-distribution}
+    \caption{Distribution of the RC identifiers. Each color is one ECU.}
+    \label{fig:rc-distribution}
+\end{figure}
+
+It can be seen that if an identifier is available in Type1, it is likely that this identifier also occurs in Type2 or Type3. Consequently, if an identifier does not respond positively in Type1, it is unlikely that it will respond in Type2 or Type3.
+
+Hence, the RC enumerator is a great candidate for this approach.
 
 \subsubsection{Current behavior}
 
@@ -39,18 +52,6 @@ The current RCEnumerator does exactly this, it generates the full range for each
 \end{figure}
 
 \subsubsection{Elaborating the new behavior}
-
-As a first step to find a way to apply the approach to the RCEnumerator, the distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
-
-% TODO: maybe to attachments
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{rc-distribution}
-    \caption{Distribution of the RC identifiers. Each color is one ECU.}
-    \label{fig:rc-distribution}
-\end{figure}
-
-It can be seen that if an identifier is available in Type1, it is likely that this identifier also occurs in Type2. Consequently, if an identifier does not respond positively in Type1, it is also very unlikely that it will respond in Type2 or Type3. This appearance is used to reduce the scan range for this service.
 
 The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. So, 2\textsuperscript{16} is the minimum number of requests for each state with the new behavior. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. Moreover, it was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning nearby identifiers instead of just that identifier will result in higher coverage. What needs to be found out is the block size which leads to the best coverage, while maintaining an appropriate speed-up. \autoref{fig:rc-behavior-new} illustrates that. The green areas again show the scanned ranges, additionally, the red areas are the found identifiers in Type1 and their resulting ranges for Type2 and Type3 and the gray areas show the areas that were not scanned and thus how much time was saved.
 
@@ -160,12 +161,23 @@ The speed-up is calculated by comparing the number of requests sent with the sel
 The use of information within the same scan is applicable to scans of services with multiple fields, as it is the case with the RC service that has the \mintinline{text}{routineControlType} and \mintinline{text}{routineIdentifier} fields. This results in a high scan time for this service and thus a high potential time savings. However, if an identifier is not recognized in the first scan, it will not be recognized in the next scans as well.
 
 
-\subsection{Reduction of scan range}
-Most services are simpler and don't have a type as the RC service but only an identifier. So, reusing information within the same scan is limited. Here the second approach will be applied to the Read Data By Identifier (RDBI) enumerator. The idea is to scan more heavily the blocks where positive behavior is more likely than others. The approach will be applied.
+\subsection{Use probabilities of positive answers block based}
+Most services are simpler and don't have a type as the RC service but only an identifier. So, reusing information within the same service is not practical. This is also the case for the Read Data By Identifier (RDBI) service. It allows the client to request data record values from the server identified by one or more dataIdentifiers \cite{iso14229}. The new idea is to scan the blocks more heavily where positive behavior is more likely than others and vice versa.
+
+The distribution of identifiers over all ECUs is visualized in a histogram to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{rdbi-distribution}
+    \caption{Distribution of the RDBI identifiers. Each color is one ECU.}
+    \label{fig:rdbi-distribution}
+\end{figure}
+
+It is clearly visible that there are some areas where not a single identifier was answered positively, and some areas that are particularly covered, such as the beginning and the end. This behavior will be exploited in the remainder of this section.
 
 \subsubsection{Current behavior}
 
-The Read Data By Identifier service allows the client to request data record values from the server identified by one or more dataIdentifiers \cite{iso14229}. Again, for a quick overview of the service a simplified code snippet of the Scapy implementation is used.
+Again, for a quick overview of the service a simplified code snippet of the Scapy implementation is used.
 
 \begin{samepage}
 \begin{minted}{python}
@@ -183,17 +195,6 @@ wherein $n$ stands for the number of detected states.
 So, the current RDBIEnumerator is very simple. It generates 2\textsuperscript{16} packets counting up from 0 to 65535 and generating for each number a packet with this number as identifier for each state.
 
 \subsubsection{Elaborating the new behavior}
-
-As a first step, the distribution of identifiers over all ECUs is visualized in a histogram to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{rdbi-distribution}
-    \caption{Distribution of the RDBI identifiers. Each color is one ECU.}
-    \label{fig:rdbi-distribution}
-\end{figure}
-
-It is clearly visible that there are some areas where not a single identifier was answered positively, and some areas that are particularly covered, such as the beginning and the end. This behavior will be exploited in the remainder of this section.
 
 To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. Then, it is calculated how likely a positive response is for each of these blocks. Based on this information, the number of requests for each block will be calculated individually.
 For that, the probability is multiplied with the block size.
