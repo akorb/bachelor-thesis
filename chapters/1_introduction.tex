@@ -11,7 +11,7 @@ Nowadays a car is full of small computers handling tasks for the whole system. W
     \label{fig:centralized-architecture}
 \end{figure}
 
-ECUs communicate with each other via bus systems. The most common ones are CAN, FlexRay and the Automotive Ethernet, which is becoming increasingly popular. Transport protocols usually sit on top of these physical layers. For Ethernet this is the well known TCP protocol, while the most common one for CAN is the ISO-TP protocol. Application protocols are used to ultimately transfer payload. For example, some protocols were created specifically for the development of units like Universal Measurement and Calibration Protocol (XCP) and some others were defined for diagnostic purposes such as Unified Diagnostic Services (UDS), General Motors Local Area Network (GMLAN) and On-board diagnostics (OBD). Both types are security critical. The XCP protocol is able to read and even write into the flash memory of an ECU. It shall be disabled on shipped ECUs. The UDS and GMLAN protocol provide definitions for diagnostic related tasks. However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II port, which by regulation must be present near the steering wheel on at least every car built after 2003 (see \autoref{fig:obd-port}). This fact makes them a great first target for gathering information. This work puts the UDS protocol in focus since it is the widest adopted protocol which allows extended functionality, for example flashing ECUs. The OBD protocol is excluded in this work because it does not offer any valuable information and the GMLAN protocol because it is restricted to vehicles from the General Motors corporation.
+ECUs communicate with each other via bus systems. The most common ones are CAN, FlexRay and the Automotive Ethernet, which is becoming increasingly popular. Transport protocols usually sit on top of these physical layers. For Ethernet this is the well known TCP protocol, while the most common one for CAN is the ISO-TP protocol. Application protocols are used to ultimately transfer payload. For example, some protocols were created specifically for the development of units like Universal Measurement and Calibration Protocol (XCP) and some others were defined for diagnostic purposes such as Unified Diagnostic Services (UDS), General Motors Local Area Network (GMLAN) and On-board diagnostics (OBD). Both types are security critical. The XCP protocol is able to read and even write into the flash memory of an ECU. It shall be disabled on shipped ECUs. The UDS and GMLAN protocol provide definitions for diagnostic related tasks. However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II port (see \autoref{fig:obd-port}), which by regulation must be present near the steering wheel on at least every car built after 2003. This fact makes them a great first target for gathering information. This work puts the UDS protocol in focus since it is the widest adopted protocol which allows extended functionality, for example flashing ECUs. The OBD protocol is excluded because it does not offer any valuable information and the GMLAN protocol because it is restricted to vehicles from the General Motors corporation.
 
 \begin{figure}[h]
     \centering
@@ -30,7 +30,7 @@ With their brute-force approaches, they are effective but not efficient. A scan 
 %durations
 \begin{figure}[h]
     \centering
-    \includegraphics[width=1\textwidth]{durations}
+    \includegraphics[width=0.8\textwidth]{durations}
     \caption{Observed runtimes for a UDS scan.}
     \label{fig:durations}
 \end{figure}
@@ -39,11 +39,20 @@ Consequently, an efficient scan is desirable that keeps the scan time low even t
 
 \subsection{Goal}
 
-This paper evaluates different approaches to improve the efficiency of the UDS protocol scanning. The approaches can be mixed freely, if this leads to better results.
+This paper evaluates three approaches to improve the efficiency of the UDS protocol scanning, namely the use of information within the same scan (approach 1), reducing the scan range (approach 2) and avoiding scanning unsupported services (approach 3).
 
-Efficiency improvement is understood as the ratio between the speed-up and the coverage. Coverage is here defined as the ratio of finds in the unmodified Scanner to the finds of the modified Scanner, and the speed-up as the saved time in comparison between these two. For both metrics, the higher the better.
+Efficiency improvement is understood as the ratio between the speed-up and the coverage. Coverage is here defined as the ratio of finds in the unmodified scanner to the finds of the modified scanner, and the speed-up as the ratio of requests in comparison between these two. For both metrics, the higher the better.
 
 Nevertheless, the coverage and speed-up have to be in balance. A speed-up of 90\% is not helpful if this results in 0\% coverage. The speed-up is achieved by reducing the number of generated packets. Hence, the challenge is to narrow down the scanning area to where positive responses are expected.
+
+In concrete terms, the following questions are to be answered:
+
+\begin{itemize}
+    \item What is the coverage for each approach?
+    \item What is the speed-up for each approach?
+    \item Which parameters of their implementations lead to the best results?
+    \item Are the implementations of the approaches a replacement for the original implementations?
+\end{itemize}
 
 
 \subsection{Environment}
