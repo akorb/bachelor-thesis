@@ -27,7 +27,7 @@ class UDS_RC(Packet):
 
 The \mintinline{python}{routineControlType} field specifies what should happen to a routine. Possible are starting, stopping and requesting the results. To specify which routine is to be controlled, there is the \mintinline{python}{routineIdentifier} field. Hence, there are three control types, and because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
 \[f(n)=3 \cdot 2^{16} \cdot n\]
-wherin $n$ stands for the number of detected states.
+wherein $n$ stands for the number of detected states.
 
 The current RCEnumerator does exactly this, it generates the full range for each state. That's what needs to be reduced. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas symbolize the scanned ranges.
 
@@ -64,7 +64,7 @@ The new behavior starts with scanning all 2\textsuperscript{16} identifiers with
 The limits of the speed-up are defined as following:
 \[ 0\ \% \ \leq\  s(n)\  \leq 66.\overline{6}\ \% \quad \forall \  n \in \left\{0, 1, ..., 2^{16} \cdot 3\right\} \]
 %\[ 0\  \ \leq\  s(n)\  \leq \frac{2}{3} \quad \forall \  n \in \left\{0, 1, ..., 2^{16 * 3}\right\} \]
-wherin $s$ is the speed-up function and $n$ the number of generated requests for this service.
+wherein $s$ is the speed-up function and $n$ the number of generated requests for this service.
 
 The reason for the upper limit of $66.\overline{6}$ \% is that Type1, which is one third of all possible requests, is always scanned completely.
 
@@ -176,7 +176,7 @@ class UDS_RDBI(Packet):
 
 To specify which data record to retrieve, there is the \mintinline{python}{identifier} field. Hence, because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
 \[f(n)=2^{16} \cdot n\]
-wherin $n$ stands for the number of detected states. 
+wherein $n$ stands for the number of detected states. 
 
 So, the current RDBIEnumerator is very simple. It generates 2\textsuperscript{16} packets counting up from 0 to 65535 and generating for each number a packet with this number as identifier for each state.
 
@@ -196,7 +196,7 @@ It is clearly visible that there are some areas where not a single identifier wa
 To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. Then, it is calculated how likely a positive response is for each of these blocks. Based on this information, the number of requests for each block will be calculated individually.
 For that, the probability is multiplied with the block size.
 \[c(p, s)=\max(p \cdot s, 1)\]
-wherin p stands for the probability of the requested block and s for the block size. For each block should be generated at least one request. The requested identifiers within one block are generated randomly. If any of these requests is answered positively in a block, the whole block will be scanned. An example is illustrated in \autoref{fig:rdbi-behavior-new}.
+wherein p stands for the probability of the requested block and s for the block size. For each block should be generated at least one request. The requested identifiers within one block are generated randomly. If any of these requests is answered positively in a block, the whole block will be scanned. An example is illustrated in \autoref{fig:rdbi-behavior-new}.
 
 \begin{figure}[h]
     \centering
