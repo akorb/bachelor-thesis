@@ -315,7 +315,27 @@ The UDS Scanner was implemented in Scapy for the PetS3 project.
     \label{fig:automotive-security-testing-process}
 \end{figure}
 
-As \autoref{fig:automotive-security-testing-process} shows, the security testing process in the automotive domain consists of a scanning step \cite{Bayer2015}. This step aims detect which services of a protocol are implemented and what information can be retrieved there. The UDS Scanner fulfills these tasks. It can also be used for fuzzing and functional testing, even though scanning is its main use-case. The retrieved information assists for the manual PenTesting, the last step in this process.
+As \autoref{fig:automotive-security-testing-process} shows, the security testing process in the automotive domain contains a scanning step \cite{Bayer2015}. This step aims detect which services of a protocol are implemented and what information can be retrieved there. The UDS Scanner fulfills these tasks. It can also be used for fuzzing and functional testing, even though scanning is its main use-case. The retrieved information assists for the manual PenTesting, the final step in this process.
+
+\subsubsection{Procedure}
+
+The UDS Scanner iterates over all found states of the current scan and executes all enumerators for each one. Enumerators can find new states. So as long as new states are found during an iteration, the scan continues. The default state, i.e. for the currently switched on ECU, is session1. After each iteration, the ECU is reset to return to the default state. From there, the state to be scanned is activated. An ECU reset is usually done by turning off the ECU, waiting for a few seconds, and turning it on again, although there is an ECUReset service in the UDS protocol. However, this service specification states that the behavior of the ECUReset is implementation-specific, so a power-based reset is the cleaner way.
+
+The following pseudocode aims to make the procedure easier to understand:
+
+\begin{samepage}
+\begin{minted}{python}
+class UDS_Scanner:
+    def scan():
+        states = [session1]
+        for state in states:
+            ecu.reset()
+            ecu.enter_state(state)
+            for enum in enumerators:
+                enum.execute()
+        ecu.reset()
+\end{minted}
+\end{samepage}
 
 \subsubsection{Enumerators}
 
@@ -353,4 +373,4 @@ TesterPresent: | PR: Supported | PR: Supported | PR: Supported |
 \end{minted}
 \end{samepage}
 
-This means, the request of the TesterPresent service was positively answered by the ECU in all three found states. Session1 is the initial state the UDS Scanner starts with.
+This means, the request of the TesterPresent service was positively answered by the ECU in all three found states.
