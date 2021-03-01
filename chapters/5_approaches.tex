@@ -193,12 +193,19 @@ As a first step, the distribution of identifiers over all ECUs is visualized in 
 
 It is clearly visible that there are some areas where not a single identifier was answered positively, and some areas that are particularly covered, such as the beginning and the end. This behavior will be exploited in the remainder of this section.
 
-As the procedure to reduce this range, first, the 2\textsuperscript{16} area has to be split up in blocks. Then, it is calculated how likely a positive response is for each of these blocks. Based on this information, the number of requests for each block will be calculated individually. For that, the probability is multiplied with the block size.
+To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. Then, it is calculated how likely a positive response is for each of these blocks. Based on this information, the number of requests for each block will be calculated individually.
+For that, the probability is multiplied with the block size.
 \[c(p, s)=\max(p \cdot s, 1)\]
-wherin p stands for the probability of the requested block and s for the block size. For each block should be generated at least one request. The requested identifiers within one block are generated randomly. If any of these requests is answered positively in a block, the whole block will be scanned.
-This leads to one question. Which block size leads to best results? This is again answered in a simulation.
+wherin p stands for the probability of the requested block and s for the block size. For each block should be generated at least one request. The requested identifiers within one block are generated randomly. If any of these requests is answered positively in a block, the whole block will be scanned. An example is illustrated in \autoref{fig:rdbi-behavior-new}.
 
-The simulation is performed for every possible block size, as such block sizes of $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. For the current block size to simulate the probabilities for each block are calculated based on all ECUs together. The resulting coverage and speed-up are then calculated for each ECU specifically and averaged. The approach has one more feature which makes the simulation more complex than the former simulation. Since the blocks are first scanned randomly, the scan can lead to a great coverage, but also a low one, depending on the hit rate of the generated identifiers. To reduce this effect, the calculation of the coverage and speed-up are made 100 times, each time with newly created random identifiers. The 100 results are averaged to the value corrected from the random factor. This leads to a high processing time. To reduce the runtime, the execution was parallelized.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{rdbi-behavior-new}
+    \caption{New procedure for scanning the RDBI service.}
+    \label{fig:rdbi-behavior-new}
+\end{figure}
+
+This leads to one question. Which block size leads to best results? This is again answered by a simulation, which is performed for every possible block size, as such block sizes of $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The probability of a positive response of a block are calculated based on the results of all ECUs. The resulting coverage and speed-up are then calculated for each ECU specifically and averaged. The approach has one more feature which makes the simulation more complex than the former simulation. Since the blocks are first scanned randomly, the scan can lead to a great coverage, but also a low one, depending on the hit rate of the generated identifiers. To reduce this effect, the calculation of the coverage and speed-up are made 100 times, each time with newly created random identifiers. The 100 results are averaged to the value corrected from the random factor. This leads to a high processing time. To reduce the runtime, the execution was parallelized.
 The following pseudocode shows the procedure more clearly.
 
 \begin{samepage}
