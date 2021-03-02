@@ -1,7 +1,7 @@
 \section{Data gathering and profiling}
 \label{sec:data-gathering}
 
-From here, the procedure and the environment of gathering information to elaborate approaches will be discussed in detail.
+From here, the procedure and the environment of gathering information to elaborate approaches is described.
 
 \subsection{Test environment}
 
@@ -19,7 +19,7 @@ The infrastructure of Laboratory for Safe and Secure Systems (LaS3) was used for
 
 Fourteen ECUs are available for testing on this server. However, three of them are from Opel and therefore only support GMLAN but not UDS.
 
-For each ECU a YAML configuration file has been created. Various work is done here, for example installing this CAN-ISOTP module, if the running device is not at least on Linux 5.10 (see \autoref{sec:scapy}). Also, the current Scapy tree from the currently working branch is pulled and checked out.
+For each ECU a YAML configuration file was created. Various work is done here, for example installing the CAN-ISOTP module, if the running device is not at least on Linux 5.10 (see \autoref{sec:scapy}). Also, the Scapy code from the currently working branch is pulled and checked out.
 
 Then, the actual tests are executed that are written in the pytest framework. Here, a UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests.
 
@@ -57,11 +57,11 @@ Unfortunately, these files contain a lot of information that is not only not nee
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\textwidth]{can-unwanted-information}
-    \caption{ECU specific information. TP = Transport protocol information}
+    \caption{ECU specific information in candump.log.}
     \label{fig:can-unwanted-information}
 \end{figure}
 
-Consequently, an abstraction is desirable. The newly created format is called the generic format. It removes the interface, the padding, resolves the transport protocol information (ISO-TP) and replaces the identifier with representatives (s = Server, c = Client). Each line represents a full UDS packet, instead of a lower layer CAN packet as in the candump logs. \autoref{fig:candump-generic-conversion} illustrates the input and output of a conversion.
+Consequently, an abstraction is desirable. The newly created format is called the generic format. It removes the interface, the padding, resolves the transport protocol information (ISO-TP) and replaces the identifier with representatives (s = Server, c = Client). Each line represents a UDS packet, instead of a lower layer CAN packet as in the candump logs. \autoref{fig:candump-generic-conversion} illustrates the input and output of a conversion.
 
 %candump to generic conversion
 \begin{figure}[h]
@@ -72,7 +72,6 @@ Consequently, an abstraction is desirable. The newly created format is called th
 \end{figure}
 
 This format proved to be very useful as it allows quick analysis by chaining common Linux programs.
-
 For instance, counting the number of requests of a scan is a single command:
 \begin{samepage}
     \begin{minted}{bash}
@@ -112,7 +111,7 @@ Each line in the milestones.csv contains a timestamp and the name of the final s
 
 \subsubsection{data.pkl}
 
-Last but not least, the data.pkl file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The data.pkl file is the serialized UDS scanner object after the scan, thus it contains all the results consisting of the responses for each request with the current state of the ECU. This is helpful for debugging, analysis and also for simulation.
+Last but not least, the data.pkl file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The data.pkl file is the serialized UDS Scanner object after the scan and thus contains all the results, consisting of the responses for each request for each state of an ECU. This is helpful for debugging, analysis and also for simulation.
 
 
 \subsection{Profiling the UDS Scanner}
@@ -121,11 +120,11 @@ The Pareto principle indicates that small number of causes can be responsible fo
 
 \subsubsection{Visualizing a UDS Scanner run}
 
-To profile the UDS Scanner its profiling.csv and milestones.csv files are used. With their help Gantt charts are created which show the sequence and duration of enumerators within a scan. This visualizes what parts of the UDS Scanner take up most of its runtime.
+To profile the UDS Scanner, the profiling.csv and milestones.csv files are used. With their help Gantt charts are created which show the sequence and duration of enumerators within a scan. This visualizes what parts of the UDS Scanner cause most of its runtime.
 
-These charts have been created for each available ECU. For illustration one is sufficient since each chart showed the same gist (see \autoref{fig:tesla-gantt}).
+These charts have been created for each available ECU. For illustration one is sufficient since each showed the same gist (see \autoref{fig:tesla-gantt}).
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{tesla-gantt}
     \caption{Gantt chart of the Tesla-Airbag-ECU. Each color is a state.}
@@ -139,8 +138,9 @@ Although it seems that some enumerators and events do not require any time, thei
 
 The main cause of runtime is the RCEnumerator. This was expected, since this is the enumerator with the most generated requests.
 In second place are the IOCBIEnumerator and the WDBISelectiveEnumerator.
-The latter consists of actually two enumerators, the RDBIEnumerator and the WDBIEnumerator. The reason for that is, that the WDBI enumerator writes data to an identifier. This requires the expected data length for each identifier, and also to ensure that the new data does not break the ECU, so the RDBIEnumerator is run first to extract this information.
-The RDBIEnumerator generates more requests than the WDBIEnumerator to a large extent, which accordingly hardly contributes to the runtime.
-The IOCBIEnumerator and WDBISelectiveEnumerator generate about the same runtime, this was to be expected since they generate a similar number of requests. The RDBI service is more frequently supported by ECUs than the IOCBI service, resulting in a smaller database. So it was decided that the RDBIEnumerator would be optimized instead of the IOCBIEnumerator.
+
+The latter being a staged enumerator consisting of two enumerators, the RDBIEnumerator (Read data by identifier) and the WDBIEnumerator (Write data by identifier). The WDBI service expects the correct data length for each identifier. It is also necessary to ensure that the new data does not break the ECU, which is handled by writing the value of the RDBI service response, thus not changing the stored value. Hence, the RDBIEnumerator is the first stage to extract this information.
+
+It also generates more requests than the WDBIEnumerator to a large extent, which accordingly hardly contributes to the runtime. The IOCBIEnumerator and RDBIEnumerator generate about the same runtime, this was to be expected since they generate the same number of requests. However, the IOCBI service is less frequently supported by ECUs than the RDBI service, resulting in a smaller runtime contribution when considering approach 3.
 
 In summary, the RCEnumerator and the RDBIEnumerator are the most critical runtime causes of the UDS scanner and therefore belong to the matters to be optimized.

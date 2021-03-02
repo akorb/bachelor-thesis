@@ -2,7 +2,7 @@
 \label{sec:introduction}
 
 \subsection{Motivation}
-Nowadays a car is full of small computers handling tasks for the whole system. Without these helpers, functions like driver-assistance or self-diagnostic would not be possible. Those computers are generally called electronic control unit (ECU). Modern cars can contain over 100 of those. The complexity of ECU networks in a car is increasing quickly. The next generation of car networks is expected to be more centralized with less ECUs, as shown in \autoref{fig:centralized-architecture}. This reduces complexity and its inherent risk of security vulnerabilities and high costs.
+Nowadays a car is full of small computers handling tasks for the whole system. Without these helpers, functions like driver-assistance or self-diagnostic would not be possible. Those computers are generally called Electronic Control Units (ECU). Modern cars can contain over 100 of them. The complexity of ECU networks in a car is increasing quickly. The next generation of car networks is expected to be more centralized with less ECUs, as shown in \autoref{fig:centralized-architecture}. This reduces complexity and its inherent risk of security vulnerabilities and high costs.
 
 \begin{figure}[h]
     \centering
@@ -11,11 +11,11 @@ Nowadays a car is full of small computers handling tasks for the whole system. W
     \label{fig:centralized-architecture}
 \end{figure}
 
-ECUs communicate with each other via bus systems. The most common ones are CAN, FlexRay and the Automotive Ethernet, which is becoming increasingly popular. Transport protocols sit on top of these physical layers. For Ethernet these are the well known TCP or UDP protocol, while the most common one for CAN is the ISO-TP protocol.
+ECUs communicate with each other via bus systems. The most common ones are CAN, FlexRay and the Automotive Ethernet, which is becoming increasingly popular. Transport protocols sit on top of these physical layers. For Ethernet these are the well-known TCP or UDP protocols, while for CAN the ISO-TP protocol is the most common one.
 
 Application protocols are used to ultimately transfer payload. Some protocols were created specifically for the development of units like Universal Measurement and Calibration Protocol (XCP) and some others were defined for diagnostic purposes such as Unified Diagnostic Services (UDS), General Motors Local Area Network (GMLAN) and On-board diagnostics (OBD). Both types are security critical. The XCP protocol is able to read and even write into the flash memory of an ECU. It shall be disabled on shipped ECUs. The UDS and GMLAN protocol provide definitions for diagnostic related tasks.
 
-However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II port (see \autoref{fig:obd-port}), which by regulation must be present near the steering wheel on at least every car built after 2003, making them a great first target for gathering information. This thesis focuses on the UDS protocol, as it is the most widely used protocol that allows extended functionality, such as flashing ECUs. The OBD protocol is excluded because it does not provide valuable information, and the GMLAN protocol because it is limited to General Motors vehicles.
+However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II port (see \autoref{fig:obd-port}), which by regulation must be present near the steering wheel on at least every car built from 2003 onwards, making them a great source of information. This thesis focuses on the UDS protocol, as it is the most widely used protocol that allows extended functionality, such as flashing ECUs. The OBD protocol is excluded because it does not provide valuable information, and the GMLAN protocol because it is limited to General Motors vehicles.
 
 \begin{figure}[h]
     \centering
@@ -29,7 +29,7 @@ Furthermore, a diagnostic protocol can define various states. The ECU may show v
 
 One option to achieve this is to send all possible requests to an ECU and evaluate the responses. In the context of the project \emph{Penetration Test Driven Safety and Security System Improvements for Cyber-Critical Systems} (PetS3) \cite{pets3} such scanners have been implemented for UDS, GMLAN and OBD.
 
-With their brute-force approaches, they are effective but not efficient. A scan can take a highly variable amount of time. It can range from a few hours to a day or more. In general, the more states are found on an ECU in a scan, the more time it will need. For example, more authentication information leads to more state detections and thus to higher runtimes. In addition, the response time of the ECU is also a decisive factor. The original runtimes observed of one UDS scan on the available ECUs are shown in \autoref{fig:durations} generated with the \mintinline{text}{plotly} library \cite{plotly}. It should be noted, that these scans have been executed with no additional information about the ECU as well. Accordingly, only the states that can be found without further information were detected.
+With their brute-force approaches, they are effective but not efficient. A scan can take a highly variable amount of time. It can range from a few hours to a day or more. In general, the more states are found on an ECU in a scan, the more time it will need. For example, more authentication information leads to more state detections and thus to higher runtimes. In addition, the response time of the ECU is also a decisive factor. The original runtimes observed of a UDS scan on some ECUs are shown in \autoref{fig:durations}. It should be noted, that these scans have been executed with no additional information about the ECU as well. Accordingly, only the states that can be found without further information were detected.
 
 %durations
 \begin{figure}[h]
@@ -62,9 +62,7 @@ In concrete terms, the following questions are to be answered:
 \subsection{Environment}
 This work was created at eMundo GmbH in Ingolstadt. It is an IT service company which plans and executes projects for customers. Also, it is an aspiring company which in 20 years managed to open in total six company headquarters in Germany, Austria and Italy with almost 100 employees.
 
-Since 2018, they are part of the \emph{Penetration Test Driven Safety and Security System Improvements for Cyber-Critical Systems} (PetS3) project. It is a collaboration research project among the OTH Regensburg, TH Nürnberg, EDAG Engineering Group AG, sepp.med GmbH, intive automotive GmbH and eMundo GmbH.
-
-Due to the advancing networking, cyberattacks are a growing threat to a variety of application areas such as connected vehicles or smart metering. Common concepts of functional safety and IT security are required for these gateway-based systems. The aim of the research project is to investigate attacks on the IT security of system architectures of networked cyber-critical systems, since the interaction between functional safety and IT security is largely unknown in this context.
+Since 2018, they are part of the PetS3 project that is a collaboration research project among the OTH Regensburg, TH Nürnberg, EDAG Engineering Group AG, sepp.med GmbH, intive automotive GmbH and eMundo GmbH. The aim of this project is to investigate the interactions between functional and IT security for system networks in cars \cite{pets3}.
 
 This paper is the final result of this project on the part of eMundo.
 

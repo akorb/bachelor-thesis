@@ -21,7 +21,7 @@ Hence, the RC enumerator is a great candidate for this approach.
 
 \subsubsection{Current behavior}
 
-The Routine Control service is used by the client to execute a defined sequence of steps and obtain any relevant results \cite{iso14229}. For a quick overview of the service a simplified code snippet of the Scapy implementation is used.
+The RC service is used by the client to execute a defined sequence of steps and obtain any relevant results \cite{iso14229}. For a quick overview of the service a simplified code snippet of the Scapy implementation is used.
 
 \begin{samepage}
 \begin{minted}{python}
@@ -53,7 +53,9 @@ The current RCEnumerator does exactly this, it generates the full range for each
 
 \subsubsection{Elaborating the new behavior}
 
-The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. So, 2\textsuperscript{16} is the minimum number of requests for each state with the new behavior. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. Moreover, it was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning nearby identifiers instead of just that identifier will result in higher coverage. What needs to be found out is the block size which leads to the best coverage, while maintaining an appropriate speed-up. \autoref{fig:rc-behavior-new} illustrates that. The green areas again show the scanned ranges, additionally, the red areas are the found identifiers in Type1 and their resulting ranges for Type2 and Type3 and the gray areas show the areas that were not scanned and thus how much time was saved.
+The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state. Moreover, it was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning also nearby identifiers results in higher coverage.
+
+\autoref{fig:rc-behavior-new} illustrates the new behavior. The green areas again show the scanned ranges. In addition, the red areas are the found identifiers in Type1 and their resulting scans for Type2 and Type3, and the gray areas show the identifiers saved with this new behavior.
 
 \begin{figure}[h]
     \centering
@@ -62,38 +64,39 @@ The new behavior starts with scanning all 2\textsuperscript{16} identifiers with
     \label{fig:rc-behavior-new}
 \end{figure}
 
-The limits of the speed-up are defined as following:
+The limits of the speed-up function $s$ for this approach with the RC service are given as following:
 \[ 0\ \% \ \leq\  s(n)\  \leq 66.\overline{6}\ \% \quad \forall \  n \in \left\{0, 1, ..., 2^{16} \cdot 3\right\} \]
 %\[ 0\  \ \leq\  s(n)\  \leq \frac{2}{3} \quad \forall \  n \in \left\{0, 1, ..., 2^{16 * 3}\right\} \]
-wherein $s$ is the speed-up function and $n$ the number of generated requests for this service.
+wherein $n$ the number of generated requests for this service.
 
 The reason for the upper limit of $66.\overline{6}$ \% is that Type1, which is one third of all possible requests, is always scanned completely.
 
-To find out the best value, scans with different block sizes are simulated. For a quick simulation another observation is used. If one identifier is available in one state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still very close to the real ECUs. The simulation only uses information gathered from the real ECUs as described in \autoref{sec:data-gathering}. Specifically, the required information is extracted from the generic.log file.
+What needs to be found out is the expansion width which leads to the best coverage, while maintaining an appropriate speed-up.
+For this, scans with different expansion widths are simulated. For a quick simulation another observation is used. If an identifier is available in a state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still close to the real ECUs because it only uses information gathered from the real ECUs as described in \autoref{sec:data-gathering}. The required information is which identifiers an ECU supports for which types in any state. This is extracted from the generic.log files.
 
-As described, the simulation starts with getting all identifiers which have been positively answered by the currently simulated ECU. Subsequently, these identifiers are expanded to both sites from 0 to 200. Overlapping blocks are resolved to one continuous space. With these blocks the coverage and the number of requests can be calculated. The number of requests can be converted to the speed-up. The results are averaged.
-The blocks are expanded to both sites. So, for example, if the identifier 500 has been answered positively and the expansion size is 100, it leads to block from 400 to 600. A simulation was also run with expanding individual identifiers in to one site only, which yielded very similar results. Thus, it was left with the expansion in both directions. 
+As described, the simulation starts with getting all identifiers which have been positively answered by the currently simulated ECU. Subsequently, these identifiers are expanded to both sites from 0 to 1000. Overlapping ranges are resolved to one continuous space. The size of the resulting range lead to the theoretically generated requests which can be calculated to the coverage and speed-up. These values of all ECUs are averaged to the final result.
+ 
 The following pseudocode shows the procedure more clearly.
 
 \begin{samepage}
 \begin{minted}{python}
-coverages = []
-speedups = []
-for expansion_size in range(200):
-    coverages_block = []
-    speedups_block = []
-    for ecu in ecus:
-        ids_type1 = get_type1_ids(ecu)
-        to_scan = ids_to_block(ids_type1, expansion_size)
-        coverages_block.append(get_coverage(ecu, to_scan))
-        count_requests = len(to_scan)
+coverages = []                                                 
+speedups = []                                                  
+for expansion_width in range(1000):                             
+    coverages_block = []                                       
+    speedups_block = []                                        
+    for ecu in ecus:                                           
+        ids_type1 = get_type1_ids(ecu)                         
+        to_scan = ids_to_block(ids_type1, expansion_width)     
+        coverages_block.append(get_coverage(ecu, to_scan))     
+        count_requests = len(to_scan)                          
         speedups_block.append(get_speedup(ecu, count_requests))
-    coverages.append(avg(coverages_block))
-    speedups.append(avg(speedups_block))
+    coverages.append(avg(coverages_block))                     
+    speedups.append(avg(speedups_block))                       
 \end{minted}
 \end{samepage}
 
-The results of this simulation are plotted in \autoref{fig:rc-simulation-result}. The speed-up is linear to the expansion size. That makes sense, because the larger the blocks are, the more requests are generated. The expansion size of zero represents the results without using the locality effect. The maximum difference in coverage between with and without locality effect are 22\%, even though the maximum speed-up difference is only 1\%.
+The result of this simulation is plotted in \autoref{fig:rc-simulation-result}. The speed-up is almost linear to the expansion width. That makes sense, because the larger the expansions are, the more requests are generated. The expansion size of zero represents the results without using the locality effect. The maximum difference in coverage between with and without locality effect are 22\%, even though the maximum speed-up difference is only 1\%.
 
 \begin{figure}[h]
     \centering
@@ -102,7 +105,9 @@ The results of this simulation are plotted in \autoref{fig:rc-simulation-result}
     \label{fig:rc-simulation-result}
 \end{figure}
 
-Since the speed-up is high for each simulated block size, the highest coverage was chosen which starts with block size \textbf{132}. Hence, this value is the chosen and implemented block size.
+The identifiers are expanded to both sites. So, for example, if the identifier 500 has been answered positively and the expansion size is 100, it leads to a range from 400 to 600. Simulations were also run with using only one direction, which yielded very similar results. Thus, it was left in both directions.
+
+Since the speed-up decreases only slowly, the highest coverage was chosen, which starts with the expansion width \textbf{253}. Hence, this value is the chosen and implemented one.
 
 \subsubsection{Implementation}
 
@@ -121,9 +126,9 @@ Three classes are of interest:
     \label{fig:rc-schematic}
 \end{figure}
 
-The RCSelectiveEnumerator connects its two stages with a connector function that is called as soon as the first stage is done and the second is to be started. It expands the found identifiers of the RCStartEnumerator to ranges and also resolves any overlaps to a continuous range and forwards these ranges to the second stage, the RCEnumerator. Additionally, the connector configures the RCEnumerator to only scan Type2 and Type3.
+The connector of the RCSelectiveEnumerator expands the found identifiers of the RCStartEnumerator to ranges and also resolves any overlaps to a continuous range and forwards these ranges to the second stage, the RCEnumerator. Additionally, the connector configures the RCEnumerator to only scan Type2 and Type3.
 
-Each positively answered identifier of Type1 in any state will also be probed for all subsequent states in Type2 and Type3, even if this identifier is not found in Type1 for another state. This increases the coverage in cases, where a routine can be started in a state, but its result, or to stop it, may only be requested in another state. It also hardly leads to more requests, which can be seen at the speed-ups in \autoref{fig:rc-schematic}.
+Each positively answered identifier of Type1 in any state will also be probed for all subsequent states in Type2 and Type3, even if this identifier is not found in Type1 for another state. This increases the coverage in cases, where a routine can be started in a state, but its result, or to stop it, may only be requested in another state.
 
 The full implementation can be seen in \autoref{app:rc-implementation}.
 
@@ -150,15 +155,15 @@ The full implementation can be seen in \autoref{app:rc-implementation}.
 
     \end{tabular}
     \end{center}
-    \caption{Measured coverages and speed-ups on ECUs with approach 1.}
+    \caption{Measured coverages and speed-ups on ECUs with approach 1 for the RC service.}
     \label{tab:evaluation-approach1}
 \end{table}
 
-9 of 11 ECUs had a full coverage. The coverage for the dashboard ECU notable low. Therefore, a closer look was taken there again. It turned out that the Dashboard only supports two identifiers. The identifier 515 for Type1 and identifier 61,728 for Type3. The former is detected, but the resulting range for Type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\%.
+9 of 11 ECUs had a full coverage. The coverage for the dashboard ECU notable low. Therefore, a closer look was taken there. It turned out that the Dashboard only supports two identifiers. The identifier 515 for Type1 and identifier 61,728 for Type3. The former is detected, but the resulting range for Type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\%.
 
 The speed-up is calculated by comparing the number of requests sent with the selective enumerator and the number of requests that would have been sent with the old enumerator for an entire scan. For each ECU it is close to the theoretical maximum of $66.\overline{6}$ \%, leading to the evaluation that there is a great potential in this approach.
 
-This approach is applicable to scans of services with multiple fields, as it is the case with the RC service that has the \mintinline{text}{routineControlType} and \mintinline{text}{routineIdentifier} fields. This results in a high scan time for this service and thus a high potential time savings. However, if an identifier is not recognized in the first scan, it will not be recognized in the next scans as well.
+This approach is applicable to scans of services with multiple fields, as it is the case with the RC service that has the \mintinline{text}{routineControlType} and \mintinline{text}{routineIdentifier} fields. This results in a high scan time for this service and thus a high time-saving potential. However, if an identifier is not recognized during the first scan, it will not be recognized in the next scans as well.
 
 
 \subsection{Use probabilities of positive answers block based}
@@ -192,14 +197,11 @@ To specify which data record to retrieve, there is the \mintinline{python}{ident
 \[f(n)=2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states. 
 
-So, the current RDBIEnumerator is very simple. It generates 2\textsuperscript{16} packets counting up from 0 to 65535 and generating for each number a packet with this number as identifier for each state.
+So, the current RDBIEnumerator is very simple. It generates 2\textsuperscript{16} packets counting up from 0 to 65,535 and generating for each number a packet with this number as identifier for each state.
 
 \subsubsection{Elaborating the new behavior}
 
-To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. Then, it is calculated how likely a positive response is for each of these blocks. Based on this information, the number of requests for each block will be calculated individually.
-For that, the probability is multiplied with the block size.
-\[c(p, s)=\max(p \cdot s, 1)\]
-wherein p stands for the probability of the requested block and s for the block size. For each block should be generated at least one request. The requested identifiers within one block are generated randomly. If any of these requests is answered positively in a block, the whole block will be scanned. An example is illustrated in \autoref{fig:rdbi-behavior-new}.
+To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. Then, it is calculated how likely a positive response is for each of these blocks. Based on this information, the number of requests for each block will be calculated individually. An example is illustrated in \autoref{fig:rdbi-behavior-new}.
 
 \begin{figure}[h]
     \centering
@@ -208,7 +210,11 @@ wherein p stands for the probability of the requested block and s for the block 
     \label{fig:rdbi-behavior-new}
 \end{figure}
 
-This leads to one question. Which block size leads to best results? This is again answered by a simulation, which is performed for every possible block size, as such block sizes of $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The probability of a positive response of a block are calculated based on the results of all ECUs. The resulting coverage and speed-up are then calculated for each ECU specifically and averaged. The approach has one more feature which makes the simulation more complex than the former simulation. Since the blocks are first scanned randomly, the scan can lead to a great coverage, but also a low one, depending on the hit rate of the generated identifiers. To reduce this effect, the calculation of the coverage and speed-up are made 100 times, each time with newly created random identifiers. The 100 results are averaged to the value corrected from the random factor. This leads to a high processing time. To reduce the runtime, the execution was parallelized.
+The number $r$ of requests for a block is calculated with
+\[r(i, s)=\max(p(i, s) \cdot s, 1)\]
+wherein $p$ stands for the probability function, $i$ for the index of the requested block and $s$ for the block size. For each block should be generated at least one request. The requested identifiers within a block are generated randomly. If any of these requests is answered positively, the whole block is scanned.
+
+This leads to the question of which block size leads to the best results. This is again answered by a simulation. As potential block sizes $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The probability of a positive response of a block is calculated based on the supported identifiers by all ECUs. The resulting coverage and speed-up are then calculated for each ECU specifically and averaged. The approach has one more feature which makes the simulation more complex than the former simulation. Since the blocks are first scanned randomly, the scan can lead to a great coverage, but also a low one, depending on the hit rate of the generated identifiers. To reduce this effect, the calculation of the coverage and speed-up are made 100 times, each time with newly created random identifiers. The 100 results are averaged to the coverage and speed-up corrected from the random factor. This leads to a high processing time. To reduce the runtime, the execution was parallelized.
 The following pseudocode shows the procedure more clearly.
 
 \begin{samepage}
@@ -244,7 +250,7 @@ The speed-up is no longer linear; instead, the speed-up is highest for medium bl
 
 \subsubsection{Implementation}
 
-Three classes are of interest again:
+Again, three classes are of interest:
 
 \begin{itemize}
     \item \textbf{RDBIEnumerator}: Defaults to scanning the whole RDBI service.
@@ -259,11 +265,11 @@ Three classes are of interest again:
     \label{fig:rdbi-schematic}
 \end{figure}
 
-Similar to the previous approach, the new implementation is two-staged. First, the RDBIRandomEnumerator is executed. The connector creates requests for whole blocks, if any identifier of them answered positively. These requests are passed to the configurable RDBIEnumerator. Of course, it is ensured that for a single block each identifier is generated only once.
+Similar to the previous approach, the new implementation is two-staged. First, the RDBIRandomEnumerator is executed. Then, the connector creates requests for whole blocks, if any of their requests were answered positively, and ensured that for a single block each identifier is queried only once. The resulting packets are passed to the configurable RDBIEnumerator.
 
 Also, as with the RCSelectiveEnumerator, each positively answered identifier will be remembered for all subsequent states. This increases the coverage because most identifiers are also available in other states, but the RandomEnumerator might not detect them for each state.
 
-Implementing the RDBIRandomEnumerator was a challenge because it must include the probabilities of occurence of positively responded identifiers for each block. With a block size of $2^6$, there would need to be a list with $\frac{2^{16}}{2^6} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on two facts. That the probabilities are ultimately calculated to the number of samples, and that at least one request shall be generated for each block. For the former, instead of probabilities, the number of samples for each block were pre-computed instead of being computed at runtime. This simplifies the list in the sense that integers are stored instead of float values. Second, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to 2. And blocks for which no value is stored, the value 1 is used. This automatically solves that each block is probed with at least one packet, even if its probability is 0\%. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements.
+Implementing the RDBIRandomEnumerator was a challenge because it must include the probabilities of occurence of positively responded identifiers for each block. With a block size of $2^6$, there would need to be a list with $\frac{2^{16}}{2^6} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on two facts. That the probabilities are ultimately calculated to the number of samples, and that at least one request should be generated for each block. For the former, the number of samples for each block were pre-computed instead of being computed at runtime. This simplifies the list in the sense that integers are stored instead of float values. Second, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to 2. And blocks for which no value is stored, the value 1 is used. This automatically solves that each block is probed with at least one packet, even if its probability is 0\%. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements.
 
 The non-compact version is shown in \autoref{app:random-not-compact} and the final implementation in \autoref{app:rdbi-implementation}.
 
@@ -289,11 +295,13 @@ The non-compact version is shown in \autoref{app:random-not-compact} and the fin
         \hline
     \end{tabular}
     \end{center}
-    \caption{Measured coverages and speed-ups on ECUs with approach 2.}
+    \caption{Measured coverages and speed-ups on ECUs with approach 2 for RDBI service.}
     \label{tab:evaluation-approach2}
 \end{table}
 
-Overall, the coverages are lower with this approach as for approach 1. Only for two ECUs a coverage of 100\% is reached. It should be noted, that it varies slightly for each run because a random scan is used. The speed-ups are consistently high at approximately 95\%. Nevertheless, the speed-ups of approach 1 are higher in practice, because that approach can be applied to larger service scans, and then a speed-up of about 66\% saves more time there than a speed-up of 95\% here.
+\autoref{tab:evaluation-approach2} shows the resulting coverage and speed-ups for this approach for the RDBI service. It should be noted, that these values vary slightly for each run because a random scan is used.
+
+Overall, the coverages are lower with this approach than for approach 1. Only for two ECUs a coverage of 100\% is reached. The speed-ups are high at approximately 95\%. Nevertheless, the speed-ups of approach 1 are higher in practice, because that approach can be applied to larger service scans, and then a speed-up of about 66\% saves more time there than a speed-up of 95\% here.
 
 The biggest problem with this approach is the newly added random factor. The coverage can be great for one scan, but low for the next one. This would require performing multiple scans using the new implementation to ensure that most identifiers were found.
 
@@ -304,7 +312,7 @@ Each ECU usually supports only a subset of the services offered  by the UDS stan
 
 \subsubsection{Detecting unsupported services}
 
-The first thing to understand is how to tell if a service is supported or not. Figure 5 of the UDS standard shows the general server response behavior. In this work, it can be found in \autoref{fig:server-response-behaviour} and the important area has been highlighted.
+The first thing to understand is how to tell if a service is supported or not. The UDS standard defines the general server response behavior, shown in \autoref{fig:server-response-behaviour} with the important area highlighted.
 
 \begin{figure}[h]
     \centering
@@ -313,7 +321,7 @@ The first thing to understand is how to tell if a service is supported or not. F
     \label{fig:server-response-behaviour}
 \end{figure}
 
-Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current enumerator with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service for each state, which in turn receives 0x11 NRC again and then stops the enumerator. The number of states detected is usually one-digit, so the number of packets generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
+Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that the NRCs 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current enumerator with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service for each state, which in turn receives 0x11 NRC again and then stops the enumerator. The number of states detected is usually one-digit, so the number of packets generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
 
 \subsubsection{Implementation}
 
@@ -321,7 +329,7 @@ In contrast to the previous approaches, this one is not applied to an enumerator
 
 \subsubsection{Evaluation}
 
-\autoref{fig:serviceNotSupported-savings} illustrates the number of saved packets for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs have been counted. Of course, not every response can be saved with these NRCs, since at least one request must first be made to see the NRC of that service for a state. But this number of requests, as described in the previous paragraph, is very small and negligible, especially considering that the minimum value of saved requests is about 70,000.
+\autoref{fig:serviceNotSupported-savings} illustrates the number of saved packets for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs have been counted. Of course, not every response can be saved with these NRCs, since at least one request must first be made to see the NRC of that service for a state. But this number of requests, as described in the previous paragraph, is low and negligible, especially considering that the minimum value of saved requests is about 70,000.
 
 \begin{figure}[h]
     \centering
@@ -330,7 +338,7 @@ In contrast to the previous approaches, this one is not applied to an enumerator
     \label{fig:serviceNotSupported-savings}
 \end{figure}
 
-There is one last potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is conceivable that the ECU responds to an identifier with 0x11 or 0x7f, although a subsequent identifier would actually have been answered positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. It was calculated by evaluating the responses for each enumerator for each state. Once a negative response with NRC 0x11 or 0x7f was received, an internal counter was incremented with each subsequent positive response.
+There is a potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is conceivable that the ECU responds to an identifier with 0x11 or 0x7f, although a subsequent identifier would actually have been answered positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. It was calculated by evaluating the responses for each enumerator for each state. Once a negative response with NRC 0x11 or 0x7f was received, an internal counter was incremented with each subsequent positive response.
 And in comparison to the potential savings (\autoref{fig:serviceNotSupported-savings}), the losses are negligible.
 
 \begin{figure}[H]
@@ -340,7 +348,7 @@ And in comparison to the potential savings (\autoref{fig:serviceNotSupported-sav
     \label{fig:serviceNotSupported-losses}
 \end{figure}
 
-Avoiding scanning unsupported services is the safest way to save time of all three approaches. It is unlikely that identifiers will be missed, but the speed gain can still be very high.
+Avoiding scanning unsupported services is the safest way to save time of all three approaches. It is unlikely that identifiers will be missed, but the speed gain can still be high.
 
 \subsection{Actual time savings}
 
@@ -353,6 +361,5 @@ For each ECU, the same scans as for gathering information and profiling were exe
     \label{fig:durations-diff}
 \end{figure}
 
-As \autoref{fig:durations-diff} illustrates, the speed-up is severe. Especially for the Tesla ECU the difference is huge.
-This results from this ECU having a relatively high average response time (about 0.02 seconds) compared to the others (0.001 to 0.008 seconds).
+As \autoref{fig:durations-diff} illustrates, the speed-up is severe, especially for the Tesla ECU, which has a relatively high average response time (about 0.02 seconds) compared to the others (0.001 to 0.008 seconds).
 Three ECUs are excluded from this observation because they were no longer available at the time of re-evaluating the scan durations.
