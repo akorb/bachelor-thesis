@@ -249,18 +249,23 @@ As shown in \autoref{fig:uds-stack}, the most common data links for the UDS prot
 
 \subsubsection{Services}
 
-The UDS protocol defines various services with different purposes. For example, the DiagnosticSessionControl service is used to enable different diagnostic states in the ECU. Its identifier is the number 0x10. All packets requesting this service specify this value as the first byte. The identifiers in the responses are defined as 0x40 added to the request identifier. Thus, for the DiagnosticSessionControl the positive response identifier is 0x10 + 0x40 = 0x50. A negative response always has the identifier 0x7f. This service is able to change the state of the ECU. Although the ReadDataByIdentifier service is not able to change the state, it is still very important. Data records in an ECU are stored with an identifier as the key. This service allows to read these values from an external device. Since there can be data stored, which is not meant to be read by everybody, there is another service called SecurityAccess, which allows to unlock these information for external devices. This mechanism is used for other services as well. The SecurityAccess service uses the challenge–response authentication in which an algorithm is the secret. It follows the following sequence \cite{iso14229}:
+The UDS protocol defines various services with different purposes.
 
-\begin{samepage}
-\begin{enumerate}
-  \item client requests the “Seed”,
-  \item server sends the “Seed”,
-  \item client sends the “Key” (appropriate for the Seed received),
-  \item server responds that the “Key” was valid and that it will unlock itself.
-\end{enumerate}
-\end{samepage}
+The DiagnosticSessionControl (DSC) service with the identifier 0x10 is used to enable different diagnostic states in the ECU. All packets requesting this service specify this value as the first byte. The identifiers in the responses are defined as 0x40 added to the request identifier. Thus, for the DSC service the identifier of positive responses is 0x10 + 0x40 = 0x50. A negative response always has the identifier 0x7f.
 
-Now the implementation of UDS in Scapy is described.
+Another example is the ReadDataByIdentifier. Data records in an ECU are stored with an identifier as the key. This service allows to read these values from an external device. Since there can be data stored, which is not meant to be read by everybody, there is another service called SecurityAccess (SA, 0x27), which allows to unlock these information for external devices. This mechanism is used for other services as well.
+
+The SA service uses the challenge–response authentication, in automotive terminology called seed-key protocol. The ECU sends a randomly generated value (the seed) to the client. Both generate a response (the key) and the client sends its response to the ECU. If the keys match for the received and the generated response, the client is authenticated \cite{Herrewegen2018, iso14229}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{key-seed}
+    \caption{The challenge-response protocol \cite{Herrewegen2018}.}
+    \label{fig:key-seed}
+\end{figure}
+
+
+\subsubsection{Implementation of UDS in Scapy}
 
 \begin{samepage}
 \begin{minted}{python}
