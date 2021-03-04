@@ -6,6 +6,8 @@ This section discusses the optimization of the two service scans from the previo
 
 This approach aims to reuse information from one part of a service for another part of this service. First, it must be checked to which service this approach should be applied to.
 
+\subsubsection{Choosing the RC service to apply the approach to}
+
 This approach is applicable to scans of services with multiple parameters, as it is the case for the Routine Control (RC) service. It has two parameters, the type and identifier. The distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
 
 \begin{figure}[h]
@@ -111,9 +113,14 @@ Since the request saving decreases only slowly, the highest coverage was chosen,
 
 
 \subsection{Use probabilities of positive answers block based}
-Most services are simpler and don't have a type as the RC service but only an identifier. So, reusing information within the same service is not practical. This is also the case for the Read Data By Identifier (RDBI) service. It allows the client to request data record values from the server identified by one or more dataIdentifiers \cite{iso14229}. The new idea is to scan the blocks more heavily where positive behavior is more likely than others and vice versa.
 
-The distribution of identifiers over all ECUs is visualized in a histogram to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
+Most services are simpler and only have one parameter. So, reusing information within the same service is not practical. The approach tackles these kinds of services. Instead of using the same information of the same service, the new idea is to scan the blocks more heavily where positive behavior is more likely than others and vice versa.
+
+\subsubsection{Choosing the RDBI service to apply the approach to}
+
+Also, the Read Data By Identifier (RDBI) service has only one parameter, the identifier of the requested data.
+
+The distribution of positively answered identifiers over all ECUs is visualized in a histogram to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
 
 \begin{figure}[h]
     \centering
@@ -122,7 +129,7 @@ The distribution of identifiers over all ECUs is visualized in a histogram to ch
     \label{fig:rdbi-distribution}
 \end{figure}
 
-It is clearly visible that there are some areas where not a single identifier was answered positively, and some areas that are particularly covered, such as the beginning and the end. This behavior will be exploited in the remainder of this section.
+It is clearly visible that there are some areas where not a single identifier was answered positively, and some areas that are particularly covered, such as the beginning and the end. This behavior of the RDBI will be exploited in the remainder of this section.
 
 \subsubsection{Current behavior}
 
