@@ -12,7 +12,7 @@ This section will explain the technical fundamentals which are necessary to unde
     %\label{fig:scapy-logo}
 \end{wrapfigure}
 
-The homepage of Scapy introduces this library with  \cite{scapy}:
+The homepage of Scapy introduces itself with \cite{scapy}:
 \begin{displayquote}
 Scapy is a powerful interactive packet manipulation program. It is able to forge or decode packets of a wide number of protocols, send them on the wire, capture them, match requests and replies, and much more.
 \end{displayquote}
@@ -25,7 +25,9 @@ So, it fulfills the requirements of protocol scanners:
     \item Matching requests with their responses
 \end{itemize} 
 
-It is used through a text-based user interface. This has the advantage of being lightweight, and working via ssh connections out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into the own Python program. Scapy supports Python 3 and additionally Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains why \cite{scapy-py2}:
+It is used through a text-based user interface. This has the advantage of being lightweight, and working via ssh connections out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into the own Python program.
+
+It supports Python 3 and also Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains why \cite{scapy-py2}:
 
 \begin{displayquote}
     Scapy is a tool that can be used in a very large number of situations. Often, you don't get to choose the Python interpreter you have when you run Scapy. So, [...] we need to keep supporting Python 2.7 as long as we can.
@@ -58,7 +60,7 @@ All communication performed and recorded in this paper with an ECU is done via t
 
 \subsubsection{Advantages for the automotive domain}
 
-This bus is robust because it is half-duplex, but still using two wires for the communication with differential signals. This means that if one wire is driven high, the other one is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
+This bus is robust because it uses for the communication two wires  with differential signals. This means that if one wire is driven high, the other one is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
 
 Moreover, CAN busses are using the bus network topology (see \autoref{fig:with-without-can}). This results in a smaller number of wires compared to star topologies, resulting in lower weight, which is an important factor for manufacturers.
 
