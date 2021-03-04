@@ -1,12 +1,12 @@
-\section{Elaborating approaches to reduce scan ranges}
+\section{Elaboration of the realisation of the approaches}
 
-This section discusses the optimization of the two enumerators from the previous section, each using a different approach. In addition, the third approach discussed is to avoid scanning unsupported services. 
+This section discusses the optimization of the two service scans from the previous section, each using a different approach. In addition, the third approach discussed is to avoid scanning unsupported services.
 
 \subsection{Reuse information within same service}
 
-This approach aims to reuse information from one part of a service for another part of this service. First, it must be checked to which enumerator this approach should be applied to.
+This approach aims to reuse information from one part of a service for another part of this service. First, it must be checked to which service this approach should be applied to.
 
-The Routine Control (RC) service has two fields, the type and identifier. The distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
+The Routine Control (RC) service has two parameters, the type and identifier. The distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
 
 \begin{figure}[h]
     \centering
@@ -17,7 +17,7 @@ The Routine Control (RC) service has two fields, the type and identifier. The di
 
 It can be seen that if an identifier is available in Type1, it is likely that this identifier also occurs in Type2 or Type3. Consequently, if an identifier does not respond positively in Type1, it is unlikely that it will respond in Type2 or Type3.
 
-Hence, the RC enumerator is a great candidate for this approach.
+Hence, the RC service is a great candidate for this approach.
 
 \subsubsection{Current behavior}
 
@@ -42,7 +42,7 @@ The \mintinline{python}{routineControlType} field specifies what should happen t
 \[f(n)=3 \cdot 2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states.
 
-The current RCEnumerator does exactly this, it generates the full range for each state. That's what needs to be reduced. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas symbolize the scanned ranges.
+The current RC scan does exactly this, it generates the full range for each state. That's what needs to be reduced. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas symbolize the scanned ranges.
 
 \begin{figure}[h]
     \centering
@@ -101,7 +101,7 @@ The result of this simulation is plotted in \autoref{fig:rc-simulation-result}. 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\textwidth]{rc-simulation-result}
-    \caption{Simulation result for the RC enumerator.}
+    \caption{Simulation result for the RC scan.}
     \label{fig:rc-simulation-result}
 \end{figure}
 
@@ -141,7 +141,7 @@ To specify which data record to retrieve, there is the \mintinline{python}{ident
 \[f(n)=2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states. 
 
-So, the current RDBIEnumerator is very simple. It generates 2\textsuperscript{16} packets counting up from 0 to 65,535 and generating for each number a packet with this number as identifier for each state.
+So, the current RDBI scan is very simple. It generates 2\textsuperscript{16} packets counting up from 0 to 65,535 and generating for each number a packet with this number as identifier for each state.
 
 \subsubsection{Elaborating the new behavior}
 
@@ -206,4 +206,4 @@ The first thing to understand is how to tell if a service is supported or not. T
     \label{fig:server-response-behaviour}
 \end{figure}
 
-Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that the NRCs 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current enumerator with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service for each state, which in turn receives 0x11 NRC again and then stops the enumerator. The number of states detected is usually one-digit, so the number of packets generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
+Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that the NRCs 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current service scan with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service for each state, which in turn receives 0x11 NRC again and then stops the service scan. The number of states detected is usually one-digit, so the number of packets generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.

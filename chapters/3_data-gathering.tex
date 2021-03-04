@@ -84,15 +84,15 @@ For instance, counting the number of requests of a scan is a single command:
 
 For profiling, two files have been added as output to the UDS scanner, namely profiling.csv and milestones.csv.
 
-The former contains which enumerator ran under which state and when. It follows a fairly simple structure:
+The former contains which service scan ran under which state and when. It follows a fairly simple structure:
 
 \begin{samepage}
     \begin{minted}{text}
-        state     ,enumerator       ,start            ,end
-        ECU Reset ,ECU Reset        ,1611770228.135198,1611770228.658480
-        [session1],UDS_CCEnumerator ,1611770228.661016,1611770231.236505
-        ECU Reset ,ECU Reset        ,1611770231.236789,1611770231.754865
-        [session1],UDS_DSCEnumerator,1611770231.756320,1611770231.895722
+        state     ,service  ,start            ,end
+        ECU Reset ,ECU Reset,1611770228.135198,1611770228.658480
+        [session1],CC       ,1611770228.661016,1611770231.236505
+        ECU Reset ,ECU Reset,1611770231.236789,1611770231.754865
+        [session1],DSC      ,1611770231.756320,1611770231.895722
     \end{minted}
 \end{samepage}
 
@@ -120,7 +120,7 @@ The Pareto principle indicates that small number of causes can be responsible fo
 
 \subsubsection{Visualizing UDS scans}
 
-To profile the UDS Scanner, the profiling.csv and milestones.csv files are used. With their help Gantt charts are created which show the sequence and duration of enumerators within a scan. This visualizes what parts of the UDS Scanner cause most of its runtime.
+To profile the UDS Scanner, the profiling.csv and milestones.csv files are used. With their help Gantt charts are created which show the sequence and duration of the scanned services. This visualizes what parts of the UDS Scanner cause most of its runtime.
 
 These charts have been created for each available ECU. For illustration one is sufficient since each showed the same gist (see \autoref{fig:tesla-gantt}).
 
@@ -134,13 +134,9 @@ These charts have been created for each available ECU. For illustration one is s
 
 \subsubsection{Identifying the services causing the most runtime}
 
-Although it seems that some enumerators and events do not require any time, their time consumption is only so small that they are not or hardly visible in this scaled-down version of the diagram.
+Although it seems that some services and events do not require any time, their time consumption is only so small that they are not or hardly visible in this scaled-down version of the diagram.
 
-The main cause of runtime is the RCEnumerator. This was expected, since this is the enumerator with the most generated requests.
-In second place are the IOCBIEnumerator and the WDBISelectiveEnumerator.
+The main cause of runtime is the RC service. This was expected, since this it requires the most requests for a complete scan.
+In second place are the IOCBI and the RDBI service. They generate the same runtime, this was to be expected as well since they require the same number of requests. However, the IOCBI service is less frequently supported by ECUs than the RDBI service, resulting in a smaller runtime contribution when considering approach 3.
 
-The latter being a staged enumerator consisting of two enumerators, the RDBIEnumerator (Read data by identifier) and the WDBIEnumerator (Write data by identifier). The WDBI service expects the correct data length for each identifier. It is also necessary to ensure that the new data does not break the ECU, which is handled by writing the value of the RDBI service response, thus not changing the stored value. Hence, the RDBIEnumerator is the first stage to extract this information.
-
-It also generates more requests than the WDBIEnumerator to a large extent, which accordingly hardly contributes to the runtime. The IOCBIEnumerator and RDBIEnumerator generate about the same runtime, this was to be expected since they generate the same number of requests. However, the IOCBI service is less frequently supported by ECUs than the RDBI service, resulting in a smaller runtime contribution when considering approach 3.
-
-In summary, the RCEnumerator and the RDBIEnumerator are the most critical runtime causes of the UDS scanner and therefore belong to the matters to be optimized.
+In summary, the RC and the RDBI service are the most critical runtime causes of the UDS scanner and therefore belong to the matters to be optimized.

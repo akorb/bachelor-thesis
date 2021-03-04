@@ -244,7 +244,7 @@ As \autoref{fig:automotive-security-testing-process} shows, the security testing
 
 \subsubsection{Procedure}
 
-The UDS Scanner executes all enumerators for each state of an ECU. Enumerators can find new states. So as long as new states are found during an iteration, the scan continues. The default state, i.e. for the currently switched on ECU, is called session1. After each iteration, the ECU is reset to return to the default state. From there, the state to be scanned is activated. An ECU reset is usually done by turning off the ECU, waiting for a few seconds, and turning it on again, although there is an ECUReset service in the UDS protocol. However, the service specification states that the behavior of the ECUReset is implementation-specific, so a power-based reset is the cleaner way.
+The UDS Scanner scans each service for an ECU. While doing so, it detects new states. So as long as new states are found during an iteration, the scan continues. The default state, i.e. for the currently switched on ECU, is called \emph{defaultState}. After each iteration, the ECU is reset to return to the default state. From there, the state to be scanned is activated. An ECU reset is usually done by turning off the ECU, waiting for a few seconds, and turning it on again, although there is an ECUReset service in the UDS protocol. However, the service specification states that the behavior of the ECUReset is implementation-specific, so a power-based reset is the cleaner way.
 
 The following pseudocode aims to make the procedure easier to understand:
 
@@ -252,12 +252,12 @@ The following pseudocode aims to make the procedure easier to understand:
 \begin{minted}{python}
 class UDS_Scanner:
     def scan():
-        states = [session1]
-        for state in states:
-            ecu.reset()
-            ecu.enter_state(state)
-            for enum in enumerators:
-                enum.execute()
-        ecu.reset()
+       states = [default_state]
+       for state in states:
+           ecu.reset()
+           ecu.enter_state(state)
+           for service in service_list:
+               service.scan() # detects new states
+       ecu.reset()
 \end{minted}
 \end{samepage}
