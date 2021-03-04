@@ -45,6 +45,8 @@ Consequently, an efficient scan is desirable that keeps the scan time low even t
 
 This paper evaluates three approaches to improve the efficiency of the UDS protocol scanning, namely reusing information within the same service (approach 1), using probabilities of positive answers based on blocks (approach 2) and avoiding scanning unsupported services (approach 3).
 
+The basic idea of all approaches is to reduce the number of requests where no positive response is expected.
+
 Efficiency improvement is understood as the ratio between the request savings and the coverage. Coverage is here defined as the ratio of finds in the unmodified scanner to the finds of the modified scanner, and the request savings as the ratio of requests in comparison between these two. For both metrics, the higher the better.
 
 Nevertheless, they have to be in balance. A request saving of 90\% is not helpful if this results in 0\% coverage. Hence, the challenge is to narrow down the scanning area to where positive responses are expected.
