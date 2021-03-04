@@ -1,8 +1,12 @@
 \section{Results on ECUs}
 
+This section shows and discusses the results of the implementations explained earlier.
+
 \subsection{Coverages and request savings}
 
-\subsubsection{New service scan approaches}
+First, the coverages and request savings are assessed for each approach.
+
+\subsubsection{Reusing information within the same service}
 
 % RC service
 
@@ -33,12 +37,12 @@
 
 9 of 11 ECUs had a full coverage. The coverage for the dashboard ECU notable low. Therefore, a closer look was taken there. It turned out that the Dashboard only supports two identifiers. The identifier 515 for Type1 and identifier 61,728 for Type3. The former is detected, but the resulting range for Type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\%.
 
-The request saving is calculated by comparing the number of requests sent with the selective enumerator and the number of requests that would have been sent with the old enumerator for an entire scan. For each ECU it is close to the theoretical maximum of $66.\overline{6}$ \%, leading to the evaluation that there is a great potential in this approach.
+For each ECU the request saving is close to the theoretical maximum of $66.7$ \%. It is so high because ECUs usually support only a few routines (see \autoref{fig:rc-distribution}). Hence, only a few identifiers are expanded to blocks and lead to more requests.
 
-This approach is applicable to scans of services with multiple fields, as it is the case with the RC service that has the \mintinline{text}{routineControlType} and \mintinline{text}{routineIdentifier} fields. This results in a high scan time for this service and thus a high time-saving potential. However, if an identifier is not recognized during the first scan, it will not be recognized in the next scans as well.
+This approach is applicable to scans of services with multiple parameters. This results in a high scan time for this service and thus a high time-saving potential. However, if an identifier is not recognized during the first scan, it will not be recognized in the next scans as well.
 
 
-% RDBI service
+\subsubsection{Using probabilities of positive answers based on blocks}
 
 \begin{table}[h]
     \begin{center}
@@ -60,7 +64,7 @@ This approach is applicable to scans of services with multiple fields, as it is 
         \hline
     \end{tabular}
     \end{center}
-    \caption{Measured coverages and request savings on ECUs with approach 2 for RDBI service.}
+    \caption{Measured coverages and request savings on ECUs with approach 2 for the RDBI service.}
     \label{tab:evaluation-approach2}
 \end{table}
 
@@ -72,7 +76,7 @@ The biggest problem with this approach is the newly added random factor. The cov
 
 \subsubsection{Not scanning unsupported services}
 
-\autoref{fig:serviceNotSupported-savings} illustrates the number of saved packets for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs have been counted. Of course, not every response can be saved with these NRCs, since at least one request must first be made to see the NRC of that service for a state. But this number of requests, as described in the previous paragraph, is low and negligible, especially considering that the minimum value of saved requests is about 70,000.
+\autoref{fig:serviceNotSupported-savings} illustrates the number of saved packets for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs have been counted. But actually, not every request can be saved with this approach, since at least one request must first be made to detect that this service is not supported. But this number of requests is low and negligible, especially considering that the minimum value of saved requests is about 70,000.
 
 \begin{figure}[h]
     \centering
@@ -84,25 +88,25 @@ The biggest problem with this approach is the newly added random factor. The cov
 There is a potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is conceivable that the ECU responds to an identifier with 0x11 or 0x7f, although a subsequent identifier would actually have been answered positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. It was calculated by evaluating the responses for each enumerator for each state. Once a negative response with NRC 0x11 or 0x7f was received, an internal counter was incremented with each subsequent positive response.
 And in comparison to the potential savings (\autoref{fig:serviceNotSupported-savings}), the losses are negligible.
 
-\begin{figure}[H]
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\textwidth]{serviceNotSupported-losses}
     \caption{Lost number of positive responses with this approach.}
     \label{fig:serviceNotSupported-losses}
 \end{figure}
 
-Avoiding scanning unsupported services is the safest way to save time of all three approaches. It is unlikely that identifiers will be missed, but the speed gain can still be high.
+Skipping unsupported services is the safest way to save time of all three approaches. It is unlikely that identifiers will be missed, but the speed gain can still be high.
 
 \subsection{Actual time savings}
 
-For each ECU, the same scans as for gathering information and profiling were executed again, they differ only in the use of the new implementations.
+For each ECU, the same scans were executed again as in the introduction (\autoref{sec:introduction}), they differ only in the use of the new implementations.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\textwidth]{durations-diff}
-    \caption{Observed runtimes for a UDS scan with new implementations.}
+    \caption{Side by side illustration of runtimes of a UDS scan with old and new implementations.}
     \label{fig:durations-diff}
 \end{figure}
 
-As \autoref{fig:durations-diff} illustrates, the request saving is severe, especially for the Tesla ECU, which has a relatively high average response time (about 0.02 seconds) compared to the others (0.001 to 0.008 seconds).
+As \autoref{fig:durations-diff} shows, the durations decreased significantly, especially for the Tesla ECU, which has a relatively high average response time (about 20 ms) compared to the others (1 – 8 ms).
 Three ECUs are excluded from this observation because they were no longer available at the time of re-evaluating the scan durations.
