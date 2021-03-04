@@ -109,8 +109,6 @@ The SYN and ACK flags are now set as expected for the TCP handshake. Furthermore
 
 All communication performed and recorded in this paper with an ECU is done via the Control Area Network bus (CAN).
 
-\subsubsection{Basic information}
-
  Its specification is released in the ISO 11898. Each packet on this bus can transmit up to 8 bytes of payload and has an identifier which a length of either 11 or 29-bits, the former being more common. An identifier does not necessarily have to designate a physical device; it can also indicate one of several modules of a device.
  The maximum data rate is 1 Mbit/sec with a network length below 40 m. The higher the length, the lower the possible data rate, as can be seen in \autoref{tab:can-speed}.
 
@@ -193,8 +191,6 @@ socket.send(CAN(identifier=0x123, data=b"\x01\x02"))
 
 CAN packets have a payload size of 8 bytes. This is sufficient for most UDS requests, but not for many UDS responses. Thus, ISO-TP is used as the transport protocol on the CAN bus for UDS communication.
 
-\subsubsection{Basic information}
-
 It is defined in ISO 15765-2 and increases the payload size from 8 bytes to 4095 bytes per message. At least one byte of each CAN packet is then transport protocol information, indicating whether this packet is a single frame or if it only contains a fragment of the actual payload.
 
 \subsubsection{How to work with the ISO-TP protocol}
@@ -217,8 +213,6 @@ socket.send(packet)
 \end{samepage}
 
 \subsection{The UDS protocol}
-
-\subsubsection{Basic information}
 
 UDS stands for \emph{Unified diagnostic services} and is an application protocol defined in ISO 14229. This protocol defines the structures of request and response packets for diagnostic purposes sent over an arbitrary data link \cite{iso14229}.
 
@@ -248,6 +242,8 @@ The SA service uses the challenge–response authentication, in automotive termi
     \caption{The challenge-response protocol \cite{Herrewegen2018}.}
     \label{fig:key-seed}
 \end{figure}
+
+\subsubsection{States}
 
 
 \subsubsection{Implementation of UDS in Scapy}
@@ -306,6 +302,8 @@ The UDS Scanner was implemented in Scapy for the PetS3 project.
 \end{figure}
 
 As \autoref{fig:automotive-security-testing-process} shows, the security testing process in the automotive domain contains a scanning step that aims to detect what services of a protocol are implemented and what information can be retrieved there \cite{Bayer2015}. The UDS Scanner fulfills these tasks. It can also be used for fuzzing and functional testing, even though scanning is its main use-case. The retrieved information assists for the manual PenTesting, the final step in this process.
+
+\subsubsection{Procedure}
 
 \subsubsection{Enumerators}
 

@@ -3,7 +3,7 @@
 
 From here, the procedure and the environment of gathering information to elaborate approaches is described.
 
-\subsection{Test environment}
+\subsection{Remote test environment}
 
 In order to find scan ranges that are likely to be answered positively, data from as many ECUs as possible is needed. In the context of the PetS3 project a remote testing environment has been created. This was particularly helpful in light of the contact limitations at the time of writing.
 
@@ -37,7 +37,7 @@ In total, five files are stored after a scan, which will be explained in this se
     \item data.pkl
 \end{itemize}
 
-\subsubsection{candump.log and generic.log}
+\subsubsection{Record communication between scanner and ECU}
 
 The candump.log file is created by the candump program with the \mintinline{text}{-t} parameter. The generated files have a simple structure, each line representing one CAN packet.
 
@@ -80,7 +80,7 @@ For instance, counting the number of requests of a scan is a single command:
     \end{minted}
 \end{samepage}
 
-\subsubsection{profiling.csv and milestones.csv}
+\subsubsection{Store events and service scan runtimes of the scanner}
 
 For profiling, two files have been added as output to the UDS scanner, namely profiling.csv and milestones.csv.
 
@@ -109,7 +109,7 @@ Each line in the milestones.csv contains a timestamp and the name of the final s
     \end{minted}
 \end{samepage}
 
-\subsubsection{data.pkl}
+\subsubsection{Store the finished scanner object}
 
 Last but not least, the data.pkl file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The data.pkl file is the serialized UDS Scanner object after the scan and thus contains all the results, consisting of the responses for each request for each state of an ECU. This is helpful for debugging, analysis and also for simulation.
 
@@ -118,7 +118,7 @@ Last but not least, the data.pkl file. Pickle is the object serialization module
 
 The Pareto principle indicates that small number of causes can be responsible for a large percentage of effects \cite{pareto}. This is also applicable to optimization problems. Usually only a few number of code lines cause the majority of the runtime. Optimizing them is far more effective than performing micro-optimizations as they naturally improve the performance to a greater extent. Moreover, micro-optimizations are usually even more difficult to accomplish.
 
-\subsubsection{Visualizing a UDS Scanner run}
+\subsubsection{Visualizing UDS scans}
 
 To profile the UDS Scanner, the profiling.csv and milestones.csv files are used. With their help Gantt charts are created which show the sequence and duration of enumerators within a scan. This visualizes what parts of the UDS Scanner cause most of its runtime.
 
@@ -132,7 +132,7 @@ These charts have been created for each available ECU. For illustration one is s
 \end{figure}
 
 
-\subsubsection{Identifying the enumerators causing the most runtime}
+\subsubsection{Identifying the services causing the most runtime}
 
 Although it seems that some enumerators and events do not require any time, their time consumption is only so small that they are not or hardly visible in this scaled-down version of the diagram.
 
