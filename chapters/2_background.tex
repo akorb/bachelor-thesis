@@ -129,7 +129,7 @@ All communication performed and recorded in this paper with an ECU is done via t
 \label{tab:can-speed}
 \end{table}
 
-\subsubsection{Advantages}
+\subsubsection{Advantages for the automotive domain}
 
 This bus is robust because it is half-duplex, but still using two wires for the communication with differential signals. This means that if one wire is driven high, the other one is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
 
@@ -156,7 +156,7 @@ The final security vulnerability is the lack of data encryption \cite{Buttigieg2
 
 Since all countermeasures described in the previous paragraph are limited, Intrusion Detection Systems (IDS) are emerging, with the advantages of not having to change the current CAN controller and not increasing bus traffic \cite{Bozdal2020}. Such a system has been implemented in the context of the PetS3 project \cite{spahn2018}.
 
-\subsubsection{How to work with the CAN bus}
+\subsubsection{Using the can-utils}
 
 Virtual CAN interfaces can be used for simulations or simple tests. They are supported natively by Linux without additional actions.
 To create a virtual CAN interface, only one command in a Linux shell is required:
@@ -193,25 +193,6 @@ CAN packets have a payload size of 8 bytes. This is sufficient for most UDS requ
 
 It is defined in ISO 15765-2 and increases the payload size from 8 bytes to 4095 bytes per message. At least one byte of each CAN packet is then transport protocol information, indicating whether this packet is a single frame or if it only contains a fragment of the actual payload.
 
-\subsubsection{How to work with the ISO-TP protocol}
-
-The can-utils tools also contain applications to handle ISO-TP communication. Since this is never used in this work, but the Scapy implementation is, only the Scapy implementation is explained.
-
-As for the CAN implementation, there are two ISO-TP socket implementations in Scapy. A software and a native implementation. Until including Linux kernel 5.9, the corresponding ISO-TP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}. Both implementations handle the ISO-TP metadata themselves, i.e.  fragmentation, defragmentation, etc.
-
-An ISO-TP socket contains a source and destination identifier. They offer the same functionality as the ports for TCP or UDP. The source identifier is the identifier of outgoing CAN packets, and the destination identifier is the identifier expected for incoming packets.
-
-The usage of the native implementation is illustrated in the following code snippet:
-
-\begin{samepage}
-\begin{minted}{python}
-from scapy.contrib.isotp import ISOTPNativeSocket
-socket = ISOTPNativeSocket('vcan0', sid=0x123, did=0x456)
-packet = Raw(b'\x01\x02')
-socket.send(packet)
-\end{minted}
-\end{samepage}
-
 \subsection{The UDS protocol}
 
 UDS stands for \emph{Unified diagnostic services} and is an application protocol defined in ISO 14229. This protocol defines the structures of request and response packets for diagnostic purposes sent over an arbitrary data link \cite{iso14229}.
@@ -246,48 +227,6 @@ The SA service uses the challenge–response authentication, in automotive termi
 \subsubsection{States}
 
 
-\subsubsection{Implementation of UDS in Scapy}
-
-\begin{samepage}
-\begin{minted}{python}
-class UDS(ISOTP):
-    services = {
-         0x10: 'DiagnosticSessionControl',
-         # [...]
-         0x22: 'ReadDataByIdentifier',
-         # [...]
-         0x7f: 'NegativeResponse'})
-    fields_desc = [
-        XByteEnumField('service', 0, services)
-    ]
-\end{minted}
-\end{samepage}
-
-%TODO: Why inherting from ISOTP
-
-The UDS class contains only the service field. Even though the whole UDS protocol is in the application layer, the Scapy implementation starts a new class whenever the subsequent fields depend on one field of the current layer. This is the case here, since the next fields depend on the value of the service field. The service specific fields are defined in their own classes, for example:
-
-\begin{samepage}
-\begin{minted}{python}
-class UDS_DSC(Packet):
-    diagnosticSessionTypes = { ... }
-    fields_desc = [
-        ByteEnumField('diagnosticSessionType', 0,  diagnosticSessionTypes)
-    ]
-\end{minted}
-\end{samepage}
-
-A UDS packet enabling the extended diagnostic session would be created with:
-
-\begin{samepage}
-\begin{minted}{python}
-packet = UDS() / UDS_DSC(diagnosticSessionType='extendedDiagnosticSession')
-\end{minted}
-\end{samepage}
-
-UDS not only allows to read data, but also to write. Which makes it especially critical for security. For example the firmware of an ECU can be updated through this protocol. This usually requires higher privileges, which can be gained through the previously mentioned SecurityAccess service.
-
-
 \subsection{The UDS Scanner}
 
 The UDS Scanner was implemented in Scapy for the PetS3 project.
@@ -302,46 +241,6 @@ The UDS Scanner was implemented in Scapy for the PetS3 project.
 \end{figure}
 
 As \autoref{fig:automotive-security-testing-process} shows, the security testing process in the automotive domain contains a scanning step that aims to detect what services of a protocol are implemented and what information can be retrieved there \cite{Bayer2015}. The UDS Scanner fulfills these tasks. It can also be used for fuzzing and functional testing, even though scanning is its main use-case. The retrieved information assists for the manual PenTesting, the final step in this process.
-
-\subsubsection{Procedure}
-
-\subsubsection{Enumerators}
-
-% TODO: Add that it was still work in progress while doing this work
-% and thus, that problems occured and had to be fixed.
-% Out of scope of this work.
-
-Enumerators are service-specific and create all possible requests for a service.
-For example, the enumerator for the DSC service is called UDS\_DSCEnumerator. The most important member of the enumerator classes is the \mintinline{python}{_get_initial_requests} method. The return value is an iterable object which contains all requests for this service. DSC has an eight bit identifier, leading to a maximum of 2\textsuperscript{8} packets for this service. Each enumerator will be executed for each found state of the ECU. So, if an enumerator already ran, and afterwards a new state is found, this enumerator will run again within the same scan with the new-found state.
-
-For a better understanding, the UDS\_DSCEnumerator implementation will be described exemplary.
-
-\begin{samepage}
-\begin{minted}{python}
-class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
-    def _get_initial_requests(self, **kwargs):
-        session_range = kwargs.pop('session_range', range(2, 0x100))
-        return UDS() / UDS_DSC(diagnosticSessionType=session_range)
-\end{minted}
-\end{samepage}
-
-The method can be given keyword parameters. The only one used here is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 packets for each state. This service is a StateGenerator, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
-
-So-called staged enumerators contain enumerators where each enumerator is a stage. They start executing the first enumerator for each state, followed by each subsequent enumerator in the same way. For each stage transition (for example $1 \rightarrow 2$ or $2 \rightarrow 3$) connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here the results of the previous enumerator can be evaluated and the new enumerator can be configured accordingly.
-
-Enumerators can output their results as a text-table. For example:
-
-\begin{samepage}
-\begin{minted}{text}
----------------+---------------+---------------+---------------+
-               | session1      | session1tp1   | session3tp1   | 
----------------+---------------+---------------+---------------+
-TesterPresent: | PR: Supported | PR: Supported | PR: Supported | 
----------------+---------------+---------------+---------------+
-\end{minted}
-\end{samepage}
-
-This means, the request of the TesterPresent service was positively answered by the ECU in all three found states.
 
 \subsubsection{Procedure}
 
@@ -362,4 +261,3 @@ class UDS_Scanner:
         ecu.reset()
 \end{minted}
 \end{samepage}
-

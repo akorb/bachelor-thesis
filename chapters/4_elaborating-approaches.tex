@@ -109,62 +109,6 @@ The identifiers are expanded to both sites. So, for example, if the identifier 5
 
 Since the speed-up decreases only slowly, the highest coverage was chosen, which starts with the expansion width \textbf{253}. Hence, this value is the chosen and implemented one.
 
-\subsubsection{Implementation}
-
-Three classes are of interest:
-
-\begin{itemize}
-    \item \textbf{RCEnumerator}: Defaults to scanning the whole RC service, including all three types.
-    \item \textbf{RCStartEnumerator}: Only scanning Type1 of the RC service.
-    \item \textbf{RCSelectiveEnumerator}: Staged enumerator containing an RCStartEnumerator and an RCEnumerator.
-\end{itemize}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{rc-schematic}
-    \caption{Schematic illustration of the new RCSelectiveEnumerator.}
-    \label{fig:rc-schematic}
-\end{figure}
-
-The connector of the RCSelectiveEnumerator expands the found identifiers of the RCStartEnumerator to ranges and also resolves any overlaps to a continuous range and forwards these ranges to the second stage, the RCEnumerator. Additionally, the connector configures the RCEnumerator to only scan Type2 and Type3.
-
-Each positively answered identifier of Type1 in any state will also be probed for all subsequent states in Type2 and Type3, even if this identifier is not found in Type1 for another state. This increases the coverage in cases, where a routine can be started in a state, but its result, or to stop it, may only be requested in another state.
-
-The full implementation can be seen in \autoref{app:rc-implementation}.
-
-\subsubsection{Evaluation}
-
-\begin{table}[h]
-    \begin{center}
-    \begin{tabular}{ccc}
-        \hline
-        & \textbf{Coverage} & \textbf{Speed-up} \\
-        \hline
-        \textbf{audi\_cgw} & 87.6\% & 65.4\% \\
-        \textbf{bfft-ecu} & 100\% & 66.2\% \\
-        \textbf{bmw-gateway-ecu-bdc} & 100\% & 66.2\% \\
-        \textbf{bmw-gateway-ecu-zgw} & 100\% & 64.5\% \\
-        \textbf{bmw-gateway-ecu2} & 100\% & 64.6\% \\
-        \textbf{bmw-tcu} & 100\% & 66.7\% \\
-        \textbf{bosch-ecu} & 100\% & 64.6\% \\
-        \textbf{dashboard} & 50.0\% & 66.2\% \\
-        \textbf{mercedes-ezs} & 100\% & 65.1\% \\
-        \textbf{seppmed} & 100\% & 66.2\% \\
-        \textbf{tesla-airbag-ecu} & 100\% & 66.7\% \\
-        \hline
-
-    \end{tabular}
-    \end{center}
-    \caption{Measured coverages and speed-ups on ECUs with approach 1 for the RC service.}
-    \label{tab:evaluation-approach1}
-\end{table}
-
-9 of 11 ECUs had a full coverage. The coverage for the dashboard ECU notable low. Therefore, a closer look was taken there. It turned out that the Dashboard only supports two identifiers. The identifier 515 for Type1 and identifier 61,728 for Type3. The former is detected, but the resulting range for Type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\%.
-
-The speed-up is calculated by comparing the number of requests sent with the selective enumerator and the number of requests that would have been sent with the old enumerator for an entire scan. For each ECU it is close to the theoretical maximum of $66.\overline{6}$ \%, leading to the evaluation that there is a great potential in this approach.
-
-This approach is applicable to scans of services with multiple fields, as it is the case with the RC service that has the \mintinline{text}{routineControlType} and \mintinline{text}{routineIdentifier} fields. This results in a high scan time for this service and thus a high time-saving potential. However, if an identifier is not recognized during the first scan, it will not be recognized in the next scans as well.
-
 
 \subsection{Use probabilities of positive answers block based}
 Most services are simpler and don't have a type as the RC service but only an identifier. So, reusing information within the same service is not practical. This is also the case for the Read Data By Identifier (RDBI) service. It allows the client to request data record values from the server identified by one or more dataIdentifiers \cite{iso14229}. The new idea is to scan the blocks more heavily where positive behavior is more likely than others and vice versa.
@@ -248,69 +192,10 @@ This simulation leads to \autoref{fig:rdbi-simulation-result}.
 
 The speed-up is no longer linear; instead, the speed-up is highest for medium block sizes. From block sizes 64 to 128, the coverage decreases by 4\% while the speed-up remains the same. Thus, it was decided for \textbf{64} as the block size leading to best results.
 
-\subsubsection{Implementation}
-
-Again, three classes are of interest:
-
-\begin{itemize}
-    \item \textbf{RDBIEnumerator}: Defaults to scanning the whole RDBI service.
-    \item \textbf{RDBIRandomEnumerator}: Scanning block-based with random identifiers.
-    \item \textbf{RDBISelectiveEnumerator}: Staged enumerator containing an RDBIRandomEnumerator and an RDBIEnumerator.
-\end{itemize}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{rdbi-schematic}
-    \caption{Schematic illustration of the new RDBISelectiveEnumerator.}
-    \label{fig:rdbi-schematic}
-\end{figure}
-
-Similar to the previous approach, the new implementation is two-staged. First, the RDBIRandomEnumerator is executed. Then, the connector creates requests for whole blocks, if any of their requests were answered positively, and ensured that for a single block each identifier is queried only once. The resulting packets are passed to the configurable RDBIEnumerator.
-
-Also, as with the RCSelectiveEnumerator, each positively answered identifier will be remembered for all subsequent states. This increases the coverage because most identifiers are also available in other states, but the RandomEnumerator might not detect them for each state.
-
-Implementing the RDBIRandomEnumerator was a challenge because it must include the probabilities of occurence of positively responded identifiers for each block. With a block size of $2^6$, there would need to be a list with $\frac{2^{16}}{2^6} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on two facts. That the probabilities are ultimately calculated to the number of samples, and that at least one request should be generated for each block. For the former, the number of samples for each block were pre-computed instead of being computed at runtime. This simplifies the list in the sense that integers are stored instead of float values. Second, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to 2. And blocks for which no value is stored, the value 1 is used. This automatically solves that each block is probed with at least one packet, even if its probability is 0\%. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements.
-
-The non-compact version is shown in \autoref{app:random-not-compact} and the final implementation in \autoref{app:rdbi-implementation}.
-
-\subsubsection{Evaluation}
-
-\begin{table}[h]
-    \begin{center}
-    \begin{tabular}{ccc}
-        \hline
-        & \textbf{Coverage} & \textbf{Speed-up} \\
-        \hline
-        \textbf{audi\_cgw} & 87.8\% & 85.0\% \\
-        \textbf{bfft-ecu} & 88.4\% & 96.6\% \\
-        \textbf{bmw-gateway-ecu-bdc} & 100\% & 96.1\% \\
-        \textbf{bmw-gateway-ecu-zgw} & 94.3\% & 95.8\% \\
-        \textbf{bmw-gateway-ecu2} & 83.3\% & 96.1\% \\
-        \textbf{bmw-tcu} & 72.2\% & 96.3\% \\
-        \textbf{bosch-ecu} & 90.7\% & 93.3\% \\
-        \textbf{dashboard} & 92.4\% & 94.4\% \\
-        \textbf{mercedes-ezs} & 89.3\% & 94.7\% \\
-        \textbf{seppmed} & 83.0\% & 95.9\% \\
-        \textbf{tesla-airbag-ecu} & 100\% & 96.4\% \\
-        \hline
-    \end{tabular}
-    \end{center}
-    \caption{Measured coverages and speed-ups on ECUs with approach 2 for RDBI service.}
-    \label{tab:evaluation-approach2}
-\end{table}
-
-\autoref{tab:evaluation-approach2} shows the resulting coverage and speed-ups for this approach for the RDBI service. It should be noted, that these values vary slightly for each run because a random scan is used.
-
-Overall, the coverages are lower with this approach than for approach 1. Only for two ECUs a coverage of 100\% is reached. The speed-ups are high at approximately 95\%. Nevertheless, the speed-ups of approach 1 are higher in practice, because that approach can be applied to larger service scans, and then a speed-up of about 66\% saves more time there than a speed-up of 95\% here.
-
-The biggest problem with this approach is the newly added random factor. The coverage can be great for one scan, but low for the next one. This would require performing multiple scans using the new implementation to ensure that most identifiers were found.
-
 
 \subsection{Avoid the scan of unsupported services}
 
 Each ECU usually supports only a subset of the services offered  by the UDS standard. This approach aims to avoid scanning them in order to save requests and therefore, time.
-
-\subsubsection{Detecting unsupported services}
 
 The first thing to understand is how to tell if a service is supported or not. The UDS standard defines the general server response behavior, shown in \autoref{fig:server-response-behaviour} with the important area highlighted.
 
@@ -322,44 +207,3 @@ The first thing to understand is how to tell if a service is supported or not. T
 \end{figure}
 
 Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that the NRCs 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current enumerator with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service for each state, which in turn receives 0x11 NRC again and then stops the enumerator. The number of states detected is usually one-digit, so the number of packets generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
-
-\subsubsection{Implementation}
-
-In contrast to the previous approaches, this one is not applied to an enumerator, but to the UDS Scanner itself. The UDS Scanner evaluates each response, for example to detect if a new state was found. Here, a check was added for negative responses if they have the NRC 0x11 or 0x7f. If they do, the enumerator is set to completed for the currently executed state. This behavior has to be enabled explicitly, because as the next section explains, it might result in losses.
-
-\subsubsection{Evaluation}
-
-\autoref{fig:serviceNotSupported-savings} illustrates the number of saved packets for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs have been counted. Of course, not every response can be saved with these NRCs, since at least one request must first be made to see the NRC of that service for a state. But this number of requests, as described in the previous paragraph, is low and negligible, especially considering that the minimum value of saved requests is about 70,000.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{serviceNotSupported-savings}
-    \caption{Saved number of requests with this approach (approx).}
-    \label{fig:serviceNotSupported-savings}
-\end{figure}
-
-There is a potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is conceivable that the ECU responds to an identifier with 0x11 or 0x7f, although a subsequent identifier would actually have been answered positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. It was calculated by evaluating the responses for each enumerator for each state. Once a negative response with NRC 0x11 or 0x7f was received, an internal counter was incremented with each subsequent positive response.
-And in comparison to the potential savings (\autoref{fig:serviceNotSupported-savings}), the losses are negligible.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{serviceNotSupported-losses}
-    \caption{Lost number of positive responses with this approach.}
-    \label{fig:serviceNotSupported-losses}
-\end{figure}
-
-Avoiding scanning unsupported services is the safest way to save time of all three approaches. It is unlikely that identifiers will be missed, but the speed gain can still be high.
-
-\subsection{Actual time savings}
-
-For each ECU, the same scans as for gathering information and profiling were executed again, they differ only in the use of the new implementations.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=1\textwidth]{durations-diff}
-    \caption{Observed runtimes for a UDS scan with new implementations.}
-    \label{fig:durations-diff}
-\end{figure}
-
-As \autoref{fig:durations-diff} illustrates, the speed-up is severe, especially for the Tesla ECU, which has a relatively high average response time (about 0.02 seconds) compared to the others (0.001 to 0.008 seconds).
-Three ECUs are excluded from this observation because they were no longer available at the time of re-evaluating the scan durations.
