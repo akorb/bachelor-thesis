@@ -144,7 +144,7 @@ The DiagnosticSessionControl (DSC) service with the identifier 0x10 is used to e
 
 Another example is the ReadDataByIdentifier (RDBI) service. Data records in an ECU are stored with an identifier as the key. This service allows to read these values from an external device. Since there may be data stored that should not be readable by everyone, there is another service called SecurityAccess (SA, 0x27) that allows to unlock the ECU for external devices.
 
-The SA service uses the challenge–response authentication, in automotive terminology called seed-key protocol. The ECU sends a randomly generated value (the seed) to the client. Both generate a response (the key) and the client sends its response to the ECU. If the keys match for the received and the generated response, the client is authenticated \cite{Herrewegen2018, iso14229}.
+The SA service uses the challenge–response authentication, in automotive terminology called seed-key protocol. The ECU sends a randomly generated value (the seed) to the client. Both devices generate a response (the key) based on the seed and the client sends its response to the ECU. If the keys match for the received and the generated response for the ECU, the client is authenticated \cite{iso14229}.
 
 \begin{figure}[h]
     \centering
@@ -154,6 +154,18 @@ The SA service uses the challenge–response authentication, in automotive termi
 \end{figure}
 
 \subsubsection{States}
+\label{subsec:states}
+
+There is always exactly one global UDS state active for an ECU. It influences the behavior of the ECU and can be changed by sending specific requests. Just a subset of services is able to accomplish this. For example, sending a request with the Security Access or the Diagnostic Session Control services to the ECU can affect its state. Whether the ECU has actually changed the state can be easily determined by checking whether the request has received a positive or negative response.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{ecu-state-behavior}
+    \caption{State machine of ECUs for UDS.}
+    \label{fig:ecu-state-behavior}
+\end{figure}
+
+The default state is the active state after the control unit is switched on. Without an external request, it remains in this state. \autoref{fig:ecu-state-behavior} illustrates the behavior of the ECU when a request is received for the DSC service and parameter value $n$. In the DSC service, each parameter value specifies a state. Thus, if the ECU designers integrated a state for $n$, the controller will respond positively. It will now remain in this state until there has been no UDS communication for usually five seconds, then it will automatically return to the default state. If the ECU designers did not integrate such a state, it will answer with a negative response and remain in the default state.
 
 
 \subsection{The UDS Scanner}
@@ -173,7 +185,7 @@ As \autoref{fig:automotive-security-testing-process} shows, the security testing
 
 \subsubsection{Procedure}
 
-The UDS Scanner scans each service for an ECU. While doing so, it detects new states. So as long as new states are found during an iteration, the scan continues. The default state, i.e. for the currently switched on ECU, is called \emph{defaultState}. After each iteration, the ECU is reset to return to the default state. From there, the state to be scanned is activated. An ECU reset is usually done by turning off the ECU, waiting for a few seconds, and turning it on again, although there is an ECUReset service in the UDS protocol. However, the service specification states that the behavior of the ECUReset is implementation-specific, so a power-based reset is the cleaner way.
+The UDS Scanner starts with scanning each service for the default state of the ECU (see \autoref{subsec:states}). While doing so, it detects new states, which will be scanned subsequently (for example with the DSC and SA service). So as long as new states are found during an iteration, the scan continues. After each iteration, the ECU is reset to return to the default state. From there, the next state to be scanned is activated through sending a sequence of UDS requests, representing an edge of a state machine. An ECU reset is usually done by switching off the ECU, waiting a few seconds, and switching it on again, although there is an ECUReset service in the UDS protocol. However, its specification states that the behavior is implementation-specific, so a power-based reset is the cleaner way.
 
 The following pseudocode aims to make the procedure easier to understand:
 
