@@ -23,28 +23,13 @@ Hence, the RC service is a great candidate for this approach.
 
 \subsubsection{Current behavior}
 
-The RC service is used by the client to execute a defined sequence of steps and obtain any relevant results \cite{iso14229}. For a quick overview of the service a simplified code snippet of the Scapy implementation is used.
+The RC service is used by the client to execute a defined sequence of steps and obtain any relevant results \cite{iso14229}. It has two parameters, namely the \mintinline{python}{routineControlType} and \mintinline{python}{routineIdentifier} parameter.
 
-\begin{samepage}
-\begin{minted}{python}
-class UDS_RC(Packet):
-    routineControlTypes = {
-        1: 'startRoutine',
-        2: 'stopRoutine',
-        3: 'requestResults'
-    }
-    fields_desc = [
-        ByteEnumField('routineControlType', 0, routineControlTypes),
-        XShortField('routineIdentifier', 0)
-    ]
-\end{minted}
-\end{samepage}
-
-The \mintinline{python}{routineControlType} field specifies what should happen to a routine. Possible are starting, stopping and requesting the results. To specify which routine is to be controlled, there is the \mintinline{python}{routineIdentifier} field. Hence, there are three control types, and because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
+The \mintinline{python}{routineControlType} parameter specifies the action for a routine. Possible are starting, stopping and requesting the results. To specify which routine is to be controlled, there is the \mintinline{python}{routineIdentifier} field. Hence, there are three control types, and because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
 \[f(n)=3 \cdot 2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states.
 
-The current RC scan does exactly this, it generates the full range for each state. That's what needs to be reduced. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas symbolize the scanned ranges.
+The current RC scan does exactly this, it generates the full range for each state. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas symbolize the scanned ranges.
 
 \begin{figure}[h]
     \centering
@@ -55,9 +40,11 @@ The current RC scan does exactly this, it generates the full range for each stat
 
 \subsubsection{Elaborating the new behavior}
 
-The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state. Moreover, it was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning also nearby identifiers results in higher coverage.
+The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state for this service, resulting in an upper limit of request savings of 66.7 \%.
 
-\autoref{fig:rc-behavior-new} illustrates the new behavior. The green areas again show the scanned ranges. In addition, the red areas are the found identifiers in Type1 and their resulting scans for Type2 and Type3, and the gray areas show the identifiers saved with this new behavior.
+It was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning also nearby identifiers for Type2 and Type3 results in higher coverage.
+
+\autoref{fig:rc-behavior-new} illustrates the new behavior. The green areas again show the scanned ranges. In addition, the red areas are the found identifiers in Type1 and their resulting scans for Type2 and Type3. The gray areas show the routine identifiers not requested with this new behavior.
 
 \begin{figure}[h]
     \centering
@@ -65,13 +52,6 @@ The new behavior starts with scanning all 2\textsuperscript{16} identifiers with
     \caption{New procedure for scanning the RC service.}
     \label{fig:rc-behavior-new}
 \end{figure}
-
-The limits of the request saving function $s$ for this approach with the RC service are given as following:
-\[ 0\ \% \ \leq\  s(n)\  \leq 66.\overline{6}\ \% \quad \forall \  n \in \left\{0, 1, ..., 2^{16} \cdot 3\right\} \]
-%\[ 0\  \ \leq\  s(n)\  \leq \frac{2}{3} \quad \forall \  n \in \left\{0, 1, ..., 2^{16 * 3}\right\} \]
-wherein $n$ the number of generated requests for this service.
-
-The reason for the upper limit of $66.\overline{6}$ \% is that Type1, which is one third of all possible requests, is always scanned completely.
 
 What needs to be found out is the expansion width which leads to the best coverage, while maintaining an appropriate request saving.
 For this, scans with different expansion widths are simulated. For a quick simulation another observation is used. If an identifier is available in a state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still close to the real ECUs because it only uses information gathered from the real ECUs as described in \autoref{sec:data-gathering}. The required information is which identifiers an ECU supports for which types in any state. This is extracted from the generic.log files.
@@ -133,22 +113,10 @@ It is clearly visible that there are some areas where not a single identifier wa
 
 \subsubsection{Current behavior}
 
-Again, for a quick overview of the service a simplified code snippet of the Scapy implementation is used.
-
-\begin{samepage}
-\begin{minted}{python}
-class UDS_RDBI(Packet):
-    fields_desc = [
-        XShortField('identifier', 0)
-    ]
-\end{minted}
-\end{samepage}
-
-To specify which data record to retrieve, there is the \mintinline{python}{identifier} field. Hence, because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
+To specify which data record to retrieve, there is the \mintinline{python}{identifier} parameter. Hence, because the identifier is a short field, there are 2\textsuperscript{16} possible identifiers.
+The current RDBI scan is simple. It generates 2\textsuperscript{16} requests counting up from 0 to 65,535 as the identifier. This leads to the following formula, showing how many requests are generated for a UDS scan:
 \[f(n)=2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states. 
-
-So, the current RDBI scan is very simple. It generates 2\textsuperscript{16} packets counting up from 0 to 65,535 and generating for each number a packet with this number as identifier for each state.
 
 \subsubsection{Elaborating the new behavior}
 
