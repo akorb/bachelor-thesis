@@ -2,7 +2,7 @@
 
 This section will explain the technical fundamentals which are necessary to understand the full bachelor thesis.
 
-\subsection{The Scapy library}
+\subsection{The Scapy program}
 \label{sec:scapy}
 
 %UDS stack
@@ -12,97 +12,24 @@ This section will explain the technical fundamentals which are necessary to unde
     %\label{fig:scapy-logo}
 \end{wrapfigure}
 
-Scapy is a powerful interactive packet manipulation program. It is able to forge or decode packets of a wide number of protocols, send them on the wire, capture them, match requests and replies, and much more \cite{scapy}.
+The homepage of Scapy introduces this library with  \cite{scapy}:
+\begin{displayquote}
+Scapy is a powerful interactive packet manipulation program. It is able to forge or decode packets of a wide number of protocols, send them on the wire, capture them, match requests and replies, and much more.
+\end{displayquote}
 
-It is used through a text-based user interface. This has the advantage of being lightweight, and working via ssh connections out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into the own Python program. Scapy supports Python 3 and additionally Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains the reason behind that \cite{scapy-py2}:
+So, it fulfills the requirements of protocol scanners:
+\begin{itemize}
+    \item Receiving and transmitting packets
+    \item Support for many physical layers and transport protocols
+    \item Simple definition of packet structures
+    \item Matching requests with their responses
+\end{itemize} 
+
+It is used through a text-based user interface. This has the advantage of being lightweight, and working via ssh connections out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into the own Python program. Scapy supports Python 3 and additionally Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains why \cite{scapy-py2}:
 
 \begin{displayquote}
     Scapy is a tool that can be used in a very large number of situations. Often, you don't get to choose the Python interpreter you have when you run Scapy. So, [...] we need to keep supporting Python 2.7 as long as we can.
 \end{displayquote}
-
-One of the core classes in Scapy is the \textbf{Packet} class. All definitions of network packet layers, such as Ethernet, IP, TCP, CAN, UDS and so on, are defined in a class inheriting from that class.
-
-The well-known and simple UDP protocol \cite{rfc768} serves as an illustrative example of how to translate data field specifications (see \autoref{fig:uds_header} for UDP) into a Scapy definition.
-
-%UDP header
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{udp_header}
-    \caption{UDP header format \cite{udp_header}}
-    \label{fig:uds_header}
-\end{figure}
-
-The UDP header format contains four header fields the payload. The header fields are translated literally into the Scapy class \textbf{UDP}. The data field is not part of it because Scapy uses an explicit operator to append data to the header information. This is shown later.
-
-The following code snippet shows the mentioned class in the Scapy library.
-
-\begin{samepage}
-\begin{minted}{python}
-class UDP(Packet):
-   fields_desc = [ShortEnumField('sport', 53, UDP_SERVICES),
-                  ShortEnumField('dport', 53, UDP_SERVICES),
-                  ShortField('len', None),
-                  XShortField('chksum', None)]
-\end{minted}
-\end{samepage}
-
-As in common programmer language, \textbf{short} specifies 16 bits. Since the UDP header only contains 16 bits fields, the Scapy definition only includes \textbf{short} fields. The first parameter of a field is always the name of this field. \textbf{sport} stands for source port, and \textbf{dport} for destination port.
-The next parameter sets the default value for this field. This is defined by the Scapy programmers to the best of their knowledge and not by the official UDP standard. \textbf{53} specifies the DNS protocol.
-\textbf{EnumField}s also contain a third argument, a simple dictionary mapping from machine-readable values to human-readable texts. For example, part of the \textbf{UDP\_SERVICES} dictionary is: \mintinline{python}{{53: 'domain', 80: 'www_http'}}.
-The difference between the ShortField and XShortField is only the representation, being displayed as a decimal hex and a hex value, respectively.
-
-The following snippet shows some examples of how to instantiate an object of the UDP class and also demonstrates how to append data to the headers with the “/” operator.
-
-\begin{samepage}
-\begin{minted}{python}
-packet = UDP(dport=80) # is equivalent to:
-packet = UDP(dport='www_http')
-
-# Append 0x00 as data
-packet = UDP(dport=80) / Raw(b'\x00')
-\end{minted}
-\end{samepage}
-
-Scapy provides many kinds of sockets to transmit and receive packets. For example the \textbf{L2Socket} and the \textbf{L3PacketSocket}. The difference is that L2Sockets expect a packet containing all information starting from Ethernet (layer 2), while L3PacketSockets expect a packet only containing all information starting from IP (layer 3). The following code snippet illustrates how an Ethernet packet is sent via a L2Socket (Note: Root privileges might be necessary for this to work):
-
-\begin{samepage}
-\begin{minted}{python}
-# import necessary classes
-from scapy.arch.linux import L2Socket
-# Create a layer 2 socket specifying the interface name
-socket = L2Socket('eth0')
-# Create a packet covering layer 2 to 7, targeting the Google server
-# This packet starts a TCP handshake, thus the SYN flag is exclusively set
-# Set destination port to HTTP and a high source port
-packet = Ether() / IP(dst='142.250.185.163') / TCP(flags='S', dport=80, sport=60123)
-# sr1 stands for: send receive one
-# it sends the given packet and returns the response
-response = socket.sr1(packet)
-# This displays the response in a human-friendly form
-response.show()
-\end{minted}
-\end{samepage}
-
-The \emph{show} method gives the following output. It has been slightly edited to be more compact and some information has been replaced by placeholders for privacy reasons.
-
-\begin{samepage}
-\begin{minted}{text}
-###[ Ethernet ]### 
-  dst       = 12:34:45:67:89:ab
-  src       = 13:37:42:be:ef:00
-  type      = IPv4
-###[ IP ]### 
-     version   = 4
-     src       = 142.250.185.163
-     dst       = 123.123.123.123
-###[ TCP ]### 
-        sport     = www_http
-        dport     = 60123
-        flags     = SA
-\end{minted}
-\end{samepage}
-
-The SYN and ACK flags are now set as expected for the TCP handshake. Furthermore, the sport of the request is the dport of the response.
 
 
 \subsection{The CAN bus}
