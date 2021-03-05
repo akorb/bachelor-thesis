@@ -120,6 +120,7 @@ The current RDBI scan is simple. It generates 2\textsuperscript{16} requests cou
 wherein $n$ stands for the number of detected states. 
 
 \subsubsection{Elaborating the new behavior}
+\label{subsubsec:rdbi-behavior}
 
 To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. Then, it is calculated how likely a positive response is for each of these blocks. Based on this information, the number of requests for each block will be calculated individually. An example is illustrated in \autoref{fig:rdbi-behavior-new}.
 

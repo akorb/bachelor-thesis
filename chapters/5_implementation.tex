@@ -315,7 +315,7 @@ class UDS_RCSelectiveEnumerator(StagedAutomotiveTestCase):
 
     @staticmethod
     def connector_start_to_full(rc_start, rc_full):
-        identifiers_with_pr = [resp.routineIdentifier for _, _, resp, _, _
+        identifiers_with_pr = [r.resp.routineIdentifier for r
                                in rc_start.results_with_positive_response]
 
         scan_range = points_to_ranges(
@@ -357,10 +357,12 @@ First, a range generator is created for each given point. Then, they are chained
 Again, three classes are of interest:
 
 \begin{itemize}
-    \item \textbf{RDBIEnumerator}: Defaults to scanning the whole RDBI service.
-    \item \textbf{RDBIRandomEnumerator}: Scanning block-based with random identifiers.
-    \item \textbf{RDBISelectiveEnumerator}: Staged enumerator containing an RDBIRandomEnumerator and an RDBIEnumerator.
+    \item \mintinline{python}{RDBIEnumerator}: Defaults to scanning the whole RDBI service.
+    \item \mintinline{python}{RDBIRandomEnumerator}: Scanning block-based with random identifiers.
+    \item \mintinline{python}{RDBISelectiveEnumerator}: Staged enumerator containing an RDBIRandomEnumerator and an RDBIEnumerator.
 \end{itemize}
+
+Similar to the previous approach, the new implementation is two-staged. First, the \mintinline{python}{RDBIRandomEnumerator} is executed. Then, the connector creates requests for whole blocks, if any of their requests were answered positively, and ensured that for a single block each identifier is queried only once. The resulting packets are passed to the configurable \mintinline{python}{RDBIEnumerator}. \autoref{fig:rdbi-schematic} shows that.
 
 \begin{figure}[h]
     \centering
@@ -369,134 +371,117 @@ Again, three classes are of interest:
     \label{fig:rdbi-schematic}
 \end{figure}
 
-Similar to the previous approach, the new implementation is two-staged. First, the RDBIRandomEnumerator is executed. Then, the connector creates requests for whole blocks, if any of their requests were answered positively, and ensured that for a single block each identifier is queried only once. The resulting packets are passed to the configurable RDBIEnumerator.
-
-Also, as with the RCSelectiveEnumerator, each positively answered identifier will be remembered for all subsequent states. This increases the coverage because most identifiers are also available in other states, but the RandomEnumerator might not detect them for each state.
-
-Implementing the RDBIRandomEnumerator was a challenge because it must include the probabilities of occurence of positively responded identifiers for each block. With a block size of $2^6$, there would need to be a list with $\frac{2^{16}}{2^6} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on two facts. That the probabilities are ultimately calculated to the number of samples, and that at least one request should be generated for each block. For the former, the number of samples for each block were pre-computed instead of being computed at runtime. This simplifies the list in the sense that integers are stored instead of float values. Second, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to 2. And blocks for which no value is stored, the value 1 is used. This automatically solves that each block is probed with at least one packet, even if its probability is 0\%. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements.
+The explanation starts with the original enumerator, here the \mintinline{python}{RDBIEnumerator}.
 
 \begin{minted}{python}
-    class UDS_RDBIEnumerator(UDS_Enumerator):
-        _description = "Readable data identifier per state"
+class UDS_RDBIEnumerator(UDS_Enumerator):
+    def _get_initial_requests(self, **kwargs):
+        scan_range = kwargs.pop("scan_range", range(0x10000))
+        return (UDS() / UDS_RDBI(identifiers=[x]) for x in scan_range)
+\end{minted}
 
-        def _get_initial_requests(self, **kwargs):
-            # type: (Any) -> Iterable[Packet]
-            scan_range = kwargs.pop("scan_range", range(0x10000))
-            return (UDS() / UDS_RDBI(identifiers=[x]) for x in scan_range)
-\end{minted}
-    
-\begin{minted}{python}
-    class UDS_RDBISelectiveEnumerator(StagedAutomotiveTestCase):
-        @staticmethod
-        def __connector_random_to_sequential(rdbi_random, _):
-            # type: (UDS_RDBIRandomEnumerator, UDS_RDBIEnumerator) -> Dict[str, Any]
-            rdbi_random = cast(UDS_Enumerator, rdbi_random)
-            identifiers_with_positive_response = \
-                [p.resp.dataIdentifier
-                 for p in rdbi_random.results_with_positive_response]
-    
-            scan_range = UDS_RDBISelectiveEnumerator. \
-                points_to_blocks(identifiers_with_positive_response)
-            return {"scan_range": scan_range}
-    
-        @staticmethod
-        def points_to_blocks(pois):
-            # type: (Sequence[int]) -> Iterable[int]
-            block_size = UDS_RDBIRandomEnumerator.block_size
-            generators = []
-            for start in range(0, 2 ** 16, block_size):
-                end = start + block_size
-                pr_in_block = any((start <= identifier < end
-                                   for identifier in pois))
-                if pr_in_block:
-                    generators.append(range(start, end))
-            scan_range = itertools.chain.from_iterable(generators)
-            return scan_range
-    
-        def __init__(self):
-            # type: () -> None
-            super(UDS_RDBISelectiveEnumerator, self).__init__(
-                [UDS_RDBIRandomEnumerator(), UDS_RDBIEnumerator()],
-                [None, self.__connector_random_to_sequential])
-\end{minted}
+Since the RDBI service has only one parameter, its \mintinline{python}{_get_initial_requests} remains simple, generating RDBI requests for identifiers from 0 to 65,535.
+
+Implementing the \mintinline{python}{RDBIRandomEnumerator} was a challenge because it must include the probabilities of occurrence of positively responded identifiers for each block. With a block size of \textbf{64} (see \autoref{subsubsec:rdbi-behavior}), there would need to be a list with $\frac{2^{16}}{64} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on two facts. That the probabilities are ultimately converted to the number of samples, and that at least one request should be generated for each block. For the former, the number of samples for each block were pre-computed instead of being computed at runtime. This simplifies the list in the sense that integers are stored instead of float values. Second, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to 2. And blocks for which no value is stored, the value 1 is used. This automatically solves that each block is probed with at least one request, even if its probability is 0\%. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements. The non-compact version is shown in \autoref{app:random-not-compact}.
 
 \begin{minted}{python}
-    class UDS_RDBIRandomEnumerator(UDS_RDBIEnumerator):
-        block_size = 2 ** 6
-    
-        def _get_initial_requests(self, **kwargs):
-            # type: (Any) -> Iterable[Packet]
-    
-            samples_per_block = {
-                4: 29, 5: 22, 6: 19, 8: 11, 9: 11, 10: 13, 11: 14, 12: 31, 13: 4,
-                14: 26, 16: 30, 17: 4, 18: 20, 19: 5, 20: 49, 21: 54, 22: 9, 23: 4,
-                24: 10, 25: 8, 28: 6, 29: 3, 32: 11, 36: 4, 37: 3, 40: 9, 41: 9,
-                42: 3, 44: 2, 47: 3, 48: 4, 49: 3, 52: 8, 64: 35, 66: 2, 68: 24,
-                69: 19, 70: 30, 71: 28, 72: 16, 73: 4, 74: 6, 75: 27, 76: 41,
-                77: 11, 78: 6, 81: 2, 88: 3, 90: 2, 92: 16, 97: 15, 98: 20, 100: 6,
-                101: 5, 102: 5, 103: 10, 106: 10, 108: 4, 124: 3, 128: 7, 136: 15,
-                137: 14, 138: 27, 139: 10, 148: 9, 150: 2, 152: 2, 168: 23,
-                169: 15, 170: 16, 171: 16, 172: 2, 176: 3, 177: 4, 178: 2, 187: 2,
-                232: 3, 235: 2, 240: 8, 252: 25, 256: 7, 257: 2, 287: 6, 290: 2,
-                316: 2, 319: 3, 323: 3, 324: 19, 326: 2, 327: 2, 330: 4, 331: 10,
-                332: 3, 334: 8, 338: 3, 832: 6, 833: 2, 900: 4, 956: 4, 958: 3,
-                964: 12, 965: 13, 966: 34, 967: 3, 972: 10, 1000: 3, 1012: 23,
-                1013: 14, 1014: 15
-            }
-            to_scan = []
-            block_size = UDS_RDBIRandomEnumerator.block_size
-            for block_index, start in enumerate(range(0, 2 ** 16, block_size)):
-                end = start + block_size
-                count_samples = samples_per_block.get(block_index, 1)
-                to_scan += random.sample(range(start, end), count_samples)
-    
-            # Use locality effect
-            # If an identifier brought a positive response in any state,
-            # it is likely that in another state it is available as well
-            positive_identifiers = [t.resp.dataIdentifier for t in
-                                    self.results_with_positive_response]
-            to_scan += positive_identifiers
-    
-            # make all identifiers unique with set()
-            # Sort for better logs
-            to_scan = sorted(list(set(to_scan)))
-            return (UDS() / UDS_RDBI(identifiers=[x]) for x in to_scan)
+class UDS_RDBIRandomEnumerator(UDS_RDBIEnumerator):
+    def _get_initial_requests(self, **kwargs):
+        samples_per_block = {
+            4: 29, 5: 22, 6: 19, 8: 11, 9: 11, 10: 13, 11: 14, 12: 31, 13: 4,
+            # [...]
+            1013: 14, 1014: 15
+        }
+        to_scan = []
+        block_size = UDS_RDBIRandomEnumerator.block_size
+        for block_index, start in enumerate(range(0, 2 ** 16, block_size)):
+            end = start + block_size
+            count_samples = samples_per_block.get(block_index, 1)
+            to_scan += random.sample(range(start, end), count_samples)
+
+        positive_identifiers = [t.resp.dataIdentifier for t in
+                                self.results_with_positive_response]
+        to_scan += positive_identifiers
+
+        to_scan = sorted(list(set(to_scan)))
+        return (UDS() / UDS_RDBI(identifiers=[x]) for x in to_scan)
 \end{minted}
 
-The non-compact version is shown in \autoref{app:random-not-compact}.
+The \mintinline{python}{random.sample} function from the Python Standard library returns a list of given length with unique elements chosen from the given sequence.
+
+The implementation exploits the observation that most identifiers are available in multiple states. Thus, the randomly generated identifiers are appended with the identifiers that were answered positively in any previous state.
+
+Again, the \mintinline{python}{UDS_RDBISelectiveEnumerator} brings these two enumerators together.
+
+\begin{minted}{python}
+class UDS_RDBISelectiveEnumerator(StagedAutomotiveTestCase):
+    block_size = 2 ** 6
+
+    @staticmethod
+    def connector_random_to_sequential(rdbi_random, rdbi_full):
+        identifiers_with_pr = \
+            [r.resp.dataIdentifier
+             for r in rdbi_random.results_with_positive_response]
+
+        scan_range = points_to_blocks(
+                identifiers_with_pr,
+                UDS_RDBISelectiveEnumerator.block_size)
+        return {"scan_range": scan_range}
+
+    def __init__(self):
+        super().__init__(
+            [UDS_RDBIRandomEnumerator(), UDS_RDBIEnumerator()],
+            [None, self.connector_random_to_sequential])
+\end{minted}
+
+Since it is similar to the \mintinline{python}{RCSelectiveEnumerator}, it will not be explained further. Only the \mintinline{python}{points_to_blocks} will be described in more detail.
+
+\begin{minted}{python}
+def points_to_blocks(points, block_size):
+    generators = []
+    for start in range(0, 2 ** 16, block_size):
+        end = start + block_size
+        pr_in_block = any((start <= identifier < end
+                           for identifier in points))
+        if pr_in_block:
+            generators.append(range(start, end))
+    scan_range = itertools.chain.from_iterable(generators)
+    return scan_range
+\end{minted}
+
+Unlike \mintinline{python}{points_to_ranges}, its block boundaries are fixed. It traverses each block and checks if any of the given identifiers is part of that block. If this is the case, the block will be scanned completely.
+
+Unfortunately, this can lead to double-scanned identifiers, since instead of scanning only the remaining identifiers that have not yet been scanned in the respective blocks, the entire blocks are rescanned. Although an attempt was made to implement this, the UDS scanner does not provide the necessary interfaces to do so. The connectors only know the enumerators, but not the currently executed state. However, this is necessary to check which identifiers have already been scanned in the random enumerator for the current state. Nevertheless, the number of duplicate requests is low, so the request savings hardly decrease.
 
 \subsection{Extending the UDS Scanner to skip unsupported services}
 
-In contrast to the previous approaches, this one is not applied to an enumerator, but to the UDS Scanner itself. The UDS Scanner evaluates each response, for example to detect if a new state was found. Here, a check was added for negative responses if they have the NRC 0x11 or 0x7f. If they do, the enumerator is set to completed for the currently executed state. This behavior has to be enabled explicitly, because as the next section explains, it might result in losses.
+In contrast to the previous approaches, this one is not applied to enumerators, but to the UDS Scanner itself. The UDS Scanner evaluates each response, for example to detect if a new state was found. Here, a check was added for negative responses if they have an NRC of 0x11 or 0x7f. If they do, the enumerator is set to completed for the currently executed state. This behavior has to be enabled explicitly, because as the next section explains, it might result in losses.
 
 \begin{minted}{python}
-    class AutomotiveTestCase(AutomotiveTestCaseABC):
-        """Base class for Enumerators"""
-    
-        def _evaluate_response(self, response, **kwargs):
-            # type: (Optional[Packet], Optional[Dict[str, Any]]) -> bool
-    
-            # Removed code for simplification
-    
-            exit_if_service_not_supported = kwargs.pop(
-                "exit_if_service_not_supported", False)
-    
-            if exit_if_service_not_supported and response.service == 0x7f:
-                response_code = self._get_negative_response_code(response)
-                if response_code in [0x11, 0x7f]:
-                    names = {0x11: "serviceNotSupported",
-                                0x7f: "serviceNotSupportedInActiveSession"}
-                    msg = "[-] Exit execute because negative response " \
-                            "%s received!" % names[response_code]
-                    log_interactive.debug(msg)
-                    # execute of current state is completed,
-                    # since a serviceNotSupported negative response was received
-                    self._state_completed[self._results[-1].state] = True
-                    # stop current execute and exit
-                    return True
-    
-            # Removed code for simplification
-    
-            return False
+class AutomotiveTestCase(AutomotiveTestCaseABC):
+    def _evaluate_response(self, response, **kwargs):
+
+        # Removed code for simplification
+
+        exit_if_service_not_supported = kwargs.pop(
+            "exit_if_service_not_supported", False)
+
+        if exit_if_service_not_supported and response.service == 0x7f:
+            response_code = self._get_negative_response_code(response)
+            if response_code in [0x11, 0x7f]:
+                names = {0x11: "serviceNotSupported",
+                            0x7f: "serviceNotSupportedInActiveSession"}
+                msg = "[-] Exit execute because negative response " \
+                        "%s received!" % names[response_code]
+                log_interactive.debug(msg)
+                # execute of current state is completed,
+                # since a serviceNotSupported negative response was received
+                self._state_completed[self._results[-1].state] = True
+                # stop current execute and exit
+                return True
+
+        # Removed code for simplification
+
+        return False
 \end{minted}
     
