@@ -21,3 +21,6 @@ DiagnosticSessionControl
 ShortField
 XShortField
 defragmentation
+cartesian
+itertools
+iterables
