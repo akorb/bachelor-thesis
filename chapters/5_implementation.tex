@@ -261,100 +261,96 @@ class MyStagedEnumerator(StagedEnumerator):
 Three classes are of interest:
 
 \begin{itemize}
-    \item \textbf{RCEnumerator}: Defaults to scanning the whole RC service, including all three types.
-    \item \textbf{RCStartEnumerator}: Only scanning Type1 of the RC service.
-    \item \textbf{RCSelectiveEnumerator}: Staged enumerator containing an RCStartEnumerator and an RCEnumerator.
+    \item \mintinline{python}{RCEnumerator}: Defaults to scanning the whole RC service, including all three types.
+    \item \mintinline{python}{RCStartEnumerator}: Only scanning Type1 of the RC service.
+    \item \mintinline{python}{RCSelectiveEnumerator}: Staged enumerator containing an RCStartEnumerator and an RCEnumerator.
 \end{itemize}
+
+For this work, the configurability of the \mintinline{python}{RCEnumerator} has been improved, and the \mintinline{python}{RCStartEnumerator} and \mintinline{python}{RCSelectiveEnumerator} have been created. \autoref{fig:rc-schematic} gives a first overview of how the new implementation works.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\textwidth]{rc-schematic}
-    \caption{Schematic illustration of the new RCSelectiveEnumerator.}
+    \caption{Schematic illustration of the new \mintinline{python}{RCSelectiveEnumerator}.}
     \label{fig:rc-schematic}
 \end{figure}
 
-The connector of the RCSelectiveEnumerator expands the found identifiers of the RCStartEnumerator to ranges and also resolves any overlaps to a continuous range and forwards these ranges to the second stage, the RCEnumerator. Additionally, the connector configures the RCEnumerator to only scan Type2 and Type3.
+First, the \mintinline{python}{RCEnumerator} will be explained by having a closer look at its \mintinline{python}{_get_initial_requests} method.
 
-Each positively answered identifier of Type1 in any state will also be probed for all subsequent states in Type2 and Type3, even if this identifier is not found in Type1 for another state. This increases the coverage in cases, where a routine can be started in a state, but its result, or to stop it, may only be requested in another state.
-
+\begin{samepage}
 \begin{minted}{python}
-    class UDS_RCEnumerator(UDS_Enumerator):
-        _description = "Available RoutineControls and negative response per state"
-    
-        def _get_initial_requests(self, **kwargs):
-            # type: (Any) -> Iterable[Packet]
-            type_list = kwargs.pop("type_list", [1, 2, 3])
-            scan_range = kwargs.pop("scan_range", range(0x10000))
-    
-            return (
-                UDS() / UDS_RC(routineControlType=rc_type,
-                               routineIdentifier=data_id)
-                for rc_type, data_id in itertools.product(type_list, scan_range)
-            )
-    
-        @staticmethod
-        def _get_table_entry(tup):
-            # type: (_AutomotiveTestCaseScanResult) -> Tuple[EcuState, str, str]
-            state, req, res, _, _ = tup
-            label = UDS_Enumerator._get_label(res)
-            return (state,
-                    "0x%04x-%d: %s" % (
-                        req.routineIdentifier, req.routineControlType,
-                        req.sprintf("%UDS_RC.routineIdentifier%")),
-                    label)
-\end{minted}
+class UDS_RCEnumerator(UDS_Enumerator):
+    def _get_initial_requests(self, **kwargs):
+        type_list = kwargs.pop("type_list", [1, 2, 3])
+        scan_range = kwargs.pop("scan_range", range(0x10000))
 
-    
-\begin{minted}{python}
-    class UDS_RCStartEnumerator(UDS_RCEnumerator):
-        _description = "Available RoutineControls and negative response per state"
-    
-        def _get_initial_requests(self, **kwargs):
-            # type: (Any) -> Iterable[Packet]
-            if "type_list" in kwargs:
-                raise KeyError("'type_list' already set in kwargs.")
-            kwargs["type_list"] = [1]
-            return super(UDS_RCStartEnumerator, self). \
-                _get_initial_requests(**kwargs)
+        return (
+            UDS() / UDS_RC(routineControlType=rc_type, routineIdentifier=data_id)
+            for rc_type, data_id in itertools.product(type_list, scan_range)
+        )
 \end{minted}
+\end{samepage}
 
+Two parameters can be configured, the \mintinline{python}{type_list} and \mintinline{python}{scan_range}. Both default to the values required to scan the whole RC service. Eventually, the method returns a generator that generates all requests possible by pairing the values of \mintinline{python}{type_list} and \mintinline{python}{scan_range}. This accomplishes the \mintinline{python}{itertools.product} method from the Python Standard library. It returns the cartesian product of the input iterables.
+
+Next, the \mintinline{python}{RCStartEnumerator}.
+
+\begin{samepage}
 \begin{minted}{python}
-    class UDS_RCSelectiveEnumerator(StagedAutomotiveTestCase):
-        # Used to expand points to both sites
-        # So, the total block size will be 253 * 2 = 506
-        expansion_width = 253
-    
-        @staticmethod
-        def points_to_ranges(pois):
-            # type: (Iterable[int]) -> Iterable[int]
-            expansion_width = UDS_RCSelectiveEnumerator.expansion_width
-            generators = []
-            for identifier in pois:
-                start = max(identifier - expansion_width, 0)
-                end = min(identifier + expansion_width + 1, 0x10000)
-                generators.append(range(start, end))
-            ranges_with_overlaps = itertools.chain.from_iterable(generators)
-            return sorted(set(ranges_with_overlaps))
-    
-        @staticmethod
-        def __connector_start_to_rest(rc_start, _rc_stop):
-            # type: (AutomotiveTestCaseABC, AutomotiveTestCaseABC) -> Dict[str, Any]  # noqa: E501
-            rc_start = cast(UDS_Enumerator, rc_start)
-            identifiers_with_pr = [resp.routineIdentifier for _, _, resp, _, _
-                                   in rc_start.results_with_positive_response]
-            scan_range = UDS_RCSelectiveEnumerator.points_to_ranges(
-                identifiers_with_pr)
-    
-            return {"type_list": [2, 3],
-                    "scan_range": scan_range}
-    
-        def __init__(self):
-            # type: () -> None
-            super(UDS_RCSelectiveEnumerator, self).__init__(
-                [UDS_RCStartEnumerator(), UDS_RCEnumerator()],
-                [None, self.__connector_start_to_rest])
-    
+class UDS_RCStartEnumerator(UDS_RCEnumerator):
+    def _get_initial_requests(self, **kwargs):
+        kwargs["type_list"] = [1]
+        return super()._get_initial_requests(**kwargs)
 \end{minted}
+\end{samepage}
+
+Its \mintinline{python}{_get_initial_requests} method is simple. It fixes the \mintinline{python}{type_list} to Type1 and then calls its implementation of the super class, which is the previously explained \mintinline{python}{UDS_RCEnumerator}. This results in generating requests only for Type1.
+
+The \mintinline{python}{UDS_RCSelectiveEnumerator} brings these both enumerators together.
+
+\begin{samepage}
+\begin{minted}{python}
+class UDS_RCSelectiveEnumerator(StagedAutomotiveTestCase):
+    expansion_width = 253
+
+    @staticmethod
+    def connector_start_to_full(rc_start, rc_full):
+        identifiers_with_pr = [resp.routineIdentifier for _, _, resp, _, _
+                               in rc_start.results_with_positive_response]
+
+        scan_range = points_to_ranges(
+            identifiers_with_pr, UDS_RCSelectiveEnumerator.expansion_width)
+
+        return {"type_list": [2, 3],
+                "scan_range": scan_range}
+
+    def __init__(self):
+        super().__init__(
+            [UDS_RCStartEnumerator(), UDS_RCEnumerator()],
+            [None, self.connector_start_to_full])
+\end{minted}
+\end{samepage}
+
+This staged enumerator has the \mintinline{python}{RCStartEnumerator} as the first stage, and the \mintinline{python}{RCEnumerator} as the second and last stage.
+The expansion width is fixed to \textbf{253} as it has been elaborated in \autoref{subsubsec:rc-elaborating}.
+
+The connector calls \mintinline{python}{points_to_ranges} to expand the found identifiers of the first stage to ranges and passes them to the second stage. Additionally, the connector fixes the \mintinline{python}{RCEnumerator} to only scan Type2 and Type3, as Type1 shouldn't be scanned again.
+
+\begin{samepage}
+\begin{minted}{python}
+def points_to_ranges(points, expansion_width):
+    generators = []
+    for identifier in points:
+        start = max(identifier - expansion_width, 0)
+        end = min(identifier + expansion_width + 1, 0x10000)
+        generators.append(range(start, end))
+    ranges_with_overlaps = itertools.chain.from_iterable(generators)
+    return sorted(set(ranges_with_overlaps))
+\end{minted}
+\end{samepage}
+
+\mintinline{python}{points_to_ranges} expands points to ranges and also resolves any overlaps to a continuous range.
+First, a range generator is created for each given point. Then, they are chained and converted to a set, removing potential overlaps. This set is sorted to a list, to ensure understandable candump logs of a scan.
 
 \subsection{Implementing new enumerators for the RDBI service}
 
