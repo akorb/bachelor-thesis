@@ -188,9 +188,11 @@ socket.send(packet)
 % Out of scope of this work.
 
 Enumerators are service-specific and create all possible requests for a service.
-For example, the enumerator for the DSC service is called UDS\_DSCEnumerator. The most important member of the enumerator classes is the \mintinline{python}{_get_initial_requests} method. The return value is an iterable object which contains all requests for this service. DSC has an eight bit identifier, leading to a maximum of 2\textsuperscript{8} packets for this service. Each enumerator will be executed for each found state of the ECU. So, if an enumerator already ran, and afterwards a new state is found, this enumerator will run again within the same scan with the new-found state.
+For example, the enumerator for the DSC service is called \mintinline{python}{UDS_DSCEnumerator}. The most important member of these classes is the \mintinline{python}{_get_initial_requests} method. The return value is an iterable object which contains the requests for this service. The DSC service has an eight bit identifier, leading to a maximum of 2\textsuperscript{8} packets for it.
 
-For a better understanding, the UDS\_DSCEnumerator implementation will be described exemplary.
+Each enumerator will be executed for each found state of the ECU. So, if an enumerator already was executed, and afterwards a new state is found by the UDS Scanner, this enumerator will be executed again within the same scan with the new-found state.
+
+For a better understanding, the \mintinline{python}{UDS_DSCEnumerator} implementation will be described exemplary.
 
 \begin{samepage}
 \begin{minted}{python}
@@ -201,23 +203,58 @@ class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
 \end{minted}
 \end{samepage}
 
-The method can be given keyword parameters. The only one used here is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 packets for each state. This service is a StateGenerator, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
+The method can be given keyword parameters. The only one read by this method implementation is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 requests for each state by default. It is also a \mintinline{python}{StateGenerator}, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
 
-So-called staged enumerators contain enumerators where each enumerator is a stage. They start executing the first enumerator for each state, followed by each subsequent enumerator in the same way. For each stage transition (for example $1 \rightarrow 2$ or $2 \rightarrow 3$) connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here the results of the previous enumerator can be evaluated and the new enumerator can be configured accordingly.
-
-Enumerators can output their results as a text-table. For example:
+Enumerators can output their results as a text-table. For example a possible output of the UDS enumerator is:
 
 \begin{samepage}
-\begin{minted}{text}
----------------+---------------+---------------+---------------+
-               | session1      | session1tp1   | session3tp1   | 
----------------+---------------+---------------+---------------+
-TesterPresent: | PR: Supported | PR: Supported | PR: Supported | 
----------------+---------------+---------------+---------------+
+\begin{minted}[fontsize=\footnotesize]{text}
+----------+--------------------------+--------------------------+--------------------------+
+          | defaultState             | state2                   | state3                   | 
+----------+--------------------------+--------------------------+--------------------------+
+0x02      | PR: Supported            | NR: conditionsNotCorrect | PR: conditionsNotCorrect | 
+0x03      | NR: conditionsNotCorrect | PR: Supported            | PR: conditionsNotCorrect | 
+0x82      | NR: conditionsNotCorrect | NR: conditionsNotCorrect | -                        | 
+----------+--------------------------+--------------------------+--------------------------+
 \end{minted}
 \end{samepage}
 
-This means, the request of the TesterPresent service was positively answered by the ECU in all three found states.
+Each row is a request, here we have listed requests to the DSC service of the ECU with parameters 0x02, 0x03 and 0x82. Each column is a state. And each cell shows the response for each request for each state (NR = negative response, PR = positive response).
+
+A PenTester would be able to extract a state machine from this table (see \autoref{fig:state-machine-of-scan}).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{state-machine-of-scan}
+    \caption{Partial result for PenTester of a UDS scan.}
+    \label{fig:state-machine-of-scan}
+\end{figure}
+
+So-called staged enumerators contain enumerators where each enumerator is a stage. They start executing the first enumerator for each state, followed by each subsequent enumerator in the same way. For example:
+\begin{enumerate}
+    \item stage1 : state1
+    \item stage1 : state2
+    \item stage2 : state1
+    \item stage2 : state2
+\end{enumerate}
+
+For each stage transition connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. The connector will be automatically called by the UDS Scanner, it expects a dictionary as return value that will be passed to the next stage. Here the results of the previous enumerator can be evaluated and the next enumerator can be configured accordingly.
+
+\begin{samepage}
+\begin{minted}{python}
+class MyStagedEnumerator(StagedEnumerator):
+    @staticmethod
+    def connector_stage1_stage2(stage1_enum, stage2_enum):
+        results = stage1_enum.get_results()
+        stage2_config = create_config(results)
+        return stage2_config
+    
+    def __init__(self):
+        super().__init__(
+            stages=[Stage1Enumerator(), Stage2Enumerator()],
+            connectors=[None, self.connector_stage1_stage2])
+\end{minted}
+\end{samepage}
 
 \subsection{Implementing new enumerators for the RC service}
 
