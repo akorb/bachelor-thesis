@@ -88,44 +88,79 @@ The SYN and ACK flags are now set as expected for the TCP handshake. Furthermore
 
 \subsection{UDS implementation of the Scapy library}
 
+One of the core classes in Scapy is the \mintinline{python}{Packet} class. All definitions of network packet layers, such as Ethernet, IP, TCP, CAN, UDS and so on, are defined in a class inheriting from it.
+
+Its most important member is the \mintinline{python}{fields_desc} list. It is a requirement for each layer to overwrite it. Its elements must inherit from the \mintinline{python}{Field} class. The chosen field classes define the structure of each header field.
+
 \begin{samepage}
     \begin{minted}{python}
-    class UDS(ISOTP):
+    class UDS(Packet):
         services = {
              0x10: 'DiagnosticSessionControl',
              # [...]
              0x22: 'ReadDataByIdentifier',
              # [...]
-             0x7f: 'NegativeResponse'})
+             0x7f: 'NegativeResponse'}
         fields_desc = [
             XByteEnumField('service', 0, services)
         ]
     \end{minted}
 \end{samepage}
-    
-%TODO: Why inherting from ISOTP
 
-The UDS class contains only the service field. Even though the whole UDS protocol is in the application layer, the Scapy implementation starts a new class whenever the subsequent fields depend on one field of the current layer. This is the case here, since the next fields depend on the value of the service field. The service specific fields are defined in their own classes, for example:
+The UDS layer contains only an \mintinline{python}{XByteEnumField} field. The field class names are composed of keywords.
+\begin{itemize}
+    \item \textbf{X}: Represent its value as a hexadecimal value for the user.
+    \item \textbf{Byte}: The field has 8-bits.
+    \item \textbf{Enum}: The field expects a dictionary mapping from machine-readable values to human-readable texts.
+\end{itemize}
+
+\mintinline{python}{X} and \mintinline{python}{Enum} only affect the representation of the field. The \mintinline{python}{Byte} keyword is the only one here that defines the actual structure of the field.
+
+This particular field are given three parameters:
+
+\begin{itemize}
+    \item \mintinline{python}{'service'}: The name of the field.
+    \item \mintinline{python}{0}: The default value of the field.
+    \item \mintinline{python}{services}: The dictionary mapping from machine-readable values to human-readable texts.
+\end{itemize}
+
+The Scapy implementation starts a new class whenever the subsequent fields depend on a field value of the current layer. This is the case here, since the next fields depend on the value of the \mintinline{python}{service} field. The service specific fields are defined in their own classes, for example:
 
 \begin{samepage}
 \begin{minted}{python}
 class UDS_DSC(Packet):
-    diagnosticSessionTypes = { ... }
+    diagnosticSessionTypes = {
+             # [...]
+             0x03: 'extendedDiagnosticSession',
+             # [...]
+    }
     fields_desc = [
         ByteEnumField('diagnosticSessionType', 0,  diagnosticSessionTypes)
     ]
 \end{minted}
 \end{samepage}
 
-A UDS packet enabling the extended diagnostic session would be created with:
+So far, these are two independent classes for Scapy. It doesn't know the relationship between them. This can be changed with the \mintinline{python}{bind_layers} function.
+
+\begin{minted}{python}
+bind_layers(UDS, UDS_DSC, service=0x10)
+\end{minted}
+
+This information will be used by Scapy for building and dissecting packets.
+
+Then, if a UDS packet is received with the value 0x10 for the \mintinline{python}{service} field, it continues dissecting this packet with the field definitions of \mintinline{python}{UDS_DSC}. And vice versa, if a \mintinline{python}{UDS_DSC} packet is stacked on a \mintinline{python}{UDS} packet for building, the UDS packets \mintinline{python}{service} field automatically is set to 0x10.
+
+Layers are stacked with the division operator of python.
 
 \begin{samepage}
 \begin{minted}{python}
 packet = UDS() / UDS_DSC(diagnosticSessionType='extendedDiagnosticSession')
+bytes(packet) # prints: 0x10 0x03
 \end{minted}
 \end{samepage}
 
-UDS not only allows to read data, but also to write. Which makes it especially critical for security. For example the firmware of an ECU can be updated through this protocol. This usually requires higher privileges, which can be gained through the previously mentioned SecurityAccess service.
+As can be seen, the \mintinline{python}{UDS.service} field of the packet is 0x10, although it was never explicitly set. Scapy set it because of the previous binding. And because the \mintinline{python}{UDS_DSC.diagnosticSessionType} field is an enum field, its value can be set with a more expressive text value.
+
 
 \subsubsection{How to work with the ISO-TP protocol}
 
