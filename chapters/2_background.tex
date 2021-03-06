@@ -38,7 +38,7 @@ It supports Python 3 and also Python 2, even though its support has ended on 1st
 
 All communication performed and recorded in this paper with an ECU is done via the Control Area Network bus (CAN).
 
- Its specification is released in the ISO 11898. Each packet on this bus can transmit up to 8 bytes of payload and has an identifier which a length of either 11 or 29-bits, the former being more common. An identifier does not necessarily have to designate a physical device; it can also indicate one of several modules of a device.
+ Its specification is released in the ISO 11898. Each packet on this bus can transmit up to 8 bytes of payload and has an identifier which a length of either 11 or 29-bits, the former being more common. An identifier does not necessarily have to designate a physical device; it can also indicate one of several software modules of a device.
  The maximum data rate is 1 Mbit/sec with a network length below 40 m. The higher the length, the lower the possible data rate, as can be seen in \autoref{tab:can-speed}.
 
 \begin{table}[h]
@@ -60,7 +60,7 @@ All communication performed and recorded in this paper with an ECU is done via t
 
 \subsubsection{Advantages for the automotive domain}
 
-This bus is robust because it uses for the communication two wires  with differential signals. This means that if one wire is driven high, the other one is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
+This bus is robust because it uses two lines of differential signals for communication. This means that if one wire is driven high, the other one is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
 
 Moreover, CAN busses are using the bus network topology (see \autoref{fig:with-without-can}). This results in a smaller number of wires compared to star topologies, resulting in lower weight, which is an important factor for manufacturers.
 
@@ -85,7 +85,7 @@ The final security vulnerability is the lack of data encryption \cite{Buttigieg2
 
 Since all countermeasures described in the previous paragraph are limited, Intrusion Detection Systems (IDS) are emerging, with the advantages of not having to change the current CAN controller and not increasing bus traffic \cite{Bozdal2020}. Such a system has been implemented in the context of the PetS3 project \cite{spahn2018}.
 
-\subsubsection{Using the can-utils}
+\subsubsection{Virtual CAN interfaces and using the can-utils}
 
 Virtual CAN interfaces can be used for simulations or simple tests. They are supported natively by Linux without additional actions.
 To create a virtual CAN interface, only one command in a Linux shell is required:
@@ -93,12 +93,20 @@ To create a virtual CAN interface, only one command in a Linux shell is required
 sudo ip link add vcan0 type vcan
 \end{minted}
 
-The most common tool set to work with the CAN bus are the can-utils \cite{can-utils}, which can be usually installed with the package manager of the distributions. For example, the following command displays all messages of the CAN bus on interface \emph{vcan0}:
+The most common tool set to work with the CAN bus are the can-utils \cite{can-utils}, which can be usually installed with the package manager of the distributions. For example, the following command displays all messages of the CAN bus on interface \mintinline{text}{vcan0} in a terminal:
 \begin{minted}{text}
 candump vcan0
 \end{minted}
 
-Another important task is to send packets. This command sends a CAN packet with the identifier 0x123 and the payload \emph{01 02}:
+Adding the \mintinline{text}{-l} option changes the output to be more compact instead of human-readable and stores the received traffic in a \mintinline{text}{candump.log} file:
+
+\begin{minted}{text}
+candump -l vcan0
+\end{minted}
+
+All traffic recorded in this work was done with this command.
+
+For sake of completeness, this command sends a CAN packet with the identifier 0x123 and the payload \mintinline{text}{0x01 0x02}:
 \begin{minted}{text}
 cansend vcan0 123#01.02
 \end{minted}
