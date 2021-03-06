@@ -121,6 +121,8 @@ It is defined in ISO 15765-2 and increases the payload size from 8 bytes to 4095
 
 UDS stands for \emph{Unified diagnostic services} and is an application protocol defined in ISO 14229. This protocol defines the structures of request and response packets for diagnostic purposes sent over an arbitrary data link \cite{iso14229}.
 
+The reason for the development of such a protocol was that the cars developed in the last decades were more and more able to diagnose themselves. A car repair shop only had to request this information from the car. But since there was no universal standard, car manufacturers tended to implement company-specific protocols for this purpose. UDS is an international standard and not company-specific, the \emph{Unified} in its name underlines this. 
+
 %UDS stack
 \begin{figure}[h]
     \centering
@@ -131,15 +133,45 @@ UDS stands for \emph{Unified diagnostic services} and is an application protocol
 
 As shown in \autoref{fig:uds-stack}, the most common data links for the UDS protocol are the Ethernet and the CAN bus. Others can and are used as well, explicitly stated in the UDS standard are FlexRay, K-Line and LIN.
 
+\subsubsection{Packet structure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{uds-structure}
+    \caption{The structure of UDS requests.}
+    \label{fig:uds-structure}
+\end{figure}
+
+\autoref{fig:uds-structure} shows how UDS requests are structured. Each service is identified by a Service Identifier (SID). This identifier is the first byte of each UDS packet. Then at least one parameter follows. Most common is only one parameter. But services with multiple parameters exist too.
+Negative responses have the identifier 0x7f.
+For positive responses it is defined as 0x40 added to the SID. Thus, a request with SID 0x27 would be responded with 0x27 + 0x40 = 0x67 (see \autoref{fig:key-seed}).
+
 \subsubsection{Services}
+\label{subsubsec:uds-services}
 
-The UDS protocol defines various services with different purposes.
+UDS defines various services with different purposes. The ones used later in this paper are explained here.
 
-The DiagnosticSessionControl (DSC) service with the identifier 0x10 is used to enable different diagnostic states in the ECU. All packets requesting this service specify this value as the first byte. The identifiers in the responses are defined as 0x40 added to the request identifier. Thus, for the DSC service the identifier of positive responses is 0x10 + 0x40 = 0x50. A negative response always has the identifier 0x7f.
+The Routine Control (RC) service allows managing predefined routines on the ECU. They can be started, stopped or their results requested. It has two parameters, namely the desired action (called \mintinline{text}{controlType}) and the identifier of the routine.
 
-Another example is the ReadDataByIdentifier (RDBI) service. Data records in an ECU are stored with an identifier as the key. This service allows to read these values from an external device. Since there may be data stored that should not be readable by everyone, there is another service called SecurityAccess (SA, 0x27) that allows to unlock the ECU for external devices.
+Another service is called Read Data By Identifier (RDBI). With this service, it is possible to retrieve one or more values of a control unit. This can be static information like the software version or dynamic values such as the current readings of sensors. The structure of its requests is simple as it only contains an identifier as parameter.
 
-The SA service uses the challenge–response authentication, in automotive terminology called seed-key protocol. The ECU sends a randomly generated value (the seed) to the client. Both devices generate a response (the key) based on the seed and the client sends its response to the ECU. If the keys match for the received and the generated response for the ECU, the client is authenticated \cite{iso14229}.
+The Diagnostic Session Control (DSC) service is used to enable different diagnostic states in the ECU, and the Security Access (SA) service to unlock restricted access to data or services. They are explained in more detail in the next section, as they affect the state of ECUs.
+
+\subsubsection{States}
+\label{subsec:states}
+
+There is always exactly one global UDS state active for an ECU. It influences the behavior of the ECU and can be changed by sending specific requests. Just a few services are able to accomplish this. For example, sending a request with the SA or DSC service to the ECU may affect its state. Whether the ECU has actually changed the state can be easily determined by checking whether the sender received a positive or negative response.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{ecu-state-behavior}
+    \caption{State machine example of ECUs for UDS with the DSC service.}
+    \label{fig:ecu-state-behavior}
+\end{figure}
+
+The default state is the active state after the ECU is switched on. Without an external request, it remains in this state. \autoref{fig:ecu-state-behavior} illustrates the behavior of the ECU when a request is received for the DSC service and parameter value $n$. In the DSC service, each parameter value specifies a state. Thus, if the ECU designers integrated a state for $n$, the controller will respond positively. It will now remain in this state until there has been no UDS communication for usually five seconds, then it will automatically return to the default state. If the ECU designers did not integrate such a state, it will answer with a negative response and remain in its current state.
+
+The Security Access service uses the challenge–response authentication, in automotive terminology called seed-key protocol. The ECU sends a randomly generated value (the seed) to the client. Both devices generate a response (the key) based on the seed and the client sends its response to the ECU. If the keys match for the received and the generated response for the ECU, the client is authenticated \cite{iso14229}.
 
 \begin{figure}[h]
     \centering
@@ -147,20 +179,6 @@ The SA service uses the challenge–response authentication, in automotive termi
     \caption{The challenge-response protocol \cite{Herrewegen2018}.}
     \label{fig:key-seed}
 \end{figure}
-
-\subsubsection{States}
-\label{subsec:states}
-
-There is always exactly one global UDS state active for an ECU. It influences the behavior of the ECU and can be changed by sending specific requests. Just a subset of services is able to accomplish this. For example, sending a request with the Security Access or the Diagnostic Session Control services to the ECU can affect its state. Whether the ECU has actually changed the state can be easily determined by checking whether the request has received a positive or negative response.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{ecu-state-behavior}
-    \caption{State machine of ECUs for UDS.}
-    \label{fig:ecu-state-behavior}
-\end{figure}
-
-The default state is the active state after the control unit is switched on. Without an external request, it remains in this state. \autoref{fig:ecu-state-behavior} illustrates the behavior of the ECU when a request is received for the DSC service and parameter value $n$. In the DSC service, each parameter value specifies a state. Thus, if the ECU designers integrated a state for $n$, the controller will respond positively. It will now remain in this state until there has been no UDS communication for usually five seconds, then it will automatically return to the default state. If the ECU designers did not integrate such a state, it will answer with a negative response and remain in the default state.
 
 
 \subsection{The UDS Scanner}
@@ -177,6 +195,14 @@ The UDS Scanner was implemented in Scapy for the PetS3 project.
 \end{figure}
 
 As \autoref{fig:automotive-security-testing-process} shows, the security testing process in the automotive domain contains a scanning step that aims to detect what services of a protocol are implemented and what information can be retrieved there \cite{Bayer2015}. The UDS Scanner fulfills these tasks. It can also be used for fuzzing and functional testing, even though scanning is its main use-case. The retrieved information assists for the manual PenTesting, the final step in this process.
+
+\begin{itemize}
+\item Welche Services werden unterstützt?
+\item Welche Daten können durch die Services gelesen werden?
+\item Welche Steuerungsmöglichkeiten bietet das Steuergerät?
+\item Welche Zustände hat das Steuergerät, wie verhält es sich jeweils?
+\end{itemize}
+
 
 \subsubsection{Procedure}
 
