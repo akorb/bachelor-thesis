@@ -111,19 +111,6 @@ For sake of completeness, this command sends a CAN packet with the identifier 0x
 cansend vcan0 123#01.02
 \end{minted}
 
-Alternatively, Scapy can be used. There are two implementations of CAN sockets, namely a native one, which uses the native Linux kernel module, and a software-based one, which uses the Python-CAN package. The native implementation only supports Linux but is the preferred one because it uses the POSIX socket API from Linux and brings all its advantages, such as waiting for answers asynchronously without busy-waiting. However, Python-CAN has the advantage of also working on Windows and macOS.
-
-An equivalent Scapy script which accomplishes the same as the just described \mintinline{text}{cansend} command, is:
-
-\begin{samepage}
-\begin{minted}{python}
-from scapy.contrib.cansocket_native import CANSocket
-from scapy.layers.can import CAN
-socket = CANSocket("vcan0")
-socket.send(CAN(identifier=0x123, data=b"\x01\x02"))
-\end{minted}
-\end{samepage}
-
 \subsection{The ISO-TP transport protocol for CAN}
 
 CAN packets have a payload size of 8 bytes. This is sufficient for most UDS requests, but not for many UDS responses. Thus, ISO-TP is used as the transport protocol on the CAN bus for UDS communication.
