@@ -38,51 +38,51 @@ This particular field are given three parameters:
     \item \mintinline{python}{services}: The dictionary mapping from machine-readable values to human-readable texts.
 \end{itemize}
 
-The Scapy implementation starts a new class whenever the subsequent fields depend on a field value of the current layer. This is the case here, since the next fields depend on the value of the \mintinline{python}{service} field. The service specific fields are defined in their own classes, for example:
+This field contains the Service Identifier (SID).
+
+The Scapy implementation starts a new class whenever the subsequent fields depend on a field value of the current layer. This is the case here, since the next fields depend on the SID. The service specific fields are defined in their own classes, for example:
 
 \begin{samepage}
 \begin{minted}{python}
-class UDS_DSC(Packet):
-    diagnosticSessionTypes = {
-             # [...]
-             0x03: 'extendedDiagnosticSession',
-             # [...]
-    }
-    fields_desc = [
-        ByteEnumField('diagnosticSessionType', 0,  diagnosticSessionTypes)
-    ]
+    class UDS_DSC(Packet):
+        diagnosticSessionTypes = {
+                # [...]
+                0x03: 'extendedDiagnosticSession',
+                # [...]
+        }
+        fields_desc = [
+            ByteEnumField('diagnosticSessionType', 0,  diagnosticSessionTypes)
+        ]
 \end{minted}
 \end{samepage}
 
 So far, these are two independent classes for Scapy. It doesn't know the relationship between them. This can be changed with the \mintinline{python}{bind_layers} function.
 
 \begin{minted}{python}
-bind_layers(UDS, UDS_DSC, service=0x10)
+    bind_layers(UDS, UDS_DSC, service=0x10)
 \end{minted}
 
 This information will be used by Scapy for building and dissecting packets.
 
-Then, if a UDS packet is received with the value 0x10 for the \mintinline{python}{service} field, it continues dissecting this packet with the field definitions of \mintinline{python}{UDS_DSC}. And vice versa, if a \mintinline{python}{UDS_DSC} packet is stacked on a \mintinline{python}{UDS} packet for building, the UDS packets \mintinline{python}{service} field automatically is set to 0x10.
+Then, if a UDS packet is received with the SID 0x10, it continues dissecting this packet with the field definitions of \mintinline{python}{UDS_DSC}. And vice versa, if a \mintinline{python}{UDS_DSC} packet is stacked on a \mintinline{python}{UDS} packet for building, the UDS packets SID field automatically is set to 0x10.
 
 Layers are stacked with the division operator of python.
 
 \begin{samepage}
 \begin{minted}{python}
-packet = UDS() / UDS_DSC(diagnosticSessionType='extendedDiagnosticSession')
-bytes(packet) # prints: 0x10 0x03
+    packet = UDS() / UDS_DSC(diagnosticSessionType=0x03)
+    bytes(packet) # prints: 0x10 0x03
 \end{minted}
 \end{samepage}
 
-As can be seen, the \mintinline{python}{UDS.service} field of the packet is 0x10, although it was never explicitly set. Scapy set it because of the previous binding. And because the \mintinline{python}{UDS_DSC.diagnosticSessionType} field is an enum field, its value can be set with a more expressive text value.
+As can be seen, the SID of the packet is 0x10, although it was never explicitly set. Scapy set it because of the previous binding.
 
 
-\subsubsection{How to work with the ISO-TP protocol}
+\subsection{Send a UDS packet with an ISO-TP socket}
 
-The can-utils tools also contain applications to handle ISO-TP communication. Since this is never used in this work, but the Scapy implementation is, only the Scapy implementation is explained.
+There are two ISO-TP socket implementations in Scapy. A software and a native implementation. Until including Linux kernel 5.9, the corresponding ISO-TP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}. Both implementations handle the ISO-TP metadata themselves, i.e.  fragmentation, defragmentation, etc.
 
-As for the CAN implementation, there are two ISO-TP socket implementations in Scapy. A software and a native implementation. Until including Linux kernel 5.9, the corresponding ISO-TP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}. Both implementations handle the ISO-TP metadata themselves, i.e.  fragmentation, defragmentation, etc.
-
-An ISO-TP socket contains a source and destination identifier. They offer the same functionality as the ports for TCP or UDP. The source identifier is the identifier of outgoing CAN packets, and the destination identifier is the identifier expected for incoming packets.
+An ISO-TP socket contains a source and destination identifier. They have the same purpose as the ports for TCP or UDP. The source identifier is the identifier of outgoing CAN packets, and the destination identifier is the identifier expected for incoming packets.
 
 The usage of the native implementation is illustrated in the following code snippet:
 
@@ -90,10 +90,29 @@ The usage of the native implementation is illustrated in the following code snip
 \begin{minted}{python}
 from scapy.contrib.isotp import ISOTPNativeSocket
 socket = ISOTPNativeSocket('vcan0', sid=0x123, did=0x456)
-packet = Raw(b'\x01\x02')
+packet = UDS() / UDS_DSC(diagnosticSessionType=0x03)
 socket.send(packet)
 \end{minted}
 \end{samepage}
+
+Sniffing the resulting packet with the candump command explained in \autoref{subsubsec:can-utils}, it outputs:
+
+\begin{samepage}
+\begin{minted}{text}
+    $ candump vcan0
+    vcan0  123   [3]  02 10 03
+\end{minted}
+\end{samepage}
+
+This output is explained step-by-step in the following list:
+
+\begin{itemize}
+    \item \mintinline{text}{0x123}: The CAN identifier.
+    \item \mintinline{text}{[3]}: The length of the CAN payload.
+    \item \mintinline{text}{0x02}: ISO-TP metadata showing the length of the layer 7 payload.
+    \item \mintinline{text}{0x10}: The SID for the DSC service.
+    \item \mintinline{text}{0x03}: The parameter for the DSC service.
+\end{itemize}
 
 \subsection{Explaining the service enumerators of the UDS Scanner}
 
@@ -102,7 +121,7 @@ socket.send(packet)
 % Out of scope of this work.
 
 Enumerators are service-specific and create all possible requests for a service.
-For example, the enumerator for the DSC service is called \mintinline{python}{UDS_DSCEnumerator}. The most important member of these classes is the \mintinline{python}{_get_initial_requests} method. The return value is an iterable object which contains the requests for this service. The DSC service has an eight bit identifier, leading to a maximum of 2\textsuperscript{8} packets for it.
+For example, the enumerator for the DSC service is called \mintinline{python}{UDS_DSCEnumerator}. The most important member of these classes is the \mintinline{python}{_get_initial_requests} method. The return value is an iterable object which contains the requests for this service.
 
 Each enumerator will be executed for each found state of the ECU. So, if an enumerator already was executed, and afterwards a new state is found by the UDS Scanner, this enumerator will be executed again within the same scan with the new-found state.
 
@@ -110,14 +129,14 @@ For a better understanding, the \mintinline{python}{UDS_DSCEnumerator} implement
 
 \begin{samepage}
 \begin{minted}{python}
-class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
-    def _get_initial_requests(self, **kwargs):
-        session_range = kwargs.pop('session_range', range(2, 0x100))
-        return UDS() / UDS_DSC(diagnosticSessionType=session_range)
+    class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
+        def _get_initial_requests(self, **kwargs):
+            session_range = kwargs.pop('session_range', range(2, 0x100))
+            return UDS() / UDS_DSC(diagnosticSessionType=session_range)
 \end{minted}
 \end{samepage}
 
-The method can be given keyword parameters. The only one read by this method implementation is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 requests for each state by default. It is also a \mintinline{python}{StateGenerator}, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
+The method can be configured by keyword parameters. The only one read by this method implementation is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 requests for each state by default. It is also a \mintinline{python}{StateGenerator}, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
 
 Enumerators can output their results as a text-table. For example a possible output of the UDS enumerator is:
 
@@ -133,7 +152,7 @@ Enumerators can output their results as a text-table. For example a possible out
 \end{minted}
 \end{samepage}
 
-Each row is a request, here we have listed requests to the DSC service of the ECU with parameters 0x02, 0x03 and 0x82. Each column is a state. And each cell shows the response for each request for each state (NR = negative response, PR = positive response).
+Each row is a request. Here are listed requests of the DSC service with parameters 0x02, 0x03 and 0x82. Each column is a state. And each cell shows the response for each request for each state (NR = negative response, PR = positive response).
 
 A PenTester would be able to extract a state machine from this table (see \autoref{fig:state-machine-of-scan}).
 
@@ -144,7 +163,7 @@ A PenTester would be able to extract a state machine from this table (see \autor
     \label{fig:state-machine-of-scan}
 \end{figure}
 
-So-called staged enumerators contain enumerators where each enumerator is a stage. They start executing the first enumerator for each state, followed by each subsequent enumerator in the same way. For example:
+So-called staged enumerators contain enumerators where each enumerator is a stage. They start executing the first state for each state, followed by each subsequent stage in the same way. For example:
 \begin{enumerate}
     \item stage1 : state1
     \item stage1 : state2
@@ -152,21 +171,21 @@ So-called staged enumerators contain enumerators where each enumerator is a stag
     \item stage2 : state2
 \end{enumerate}
 
-For each stage transition connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. The connector will be automatically called by the UDS Scanner, it expects a dictionary as return value that will be passed to the next stage. Here the results of the previous enumerator can be evaluated and the next enumerator can be configured accordingly.
+For each stage transition connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here the results of the previous enumerator can be evaluated and the next enumerator can be configured accordingly. The connector will be automatically called by the UDS Scanner, it expects a dictionary as return value that will be passed to the next enumerator. 
 
 \begin{samepage}
 \begin{minted}{python}
-class MyStagedEnumerator(StagedEnumerator):
-    @staticmethod
-    def connector_stage1_stage2(stage1_enum, stage2_enum):
-        results = stage1_enum.get_results()
-        stage2_config = create_config(results)
-        return stage2_config
-    
-    def __init__(self):
-        super().__init__(
-            stages=[Stage1Enumerator(), Stage2Enumerator()],
-            connectors=[None, self.connector_stage1_stage2])
+    class MyStagedEnumerator(StagedAutomotiveTestCase):
+        @staticmethod
+        def connector_stage1_stage2(stage1_enum, stage2_enum):
+            results = stage1_enum.get_results()
+            stage2_config = create_config(results)
+            return stage2_config
+        
+        def __init__(self):
+            super().__init__(
+                stages=[Stage1Enumerator(), Stage2Enumerator()],
+                connectors=[None, self.connector_stage1_stage2])
 \end{minted}
 \end{samepage}
 
@@ -199,7 +218,8 @@ class UDS_RCEnumerator(UDS_Enumerator):
         scan_range = kwargs.pop("scan_range", range(0x10000))
 
         return (
-            UDS() / UDS_RC(routineControlType=rc_type, routineIdentifier=data_id)
+            UDS() / UDS_RC(routineControlType=rc_type,
+                           routineIdentifier=data_id)
             for rc_type, data_id in itertools.product(type_list, scan_range)
         )
 \end{minted}
@@ -211,10 +231,10 @@ Next, the \mintinline{python}{RCStartEnumerator}.
 
 \begin{samepage}
 \begin{minted}{python}
-class UDS_RCStartEnumerator(UDS_RCEnumerator):
-    def _get_initial_requests(self, **kwargs):
-        kwargs["type_list"] = [1]
-        return super()._get_initial_requests(**kwargs)
+    class UDS_RCStartEnumerator(UDS_RCEnumerator):
+        def _get_initial_requests(self, **kwargs):
+            kwargs["type_list"] = [1]
+            return super()._get_initial_requests(**kwargs)
 \end{minted}
 \end{samepage}
 
@@ -276,50 +296,54 @@ Again, three classes are of interest:
     \item \mintinline{python}{RDBISelectiveEnumerator}: Staged enumerator containing an RDBIRandomEnumerator and an RDBIEnumerator.
 \end{itemize}
 
-Similar to the previous approach, the new implementation is two-staged. First, the \mintinline{python}{RDBIRandomEnumerator} is executed. Then, the connector creates requests for whole blocks, if any of their requests were answered positively, and ensured that for a single block each identifier is queried only once. The resulting packets are passed to the configurable \mintinline{python}{RDBIEnumerator}. \autoref{fig:rdbi-schematic} shows that.
+The new implementation is two-staged. First, the \mintinline{python}{RDBIRandomEnumerator} is executed. Then, the connector creates requests for whole blocks, if any of their requests were answered positively, and ensured that for a single block each identifier is queried only once. The resulting packets are passed to the configurable \mintinline{python}{RDBIEnumerator}. \autoref{fig:rdbi-schematic} shows that schematically.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\textwidth]{rdbi-schematic}
-    \caption{Schematic illustration of the new RDBISelectiveEnumerator.}
+    \caption{Schematic illustration of the new \mintinline{python}{RDBISelectiveEnumerator}.}
     \label{fig:rdbi-schematic}
 \end{figure}
 
 The explanation starts with the original enumerator, here the \mintinline{python}{RDBIEnumerator}.
 
+\begin{samepage}
 \begin{minted}{python}
-class UDS_RDBIEnumerator(UDS_Enumerator):
-    def _get_initial_requests(self, **kwargs):
-        scan_range = kwargs.pop("scan_range", range(0x10000))
-        return (UDS() / UDS_RDBI(identifiers=[x]) for x in scan_range)
+    class UDS_RDBIEnumerator(UDS_Enumerator):
+        def _get_initial_requests(self, **kwargs):
+            scan_range = kwargs.pop("scan_range", range(0x10000))
+            return (UDS() / UDS_RDBI(identifiers=[x]) for x in scan_range)
 \end{minted}
+\end{samepage}
 
-Since the RDBI service has only one parameter, its \mintinline{python}{_get_initial_requests} remains simple, generating RDBI requests for identifiers from 0 to 65,535.
+Since the RDBI service has only one parameter, its \mintinline{python}{_get_initial_requests} remains simple, generating RDBI requests for identifiers from 0 to 65,535, if not configured otherwise.
 
-Implementing the \mintinline{python}{RDBIRandomEnumerator} was a challenge because it must include the probabilities of occurrence of positively responded identifiers for each block. With a block size of \textbf{64} (see \autoref{subsubsec:rdbi-behavior}), there would need to be a list with $\frac{2^{16}}{64} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on two facts. That the probabilities are ultimately converted to the number of samples, and that at least one request should be generated for each block. For the former, the number of samples for each block were pre-computed instead of being computed at runtime. This simplifies the list in the sense that integers are stored instead of float values. Second, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to 2. And blocks for which no value is stored, the value 1 is used. This automatically solves that each block is probed with at least one request, even if its probability is 0\%. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements. The non-compact version is shown in \autoref{app:random-not-compact}.
+Implementing the \mintinline{python}{RDBIRandomEnumerator} was a challenge because it must include the probabilities of positively responded identifiers for each block. With a block size of \textbf{64} (see \autoref{subsubsec:rdbi-behavior}), there would need to be a list with $\frac{2^{16}}{64} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on two facts. That the probabilities are ultimately converted to the number of samples, and that at least one request should be generated for each block. For the former, the number of samples for each block were pre-computed instead of being computed at runtime. This simplifies the list in the sense that integers are stored instead of float values. Second, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to 2. And blocks for which no value is stored, the value 1 is used. This automatically solves that each block is probed with at least one request, even if its probability is 0\%. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements. The non-compact version is shown in \autoref{app:random-not-compact}.
 
+\begin{samepage}
 \begin{minted}{python}
-class UDS_RDBIRandomEnumerator(UDS_RDBIEnumerator):
-    def _get_initial_requests(self, **kwargs):
-        samples_per_block = {
-            4: 29, 5: 22, 6: 19, 8: 11, 9: 11, 10: 13, 11: 14, 12: 31, 13: 4,
-            # [...]
-            1013: 14, 1014: 15
-        }
-        to_scan = []
-        block_size = UDS_RDBIRandomEnumerator.block_size
-        for block_index, start in enumerate(range(0, 2 ** 16, block_size)):
-            end = start + block_size
-            count_samples = samples_per_block.get(block_index, 1)
-            to_scan += random.sample(range(start, end), count_samples)
+    class UDS_RDBIRandomEnumerator(UDS_RDBIEnumerator):
+        def _get_initial_requests(self, **kwargs):
+            samples_per_block = {
+                4: 29, 5: 22, 6: 19, 8: 11, 9: 11, 10: 13, 11: 14,
+                # [...]
+                1013: 14, 1014: 15
+            }
+            to_scan = []
+            block_size = UDS_RDBIRandomEnumerator.block_size
+            for block_index, start in enumerate(range(0, 2 ** 16, block_size)):
+                end = start + block_size
+                count_samples = samples_per_block.get(block_index, 1)
+                to_scan += random.sample(range(start, end), count_samples)
 
-        positive_identifiers = [t.resp.dataIdentifier for t in
-                                self.results_with_positive_response]
-        to_scan += positive_identifiers
+            positive_identifiers = [t.resp.dataIdentifier for t in
+                                    self.results_with_positive_response]
+            to_scan += positive_identifiers
 
-        to_scan = sorted(list(set(to_scan)))
-        return (UDS() / UDS_RDBI(identifiers=[x]) for x in to_scan)
+            to_scan = sorted(list(set(to_scan)))
+            return (UDS() / UDS_RDBI(identifiers=[x]) for x in to_scan)
 \end{minted}
+\end{samepage}
 
 The \mintinline{python}{random.sample} function from the Python Standard library returns a list of given length with unique elements chosen from the given sequence.
 
@@ -327,6 +351,7 @@ The implementation exploits the observation that most identifiers are available 
 
 Again, the \mintinline{python}{UDS_RDBISelectiveEnumerator} brings these two enumerators together.
 
+\begin{samepage}
 \begin{minted}{python}
 class UDS_RDBISelectiveEnumerator(StagedAutomotiveTestCase):
     block_size = 2 ** 6
@@ -347,21 +372,24 @@ class UDS_RDBISelectiveEnumerator(StagedAutomotiveTestCase):
             [UDS_RDBIRandomEnumerator(), UDS_RDBIEnumerator()],
             [None, self.connector_random_to_sequential])
 \end{minted}
+\end{samepage}
 
 Since it is similar to the \mintinline{python}{RCSelectiveEnumerator}, it will not be explained further. Only the \mintinline{python}{points_to_blocks} will be described in more detail.
 
+\begin{samepage}
 \begin{minted}{python}
-def points_to_blocks(points, block_size):
-    generators = []
-    for start in range(0, 2 ** 16, block_size):
-        end = start + block_size
-        pr_in_block = any((start <= identifier < end
-                           for identifier in points))
-        if pr_in_block:
-            generators.append(range(start, end))
-    scan_range = itertools.chain.from_iterable(generators)
-    return scan_range
+    def points_to_blocks(points, block_size):
+        generators = []
+        for start in range(0, 2 ** 16, block_size):
+            end = start + block_size
+            pr_in_block = any((start <= identifier < end
+                            for identifier in points))
+            if pr_in_block:
+                generators.append(range(start, end))
+        scan_range = itertools.chain.from_iterable(generators)
+        return scan_range
 \end{minted}
+\end{samepage}
 
 Unlike \mintinline{python}{points_to_ranges}, its block boundaries are fixed. It traverses each block and checks if any of the given identifiers is part of that block. If this is the case, the block will be scanned completely.
 
@@ -371,28 +399,26 @@ Unfortunately, this can lead to double-scanned identifiers, since instead of sca
 
 In contrast to the previous approaches, this one is not applied to specific service enumerators, but to their super class. It evaluates each response, for example to detect if a new state was found. Here, a check was added for negative responses if they have an NRC of 0x11 or 0x7f. If they do, the enumerator is set to completed for the currently executed state.
 
+\begin{samepage}
 \begin{minted}{python}
-class AutomotiveTestCase(AutomotiveTestCaseABC):
-    """Base class for Enumerators"""
+    class AutomotiveTestCase(AutomotiveTestCaseABC):
+        """Base class for Enumerators"""
 
-    def _evaluate_response(self, response, **kwargs):
+        def _evaluate_response(self, response, **kwargs):
 
-        # Removed code for simplification
+            # Removed code for simplification
 
-        exit_if_service_not_supported = kwargs.pop(
-            "exit_if_service_not_supported", False)
+            if exit_if_service_not_supported and response.service == 0x7f:
+                response_code = self._get_negative_response_code(response)
+                if response_code in [0x11, 0x7f]:
+                    # execute of current state is completed,
+                    # since a serviceNotSupported negative response was received
+                    self._state_completed[self._results[-1].state] = True
+                    # stop current execute and exit
+                    return True
 
-        if exit_if_service_not_supported and response.service == 0x7f:
-            response_code = self._get_negative_response_code(response)
-            if response_code in [0x11, 0x7f]:
-                # execute of current state is completed,
-                # since a serviceNotSupported negative response was received
-                self._state_completed[self._results[-1].state] = True
-                # stop current execute and exit
-                return True
+            # Removed code for simplification
 
-        # Removed code for simplification
-
-        return False
+            return False
 \end{minted}
-    
+\end{samepage}    
