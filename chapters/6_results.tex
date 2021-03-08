@@ -8,9 +8,7 @@ First, the coverages and request savings are assessed for each approach.
 
 \subsubsection{Reusing information within the same service}
 
-% RC service
-
-\begin{table}[h]
+\begin{table}[H]
     \begin{center}
     \begin{tabular}{ccc}
         \hline
@@ -35,7 +33,7 @@ First, the coverages and request savings are assessed for each approach.
     \label{tab:evaluation-approach1}
 \end{table}
 
-9 of 11 ECUs had a full coverage. The coverage for the dashboard ECU notable low. Therefore, a closer look was taken there. It turned out that the Dashboard only supports two identifiers. The identifier 515 for Type1 and identifier 61,728 for Type3. The former is detected, but the resulting range for Type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\%.
+9 of 11 ECUs had a full coverage. The coverage for the dashboard ECU is notable low. Therefore, a closer look was taken there. It turned out that the Dashboard only supports two identifiers. The identifier 515 for Type1 and identifier 61,728 for Type3. The former is detected, but the resulting range for Type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\%.
 
 For each ECU the request saving is close to the theoretical maximum of $66.7$ \%. It is so high because ECUs usually support only a few routines (see \autoref{fig:rc-distribution}). Hence, only a few identifiers are expanded to blocks and lead to more requests.
 
@@ -44,7 +42,7 @@ This approach is applicable to scans of services with multiple parameters. This 
 
 \subsubsection{Using probabilities of positive answers based on blocks}
 
-\begin{table}[h]
+\begin{table}[H]
     \begin{center}
     \begin{tabular}{ccc}
         \hline
@@ -76,7 +74,7 @@ The biggest problem with this approach is the newly added random factor. The cov
 
 \subsubsection{Not scanning unsupported services}
 
-\autoref{fig:serviceNotSupported-savings} illustrates the number of saved packets for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs have been counted. But actually, not every request can be saved with this approach, since at least one request must first be made to detect that this service is not supported. But this number of requests is low and negligible, especially considering that the minimum value of saved requests is about 70,000.
+\autoref{fig:serviceNotSupported-savings} illustrates the number of saved packets for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs (0x11 and 0x7f) have been counted. But actually, not every request can be saved with this approach, since at least one request must first be made to detect that this service is not supported. But this number of requests is low and negligible, especially considering that the minimum value of saved requests is about 70,000.
 
 \begin{figure}[h]
     \centering
