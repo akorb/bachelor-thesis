@@ -187,7 +187,11 @@
 
 \makeatother
 
+\usepackage[acronym, toc, nogroupskip]{glossaries}
+\usepackage{glossaries-extra}
+\makeglossaries
 
+\input{acronyms.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%  Document begin  %%%%%%%%%%%
@@ -203,7 +207,8 @@
 \setcounter{tocdepth}{2} 	% Table of contents only Chapters and Sections
 \thispagestyle{plain}
 \tableofcontents
-
+\glossarystyle{long}
+\printunsrtglossary[type=\acronymtype]
 
 \mainmatter
 
@@ -218,6 +223,7 @@
 \include{chapters/7_conclusion-and-future-work}
 
 \include{chapters/8_closing-words}
+
 
 \cleardoublepage
 
