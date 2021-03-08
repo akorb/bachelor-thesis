@@ -27,13 +27,12 @@ Finally, the resulting files are uploaded to the GitLab server so that they can 
 
 \subsection{Explaining the generated data of a scan}
 
-In total, five files are stored after a scan, which will be explained in this section.
+In total, four files are stored after a scan, which will be explained in this section.
 
 \begin{itemize}
     \item candump.log
     \item generic.log
     \item profiling.csv
-    \item milestones.csv
     \item data.pkl
 \end{itemize}
 
@@ -80,11 +79,11 @@ For instance, counting the number of requests of a scan is a single command:
 \end{minted}
 \end{samepage}
 
-\subsubsection{Store events and service scan runtimes of the scanner}
+\subsubsection{Store service scan behavior of a scan}
 
-For profiling, two files have been added as output to the UDS scanner, namely profiling.csv and milestones.csv.
+For profiling, a file has been added as output to the UDS scanner, namely profiling.csv.
 
-The former contains which service scan ran under which state and when. It follows a fairly simple structure:
+It contains which service scan ran under which state and when. It follows a fairly simple structure:
 
 \begin{samepage}
     \begin{minted}{text}
@@ -98,17 +97,6 @@ The former contains which service scan ran under which state and when. It follow
 
 Although an ECU Reset has no state, all occurrences of it get the same named state for better visualization of the log later.
 
-Each line in the milestones.csv contains a timestamp and the name of the final state of a found state path and its timestamp. Hence, a state name can occur multiple times in this file, if there are more paths to the same state. What path is taken is decided later in the UDS scanner with finding the shortest path using the Dijkstra algorithm.
-
-\begin{samepage}
-    \begin{minted}{text}
-        session1   ,1613302518.995168
-        session2tp1,1613302569.605534
-        session1tp1,1613309304.481464
-        session3tp1,1613310988.231891
-    \end{minted}
-\end{samepage}
-
 \subsubsection{Store the finished scanner object}
 
 Last but not least, the data.pkl file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The data.pkl file is the serialized UDS Scanner object after the scan and thus contains all the results, consisting of the responses for each request for each state of an ECU. This is helpful for debugging, analysis and also for simulation.
@@ -120,7 +108,7 @@ The Pareto principle indicates that small number of causes can be responsible fo
 
 \subsubsection{Visualizing UDS scans}
 
-To profile the UDS Scanner, the profiling.csv and milestones.csv files are used. With their help Gantt charts are created which show the sequence and duration of the scanned services. This visualizes what parts of the UDS Scanner cause most of its runtime.
+To profile the UDS Scanner, the profiling.csv files is used. With its help Gantt charts are created which show the sequence and duration of the scanned services. This visualizes what parts of the UDS Scanner cause most of its runtime.
 
 These charts have been created for each available ECU. For illustration one is sufficient since each showed the same gist (see \autoref{fig:tesla-gantt}).
 
