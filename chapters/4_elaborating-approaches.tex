@@ -92,11 +92,11 @@ The simulations were also run with expanding identifiers in one direction only, 
 
 \subsection{Use probabilities of positive answers block based}
 
-Most services are simpler and only have one parameter. So, reusing information within the same service is not practical. The approach tackles these kinds of services. Instead of using the same information of the same service, the new idea is to scan the blocks more heavily where positive behavior is more likely than others and vice versa.
+Most services are simpler and only have one parameter. So, reusing information within the same service is not practical. This approach tackles these kinds of services. The new idea is to scan the blocks more heavily where positive behavior is more likely than others and vice versa.
 
 \subsubsection{Choosing the RDBI service to apply the approach to}
 
-Also, the Read Data By Identifier (RDBI) service has only one parameter, the identifier of the requested data.
+The Read Data By Identifier (RDBI) service has only one parameter, the identifier of the requested data.
 
 The distribution of positively answered identifiers over all ECUs is visualized in a histogram to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
 
@@ -111,7 +111,7 @@ It is clearly visible that there are some areas where not a single identifier wa
 
 \subsubsection{Current behavior}
 
-To specify which data record to retrieve, there is the \mintinline{python}{identifier} parameter. Hence, because the identifier is a short field, there are 2\textsuperscript{16} possible identifiers.
+As for the RC service, the identifier field has a length of 16-bits. Hence, there are 2\textsuperscript{16} possible identifiers.
 The current RDBI scan is simple. It generates 2\textsuperscript{16} requests counting up from 0 to 65,535 as the identifier. This leads to the following formula, showing how many requests are generated for a UDS scan:
 \[f(n)=2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states. 
@@ -119,7 +119,7 @@ wherein $n$ stands for the number of detected states.
 \subsubsection{Elaborating the new behavior}
 \label{subsubsec:rdbi-behavior}
 
-To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. Then, it is calculated how likely a positive response is for each of these blocks. Based on this information, the number of requests for each block will be calculated individually. An example is illustrated in \autoref{fig:rdbi-behavior-new}.
+To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. For each block a specific number of requests is generated. If any of these requests is answered positively, the whole block is scanned.  An example is illustrated in \autoref{fig:rdbi-behavior-new}.
 
 \begin{figure}[h]
     \centering
@@ -128,11 +128,13 @@ To reduce this range, first the 2\textsuperscript{16} area is divided into block
     \label{fig:rdbi-behavior-new}
 \end{figure}
 
-The number $r$ of requests for a block is calculated with
+The first point to answer is how the number of requests is calculated for each block. It is based on the probability of positive identifiers of this block. This probability is gathered from merging all positively answered identifiers of all ECUs and then for each block calculating $\frac{occurences}{block\_size}$. The number $r$ of requests for a block is calculated with
 \[r(i, s)=\max(p(i, s) \cdot s, 1)\]
-wherein $p$ stands for the probability function, $i$ for the index of the requested block and $s$ for the block size. For each block should be generated at least one request. The requested identifiers within a block are generated randomly. If any of these requests is answered positively, the whole block is scanned.
+wherein $p$ stands for the probability function, $i$ for the index of the requested block and $s$ for the block size. For each block should be generated at least one request. The requested identifiers within a block are generated randomly.
 
-This leads to the question of which block size leads to the best results. This is again answered by a simulation. As potential block sizes $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The probability of a positive response of a block is calculated based on the supported identifiers by all ECUs. The resulting coverage and request saving are then calculated for each ECU specifically and averaged. The approach has one more feature which makes the simulation more complex than the former simulation. Since the blocks are first scanned randomly, the scan can lead to a great coverage, but also a low one, depending on the hit rate of the generated identifiers. To reduce this effect, the calculation of the coverage and request saving are made 100 times, each time with newly created random identifiers. The 100 results are averaged to the coverage and request saving corrected from the random factor. This leads to a high processing time. To reduce the runtime, the execution was parallelized.
+The second question is which block size leads to the best results. This is again answered by a simulation. As potential block sizes $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The resulting coverages and request savings are then calculated for each ECU specifically and averaged to the final result. Same as for the RC service, the states are ignored in the simulation.
+
+The approach has a feature which makes the simulation more complex than the former simulation. Since the blocks are first scanned randomly, the scan can lead to a great coverage, but also a low one, depending on the hit rate of the generated identifiers. To reduce this effect, the simulation is made 100 times, each time with newly created random identifiers. The 100 results are averaged to the coverage and request saving corrected from the random factor. This leads to a high processing time. To reduce the runtime, the execution was parallelized.
 The following pseudocode shows the procedure more clearly.
 
 \begin{samepage}
