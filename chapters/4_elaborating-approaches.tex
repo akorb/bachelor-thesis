@@ -60,19 +60,19 @@ The following pseudocode shows the procedure more clearly.
 
 \begin{samepage}
 \begin{minted}{python}
-coverages = []                                                 
-speedups = []                                                  
-for expansion_width in range(1000):                             
-    coverages_ecus = []                                       
-    speedups_ecus = []                                        
-    for ecu in ecus:                                           
-        ids_type1 = get_type1_ids(ecu)                         
-        to_scan = ids_to_block(ids_type1, expansion_width)     
-        coverages_ecus.append(get_coverage(ecu, to_scan))     
-        count_requests = len(to_scan)                          
-        speedups_ecus.append(get_speedup(ecu, count_requests))
-    coverages[expansion_width] = avg(coverages_ecus)
-    speedups[expansion_width] = avg(speedups_ecus)
+    coverages = []
+    request_savings = []
+    for expansion_width in range(1001):
+        coverages_width = []
+        request_savings_width = []
+        for ecu in ecus:
+            ids_type1 = get_type1_ids(ecu)
+            to_scan = ids_to_block(ids_type1, expansion_width)
+            count_requests = len(to_scan)
+            coverages_width.append(get_coverage(ecu, to_scan))
+            request_savings_width.append(get_saving(count_requests))
+        coverages[expansion_width] = avg(coverages_ecus)
+        request_savings[expansion_width] = avg(request_saving)
 \end{minted}
 \end{samepage}
 
@@ -80,7 +80,7 @@ The result of this simulation is plotted in \autoref{fig:rc-simulation-result}. 
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.7\textwidth]{rc-simulation-result}
+    \includegraphics[width=0.8\textwidth]{rc-simulation-result}
     \caption{Result of the RC scan simulation to find the best expansion width.}
     \label{fig:rc-simulation-result}
 \end{figure}
@@ -139,21 +139,23 @@ The following pseudocode shows the procedure more clearly.
 
 \begin{samepage}
 \begin{minted}{python}
-for exponent in range(2, 16):
-    block_size = 2 ** exponent
     coverages = []
-    samples = []
-    probabilities = get_probabilities(ecus, block_size)
-    for ecu in ecus:
-        for i in range(100):
-            samples = random_samples(block_size, probabilities)
-            positive_identifiers = ecu.get_positive_identifiers(samples)
-            block_list = to_blocks(positive_identifiers, block_size)
-            positive_identifiers = ecu.get_positive_identifiers(block_list)
-
-            coverages.append(get_coverage(ecu, positive_identifiers))
-            samples.append(len(block_list))
-        avg_coverages, avg_samples = avg(coverages, samples)
+    request_savings = []
+    for exponent in range(2, 17):
+        block_size = 2 ** exponent
+        probabilities = get_probabilities(ecus, block_size)
+        coverages_block = []
+        request_savings_block = []
+        for ecu in ecus:
+            for i in range(100):
+                req_random = random_samples(block_size, probabilities)
+                positive_identifiers = ecu.get_positive_identifiers(req_random)
+                req_block = to_blocks(positive_identifiers, block_size)
+                positive_identifiers = ecu.get_positive_identifiers(req_block)
+                count_reqs = len(samples) + len(req_list)
+                coverages_block.append(get_coverage(ecu, positive_identifiers))
+                request_savings_block.append(get_saving(count_reqs))
+        request_savings[exponent] = avg(request_savings_block)
 \end{minted}
 \end{samepage}
 
