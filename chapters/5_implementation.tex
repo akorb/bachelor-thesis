@@ -412,8 +412,9 @@ In contrast to the previous approaches, this one is not applied to specific serv
                 response_code = self._get_negative_response_code(response)
                 if response_code in [0x11, 0x7f]:
                     # execute of current state is completed,
-                    # since a serviceNotSupported negative response was received
-                    self._state_completed[self._results[-1].state] = True
+                    # since a serviceNotSupported NR was received
+                    current_state = self._results[-1].state
+                    self._state_completed[current_state] = True
                     # stop current execute and exit
                     return True
 
