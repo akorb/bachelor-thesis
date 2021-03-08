@@ -19,11 +19,11 @@ The infrastructure of Laboratory for Safe and Secure Systems (LaS3) was used for
 
 Fourteen ECUs are available for testing on this server. However, three of them are from Opel and therefore only support GMLAN but not UDS.
 
-For each ECU a YAML configuration file was created. Various work is done here, for example installing the CAN-ISOTP module, if the running device is not at least on Linux 5.10 (see \autoref{sec:scapy}). Also, the Scapy code from the currently working branch is pulled and checked out.
+For each ECU a YAML configuration file was created. Various work is done here, for example pulling and checking out the Scapy code from the currently working branch.
 
-Then, the actual tests are executed that are written in the pytest framework. Here, a UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests.
+Then, the actual tests are executed that are written with the pytest framework. Here, a UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests.
 
-Finally, the resulting files are uploaded to the GitLab server so that they can be downloaded via a browser program.
+Finally, the resulting files are uploaded to the GitLab server so that they can be downloaded via a browser program. Which files these are specifically and what they were used for will be explained in the next section.
 
 \subsection{Explaining the generated data of a scan}
 
@@ -39,7 +39,7 @@ In total, five files are stored after a scan, which will be explained in this se
 
 \subsubsection{Record communication between scanner and ECU}
 
-The candump.log file is created by the candump program with the \mintinline{text}{-t} parameter. The generated files have a simple structure, each line representing one CAN packet.
+The resulting candump.log file recorded with the command explained in \autoref{subsubsec:can-utils} has a simple structure. Each line represents a CAN packet.
 
 \begin{samepage}
 \begin{minted}{text}
@@ -54,7 +54,7 @@ The candump.log file is created by the candump program with the \mintinline{text
 Unfortunately, these files contain a lot of information that is not only not needed, but also unwanted, as it leads to more difficult analysis because of higher storage and processing power usage. \autoref{fig:can-unwanted-information} shows the information that is not needed because it is ECU specific and does not add any value for the analysis.
 
 %CAN unwanted information
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{can-unwanted-information}
     \caption{ECU specific information in candump.log.}
@@ -74,10 +74,10 @@ Consequently, an abstraction is desirable. The newly created format is called th
 This format proved to be very useful as it allows quick analysis by chaining common Linux programs.
 For instance, counting the number of requests of a scan is a single command:
 \begin{samepage}
-    \begin{minted}{bash}
+\begin{minted}{bash}
         $ grep '^c.*' -c generic.log
         988844
-    \end{minted}
+\end{minted}
 \end{samepage}
 
 \subsubsection{Store events and service scan runtimes of the scanner}
