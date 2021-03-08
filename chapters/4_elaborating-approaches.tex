@@ -1,4 +1,4 @@
-\section{Elaboration of the realisation of the approaches}
+\section{Elaboration of the realization of the approaches}
 
 This section discusses the optimization of the two service scans from the previous section, each using a different approach. In addition, the third approach discussed is to avoid scanning unsupported services.
 
@@ -8,7 +8,7 @@ This approach aims to reuse information from one part of a service for another p
 
 \subsubsection{Choosing the RC service to apply the approach to}
 
-This approach is applicable to scans of services with multiple parameters, as it is the case for the Routine Control (RC) service. It has two parameters, the type and identifier (more in \autoref{subsubsec:uds-services}). The distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
+This approach is applicable to scans of services with multiple parameters, as it is the case for the Routine Control (RC) service. It has two parameters, the routine type and the routine identifier (more in \autoref{subsubsec:uds-services}). The distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
 
 \begin{figure}[h]
     \centering
@@ -23,9 +23,7 @@ Hence, the RC service is a great candidate for this approach.
 
 \subsubsection{Current behavior}
 
-The RC service is used by the client to execute a defined sequence of steps and obtain any relevant results \cite{iso14229}. It has two parameters, namely the \mintinline{python}{routineControlType} and \mintinline{python}{routineIdentifier} parameter.
-
-The \mintinline{python}{routineControlType} parameter specifies the action for a routine. Possible are starting, stopping and requesting the results. To specify which routine is to be controlled, there is the \mintinline{python}{routineIdentifier} field. Hence, there are three control types, and because the identifier is a short field, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
+There are three control types, and because the identifier field has a length of 16-bits, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
 \[f(n)=3 \cdot 2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states.
 
@@ -34,7 +32,7 @@ The current RC scan does exactly this, it generates the full range for each stat
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\textwidth]{rc-behavior-current}
-    \caption{Current procedure for scanning the RC service.}
+    \caption{Current behavior of the RC service scan.}
     \label{fig:rc-behavior-current}
 \end{figure}
 
@@ -43,7 +41,7 @@ The current RC scan does exactly this, it generates the full range for each stat
 
 The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state for this service, resulting in an upper limit of request savings of 66.7 \%.
 
-It was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning also nearby identifiers for Type2 and Type3 results in higher coverage.
+It was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning also nearby identifiers for Type2 and Type3 results in higher coverage. To exploit this, an expansion width is introduced. This width specifies how a single value is expanded to a range in both directions. For example, with an expansion width of 100, the value 1500 would be expanded to the range 1400 – 1600.
 
 \autoref{fig:rc-behavior-new} illustrates the new behavior. The green areas again show the scanned ranges. In addition, the red areas are the found identifiers in Type1 and their resulting scans for Type2 and Type3. The gray areas show the routine identifiers not requested with this new behavior.
 
@@ -54,10 +52,9 @@ It was observed that there seems to be a locality effect for the identifiers. Th
     \label{fig:rc-behavior-new}
 \end{figure}
 
-What needs to be found out is the expansion width which leads to the best coverage, while maintaining an appropriate request saving.
-For this, scans with different expansion widths are simulated. For a quick simulation another observation is used. If an identifier is available in a state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still close to the real ECUs because it only uses information gathered from the real ECUs as described in \autoref{sec:data-gathering}. The required information is which identifiers an ECU supports for which types in any state. This is extracted from the generic.log files.
+What needs to be found out is the expansion width which leads to the best coverage, while maintaining an appropriate request saving. For this, scans with different expansion widths were simulated. These simulations work based on the information gathered from the real ECUs as described in \autoref{sec:data-gathering}. For a quick simulation another observation is used. If an identifier is available in a state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still close to the real ECUs. The required information, which identifiers are supported by an ECU for which type, is extracted from the generic.log files.
 
-As described, the simulation starts with getting all identifiers which have been positively answered by the currently simulated ECU. Subsequently, these identifiers are expanded to both sites from 0 to 1000. Overlapping ranges are resolved to one continuous space. The size of the resulting range lead to the theoretically generated requests which can be calculated to the coverage and request saving. These values of all ECUs are averaged to the final result.
+As described, the simulation starts with getting all identifiers which have been positively answered by the currently simulated ECU. Subsequently, these identifiers are expanded to both sites from 0 to 1000. Overlapping ranges are resolved to a continuous space. The sizes of the resulting ranges lead to the theoretically generated requests which can be calculated to the coverage and request saving. These values of all ECUs are averaged to the final result.
  
 The following pseudocode shows the procedure more clearly.
 
@@ -66,31 +63,31 @@ The following pseudocode shows the procedure more clearly.
 coverages = []                                                 
 speedups = []                                                  
 for expansion_width in range(1000):                             
-    coverages_block = []                                       
-    speedups_block = []                                        
+    coverages_ecus = []                                       
+    speedups_ecus = []                                        
     for ecu in ecus:                                           
         ids_type1 = get_type1_ids(ecu)                         
         to_scan = ids_to_block(ids_type1, expansion_width)     
-        coverages_block.append(get_coverage(ecu, to_scan))     
+        coverages_ecus.append(get_coverage(ecu, to_scan))     
         count_requests = len(to_scan)                          
-        speedups_block.append(get_speedup(ecu, count_requests))
-    coverages.append(avg(coverages_block))                     
-    speedups.append(avg(speedups_block))                       
+        speedups_ecus.append(get_speedup(ecu, count_requests))
+    coverages[expansion_width] = avg(coverages_ecus)
+    speedups[expansion_width] = avg(speedups_ecus)
 \end{minted}
 \end{samepage}
 
-The result of this simulation is plotted in \autoref{fig:rc-simulation-result}. The request saving is almost linear to the expansion width. That makes sense, because the larger the expansions are, the more requests are generated. The expansion size of zero represents the results without using the locality effect. The maximum difference in coverage between with and without locality effect are 22\%, even though the maximum request saving difference is only 1\%.
+The result of this simulation is plotted in \autoref{fig:rc-simulation-result}. The request saving is almost linear to the expansion width. That makes sense, because the larger the expansions are, the more requests are generated. The expansion width of zero represents the results without using the locality effect.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\textwidth]{rc-simulation-result}
-    \caption{Simulation result for the RC scan.}
+    \caption{Result of the RC scan simulation to find the best expansion width.}
     \label{fig:rc-simulation-result}
 \end{figure}
 
-The identifiers are expanded to both sites. So, for example, if the identifier 500 has been answered positively and the expansion size is 100, it leads to a range from 400 to 600. Simulations were also run with using only one direction, which yielded very similar results. Thus, it was left in both directions.
-
 Since the request saving decreases only slowly, the highest coverage was chosen, which starts with the expansion width \textbf{253}. Hence, this value is the chosen and implemented one.
+
+The simulations were also run with expanding identifiers in one direction only, which yielded very similar results. Thus, it was left in both directions.
 
 
 \subsection{Use probabilities of positive answers block based}

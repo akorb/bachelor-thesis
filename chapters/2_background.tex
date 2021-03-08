@@ -152,7 +152,7 @@ For positive responses it is defined as 0x40 added to the SID. Thus, a request w
 
 UDS defines various services with different purposes. The ones used later in this paper are explained here.
 
-The Routine Control (RC) service allows managing predefined routines on the ECU. They can be started, stopped or their results requested. It has two parameters, namely the desired action (called \mintinline{text}{controlType}) and the identifier of the routine.
+The Routine Control (RC) service allows managing predefined routines on the ECU. They can be started, stopped or their results requested. It has two parameters, namely the desired action and the identifier of the routine.
 
 Another service is called Read Data By Identifier (RDBI). With this service, it is possible to retrieve one or more values of a control unit. This can be static information like the software version or dynamic values such as the current readings of sensors. The structure of its requests is simple as it only contains an identifier as parameter.
 
