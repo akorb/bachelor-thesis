@@ -14,7 +14,8 @@
 	DIV=12,			%Type area (division into boxes)
 	parskip=half,	%No indentation but line spacing for new paragraph
 	headsepline,	%For dividing line on head side
-	automark
+	automark,
+  bibliography=totoc  %Add references to table of contents
 	]{scrartcl}
 
 %Todo Randausgleich
@@ -162,23 +163,52 @@
 % end appendix autoref patch
 
 
+\makeatletter
+
+\newcommand\frontmatter{%
+    \cleardoublepage
+  %\@mainmatterfalse
+  \pagenumbering{roman}}
+
+\newcommand\mainmatter{%
+    \cleardoublepage
+ % \@mainmattertrue
+  \pagenumbering{arabic}}
+
+\newcommand\backmatter{%
+  \if@openright
+    \cleardoublepage
+  \else
+    \clearpage
+  \fi
+ % \@mainmatterfalse
+   }
+
+\makeatother
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%  Document begin  %%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
+\frontmatter
 
 \maketitle
 \thispagestyle{empty}
 
+\addcontentsline{toc}{section}{Erklärung}
 \include{chapters/erklaerung}
 
-\setcounter{tocdepth}{3} 	% Table of contents only Chapters and Sections
-\thispagestyle{empty}
+\setcounter{tocdepth}{2} 	% Table of contents only Chapters and Sections
+\thispagestyle{plain}
 \tableofcontents
 
 
+\mainmatter
 
-\setcounter{page}{0}
+\setcounter{page}{4} 
+
 \include{chapters/1_introduction}
 \include{chapters/2_background}
 \include{chapters/3_data-gathering}
@@ -191,12 +221,10 @@
 
 \cleardoublepage
 
-\thispagestyle{empty}
 \listoffigures
 
 \cleardoublepage
 
-\thispagestyle{empty}
 \printbibliography
 
 \include{chapters/appendix}
