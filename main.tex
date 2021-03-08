@@ -164,29 +164,6 @@
 % end appendix autoref patch
 
 
-\makeatletter
-
-\newcommand\frontmatter{%
-    \cleardoublepage
-  %\@mainmatterfalse
-  \pagenumbering{roman}}
-
-\newcommand\mainmatter{%
-    \cleardoublepage
- % \@mainmattertrue
-  \pagenumbering{arabic}}
-
-\newcommand\backmatter{%
-  \if@openright
-    \cleardoublepage
-  \else
-    \clearpage
-  \fi
- % \@mainmatterfalse
-   }
-
-\makeatother
-
 \usepackage[acronym, toc, nogroupskip]{glossaries}
 \usepackage{glossaries-extra}
 \makeglossaries
@@ -197,7 +174,8 @@
 %%%%%%%%%%%%  Document begin  %%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
-\frontmatter
+
+\renewcommand{\thepage}{\roman{page}}% Roman page numbers
 
 \maketitle
 \thispagestyle{empty}
@@ -208,9 +186,8 @@
 \thispagestyle{plain}
 \tableofcontents
 
-\mainmatter
-
-\setcounter{page}{5} 
+\clearpage
+\renewcommand{\thepage}{\arabic{page}}% Arabic page numbers
 
 \include{chapters/1_introduction}
 \include{chapters/2_background}
