@@ -1,9 +1,9 @@
-\section{Data gathering and profiling}
+\chapter{Data gathering and profiling}
 \label{sec:data-gathering}
 
 From here, the procedure and the environment of gathering information to elaborate approaches is described.
 
-\subsection{Remote test environment}
+\section{Remote test environment}
 
 In order to find scan ranges that are likely to be answered positively, data from as many ECUs as possible is needed. In the context of the PetS3 project a remote testing environment has been created. This was particularly helpful in light of the contact limitations at the time of writing.
 
@@ -25,7 +25,7 @@ Then, the actual tests are executed that are written with the pytest framework. 
 
 Finally, the resulting files are uploaded to the GitLab server so that they can be downloaded via a browser program. Which files these are specifically and what they were used for will be explained in the next section.
 
-\subsection{Explaining the generated data of a scan}
+\section{Explaining the generated data of a scan}
 
 In total, four files are stored after a scan, which will be explained in this section.
 
@@ -36,7 +36,7 @@ In total, four files are stored after a scan, which will be explained in this se
     \item data.pkl
 \end{itemize}
 
-\subsubsection{Record communication between scanner and ECU}
+\subsection{Record communication between scanner and ECU}
 
 The resulting candump.log file recorded with the command explained in \autoref{subsubsec:can-utils} has a simple structure. Each line represents a CAN packet.
 
@@ -81,7 +81,7 @@ For instance, counting the number of requests of a scan is a single command:
 \label{lst:usage-generic}
 \end{listing}
 
-\subsubsection{Store service scan behavior of a scan}
+\subsection{Store service scan behavior of a scan}
 
 For profiling, a file has been added as output to the UDS scanner, namely profiling.csv.
 
@@ -101,16 +101,16 @@ The start and end timestamps are specified in Unix times.
 
 Although an ECU Reset has no state, all occurrences of it get the same named state for better visualization of the log later.
 
-\subsubsection{Store the finished scanner object}
+\subsection{Store the finished scanner object}
 
 Last but not least, the data.pkl file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The data.pkl file is the serialized UDS Scanner object after the scan and thus contains all the results, consisting of the responses for each request for each state of an ECU. This is helpful for debugging, analysis and also for simulation.
 
 
-\subsection{Profiling the UDS Scanner}
+\section{Profiling the UDS Scanner}
 
 The Pareto principle indicates that small number of causes can be responsible for a large percentage of effects \cite{pareto}. This is also applicable to optimization problems. Usually only a few number of code lines cause the majority of the runtime. Optimizing them is far more effective than performing micro-optimizations as they naturally improve the performance to a greater extent. Moreover, micro-optimizations are usually even more difficult to accomplish.
 
-\subsubsection{Visualizing UDS scans}
+\subsection{Visualizing UDS scans}
 
 To profile the UDS Scanner, the profiling.csv file is used. With its help Gantt charts are created which show the sequence and duration of the scanned services. This visualizes what parts of the UDS Scanner cause most of its runtime.
 
@@ -124,7 +124,7 @@ These charts have been created for each available ECU. For illustration one is s
 \end{figure}
 
 
-\subsubsection{Identifying the services causing the most runtime}
+\subsection{Identifying the services causing the most runtime}
 
 Although it seems that some services and events do not require any time, their time consumption is only so small that they are not or hardly visible in this scaled-down version of the diagram.
 

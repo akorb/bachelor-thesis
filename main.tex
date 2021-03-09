@@ -14,12 +14,18 @@
 	DIV=12,			%Type area (division into boxes)
 	parskip=half,	%No indentation but line spacing for new paragraph
 	headsepline,	%For dividing line on head side
+	openany,        %Allow chapter to start on any page (even or odd)
 	automark,
-  bibliography=totoc,  %Add References to table of contents
-  listof=totoc   %Add List of Figures to table of contents
-	]{scrartcl}
+	bibliography=totoc,  %Add References to table of contents
+	listof=totoc   %Add List of Figures to table of contents
+]{scrbook}
 
 %Todo Randausgleich
+
+% No additional spacing in front of chapter heading
+\RedeclareSectionCommand[
+  beforeskip=0pt
+]{chapter}
 
 %Cross-platform
 \usepackage[utf8]{inputenc}
@@ -182,7 +188,7 @@
 
 \include{chapters/declaration}
 
-\setcounter{tocdepth}{2} 	% Table of contents only Chapters and Sections
+\setcounter{tocdepth}{1} 	% Table of contents only Chapters and Sections
 \thispagestyle{plain}
 \tableofcontents
 
@@ -199,15 +205,12 @@
 
 \include{chapters/8_closing-words}
 
-\clearpage
 \thispagestyle{plain}
 \printunsrtglossary[type=\acronymtype]
 
-\clearpage
 \thispagestyle{plain}
 \listoffigures
 
-\clearpage
 \thispagestyle{plain}
 \printbibliography
 

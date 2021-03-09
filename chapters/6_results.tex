@@ -1,12 +1,12 @@
-\section{Results on ECUs}
+\chapter{Results on ECUs}
 
 This section shows and discusses the results of the implementations explained earlier.
 
-\subsection{Coverages and request savings}
+\section{Coverages and request savings}
 
 First, the coverages and request savings are assessed for each approach.
 
-\subsubsection{Reusing information within the same service}
+\subsection{Reusing information within the same service}
 
 \begin{table}[H]
     \begin{center}
@@ -40,7 +40,7 @@ For each ECU the request saving is close to the theoretical maximum of $66.7$ \%
 This approach is applicable to scans of services with multiple parameters. This results in a high scan time for this service and thus a high time-saving potential. However, if an identifier is not recognized during the first scan, it will not be recognized in the next scans as well.
 
 
-\subsubsection{Using probabilities of positive answers based on blocks}
+\subsection{Using probabilities of positive answers based on blocks}
 
 \begin{table}[H]
     \begin{center}
@@ -72,7 +72,7 @@ Overall, the coverages are lower with this approach than for approach 1. Only fo
 
 The biggest problem with this approach is the newly added random factor. The coverage can be great for one scan, but low for the next one. This would require performing multiple scans using the new implementation to ensure that most identifiers were found.
 
-\subsubsection{Not scanning unsupported services}
+\subsection{Not scanning unsupported services}
 
 \autoref{fig:serviceNotSupported-savings} illustrates the number of saved packets for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs (0x11 and 0x7f) have been counted. But actually, not every request can be saved with this approach, since at least one request must first be made to detect that this service is not supported. But this number of requests is low and negligible, especially considering that the minimum value of saved requests is about 70,000.
 
@@ -95,7 +95,7 @@ And in comparison to the potential savings (\autoref{fig:serviceNotSupported-sav
 
 Skipping unsupported services is the safest way to save time of all three approaches. It is unlikely that identifiers will be missed, but the speed gain can still be high. Nevertheless, the option remains optional in the UDS scanner.
 
-\subsection{Actual time savings}
+\section{Actual time savings}
 
 For each ECU, the same scans were executed again as in the introduction (\autoref{sec:introduction}), they differ only in the use of the new implementations.
 

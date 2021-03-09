@@ -1,6 +1,6 @@
-\section{Implementation}
+\chapter{Implementation}
 
-\subsection{UDS implementation of the Scapy library}
+\section{UDS implementation of the Scapy library}
 
 One of the core classes in Scapy is the \mintinline{python}{Packet} class. All definitions of network packet layers, such as Ethernet, IP, TCP, CAN, UDS and so on, are defined in a class inheriting from it.
 
@@ -100,7 +100,7 @@ bytes(packet) # prints: 0x10 0x03
 As can be seen, the SID of the packet is 0x10, although it was never explicitly set. Scapy set it because of the previous binding.
 
 
-\subsection{Send a UDS packet with an ISO-TP socket}
+\section{Send a UDS packet with an ISO-TP socket}
 
 There are two ISO-TP socket implementations in Scapy. A software and a native implementation. Until including Linux kernel 5.9, the corresponding ISO-TP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}. Both implementations handle the ISO-TP metadata themselves, i.e.  fragmentation, defragmentation, etc.
 
@@ -145,7 +145,7 @@ This output is explained step by step in the following list:
     \item \mintinline{text}{0x03}: The parameter for the DSC service.
 \end{itemize}
 
-\subsection{Explaining the service enumerators of the UDS Scanner}
+\section{Explaining the service enumerators of the UDS Scanner}
 
 % TODO: Add that it was still work in progress while doing this work
 % and thus, that problems occured and had to be fixed.
@@ -238,7 +238,7 @@ class MyStagedEnumerator(StagedAutomotiveTestCase):
 \label{lst:staged-enumerator}
 \end{listing}
 
-\subsection{Implementing new enumerators for the RC service}
+\section{Implementing new enumerators for the RC service}
 
 Three classes are of interest:
 
@@ -371,7 +371,7 @@ def points_to_ranges(points, expansion_width):
 \mintinline{python}{points_to_ranges} expands points to ranges and also resolves any overlaps to a continuous range.
 First, a range generator is created for each given point. Then, they are chained and converted to a set, removing potential overlaps. This set is sorted to a list, to ensure understandable candump logs of a scan.
 
-\subsection{Implementing new enumerators for the RDBI service}
+\section{Implementing new enumerators for the RDBI service}
 
 Again, three classes are of interest:
 
@@ -516,7 +516,7 @@ Unlike \mintinline{python}{points_to_ranges}, its block boundaries are fixed. It
 
 Unfortunately, this can lead to double-scanned identifiers, since instead of scanning only the remaining identifiers that have not yet been scanned in the respective blocks, the entire blocks are rescanned. Although an attempt was made to implement this, the UDS scanner does not provide the necessary interfaces to do so. The connectors only know the enumerators, but not the currently executed state. However, this is necessary to check which identifiers have already been scanned in the random enumerator for the current state. Nevertheless, the number of duplicate requests is low, so the request savings hardly decrease.
 
-\subsection{Extending the enumerators to skip unsupported services}
+\section{Extending the enumerators to skip unsupported services}
 
 In contrast to the previous approaches, this one is not applied to specific service enumerators, but to their super class. It evaluates each response, for example to detect if a new state was found. Here, a check was added for negative responses if they have an NRC of 0x11 or 0x7f. If they do, the enumerator is set to completed for the currently executed state.
 

@@ -1,8 +1,8 @@
-\section{Background}
+\chapter{Background}
 
 This section will explain the technical fundamentals which are necessary to understand the full bachelor thesis.
 
-\subsection{The Scapy program}
+\section{The Scapy program}
 \label{sec:scapy}
 
 %UDS stack
@@ -34,7 +34,7 @@ It supports Python 3 and also Python 2, even though its support has ended on 1st
 \end{displayquote}
 
 
-\subsection{The CAN bus}
+\section{The CAN bus}
 
 All communication performed and recorded in this paper with an ECU is done via the Control Area Network bus (CAN).
 
@@ -58,7 +58,7 @@ All communication performed and recorded in this paper with an ECU is done via t
 \label{tab:can-speed}
 \end{table}
 
-\subsubsection{Advantages for the automotive domain}
+\subsection{Advantages for the automotive domain}
 
 This bus is robust because it uses two lines of differential signals for communication. This means that if one wire is driven high, the other one is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
 
@@ -74,7 +74,7 @@ Moreover, CAN busses are using the bus network topology (see \autoref{fig:with-w
 
 Last but not least, an important feature for the automotive application domain is the priority support. The lower the identifier, the higher the priority. Hence, if ECU1 and ECU2 transmit a CAN packet at exactly the same time, the packet with the lower identifier wins, the other one is discarded and will be retransmitted. This is called the Carrier Sense Multiple Access with Collision Detection (CSMA/CD) protocol \cite{Sharma2016}. For this reason, diagnostic CAN identifiers tend to have a high identifier \cite{Herrewegen2018}.
 
-\subsubsection{Security vulnerabilities}
+\subsection{Security vulnerabilities}
 
 Thinking this one step further, CAN is vulnerable to denial of service attacks. This attack can be performed by flooding the CAN bus with zero-identifier messages resulting in drops of legitimate packets \cite{Buttigieg2017}.
 
@@ -85,7 +85,7 @@ The final security vulnerability is the lack of data encryption \cite{Buttigieg2
 
 Since all countermeasures described in the previous paragraph are limited, Intrusion Detection Systems (IDS) are emerging, with the advantages of not having to change the current CAN controller and not increasing bus traffic \cite{Bozdal2020}. A proof of concept of such systems was implemented by eMundo in preparation for the PetS3 project \cite{spahn2018}.
 
-\subsubsection{Virtual CAN interfaces and using the can-utils}
+\subsection{Virtual CAN interfaces and using the can-utils}
 \label{subsubsec:can-utils}
 
 Virtual CAN interfaces can be used for simulations or simple tests. They are supported natively by Linux without additional actions.
@@ -112,13 +112,13 @@ For sake of completeness, this command sends a CAN packet with the identifier 0x
 cansend vcan0 123#01.02
 \end{minted}
 
-\subsection{The ISO-TP transport protocol for CAN}
+\section{The ISO-TP transport protocol for CAN}
 
 CAN packets have a payload size of 8 bytes. This is sufficient for most UDS requests, but not for many UDS responses. Thus, ISO-TP is used as the transport protocol on the CAN bus for UDS communication.
 
 It is defined in ISO 15765-2 and increases the payload size from 8 bytes to 4095 bytes per message. At least one byte of each CAN packet is then transport protocol information, indicating whether this packet is a single frame or if it only contains a fragment of the actual payload.
 
-\subsection{The UDS protocol}
+\section{The UDS protocol}
 
 UDS stands for \emph{Unified diagnostic services} and is an application protocol defined in ISO 14229. This protocol defines the structures of request and response packets for diagnostic purposes sent over an arbitrary data link \cite{iso14229}.
 
@@ -134,7 +134,7 @@ The reason for the development of such a protocol was that the cars developed in
 
 As shown in \autoref{fig:uds-stack}, the most common data links for the UDS protocol are the Ethernet and the CAN bus. Others can and are used as well, explicitly stated in the UDS standard are FlexRay, K-Line and LIN.
 
-\subsubsection{Packet structure}
+\subsection{Packet structure}
 
 \begin{figure}[h]
     \centering
@@ -147,7 +147,7 @@ As shown in \autoref{fig:uds-stack}, the most common data links for the UDS prot
 Negative responses have the SID 0x7f.
 For positive responses it is defined as 0x40 added to the SID. Thus, a request with SID 0x27 would be responded with 0x27 + 0x40 = 0x67 (see \autoref{fig:key-seed}).
 
-\subsubsection{Services}
+\subsection{Services}
 \label{subsubsec:uds-services}
 
 UDS defines various services with different purposes. The ones used later in this paper are explained here.
@@ -158,7 +158,7 @@ Another service is called Read Data By Identifier (RDBI). With this service, it 
 
 The Diagnostic Session Control (DSC) service is used to enable different diagnostic states in the ECU, and the Security Access (SA) service to unlock restricted access to data or services. They are explained in more detail in the next section, as they affect the state of ECUs.
 
-\subsubsection{States}
+\subsection{States}
 \label{subsec:states}
 
 There is always exactly one global UDS state active for an ECU. It influences the behavior of the ECU and can be changed by sending specific requests. Just a few services are able to accomplish this. For example, sending a request with the SA or DSC service to the ECU may affect its state. Whether the ECU has actually changed the state can be easily determined by checking whether the sender received a positive or negative response.
@@ -182,11 +182,11 @@ The Security Access service uses the challenge–response authentication, in aut
 \end{figure}
 
 
-\subsection{The UDS Scanner}
+\section{The UDS Scanner}
 
 The UDS Scanner was implemented in Scapy for the PetS3 project.
 
-\subsubsection{Purpose}
+\subsection{Purpose}
 
 \begin{figure}[h]
     \centering
@@ -205,7 +205,7 @@ As \autoref{fig:automotive-security-testing-process} shows, the security testing
 \end{itemize}
 
 
-\subsubsection{Procedure}
+\subsection{Procedure}
 
 The UDS Scanner starts with scanning each service for the default state of the ECU (see \autoref{subsec:states}). While doing so, it detects new states, which will be scanned subsequently. So as long as new states are found during an iteration, the scan continues. After each iteration, the ECU is reset to return to the default state. Now, the next state to be scanned is activated by sending a sequence of UDS requests, which is an edge of the UDS Scanner's internally built state machine. An ECU reset is usually done by switching off the ECU, waiting a few seconds, and switching it on again, although there is an ECUReset service in the UDS protocol. However, its specification states that the behavior is implementation-specific, so a power-based reset is the cleaner way.
 

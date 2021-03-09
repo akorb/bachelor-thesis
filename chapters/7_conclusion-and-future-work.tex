@@ -1,6 +1,6 @@
-\section{Conclusion and Future Work}
+\chapter{Conclusion and Future Work}
 
-\subsection{Conclusion}
+\section{Conclusion}
 
 In this thesis, three approaches were evaluated and implemented to improve the efficiency of a UDS scan. Reusing information within the same service (approach 1), using probabilities of positive answers based on blocks (approach 2) and avoiding scanning unsupported services (approach 3). Simulations were performed to find their implementation parameters that lead to the best results.
 
@@ -8,7 +8,7 @@ All three approaches turned out to maintain a high request saving while still of
 Nevertheless, all three approaches are not able to provide a 100\% coverage at all times. 
 If a coverage of 100\% is desired, a full scan might be the preferred solution, even if it takes much longer. This may be acceptable, if this scan will be executed only once. For fast results and good, but possibly not complete coverage, the new implementation should be preferred. It depends on the use case. Therefore, the new enumerators are not a replacement for the original ones, but an addition.
 
-\subsection{Future Work}
+\section{Future Work}
 
 Approach 2 could also be applied to the IOCBI service. Theoretically, to many more services, but most have only 8-bit identifiers, which results in almost no time savings and thus is not worth lower coverage.
 

@@ -1,12 +1,12 @@
-\section{Elaboration of the realization of the approaches}
+\chapter{Elaboration of the realization of the approaches}
 
 This section discusses the optimization of the two service scans from the previous section, each using a different approach. In addition, the third approach discussed is to avoid scanning unsupported services.
 
-\subsection{Reuse information within same service}
+\section{Reuse information within same service}
 
 This approach aims to reuse information from one part of a service for another part of this service. First, it must be checked to which service this approach should be applied to.
 
-\subsubsection{Choosing the RC service to apply the approach to}
+\subsection{Choosing the RC service to apply the approach to}
 
 This approach is applicable to scans of services with multiple parameters, as it is the case for the Routine Control (RC) service. It has two parameters, the routine type and the routine identifier (more in \autoref{subsubsec:uds-services}). The distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
 
@@ -21,7 +21,7 @@ It can be seen that if an identifier is available in Type1, it is likely that th
 
 Hence, the RC service is a great candidate for this approach.
 
-\subsubsection{Current behavior}
+\subsection{Current behavior}
 
 There are three control types, and because the identifier field has a length of 16-bits, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
 \[f(n)=3 \cdot 2^{16} \cdot n\]
@@ -36,7 +36,7 @@ The current RC scan does exactly this, it generates the full range for each stat
     \label{fig:rc-behavior-current}
 \end{figure}
 
-\subsubsection{Elaborating the new behavior}
+\subsection{Elaborating the new behavior}
 \label{subsubsec:rc-elaborating}
 
 The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state for this service, resulting in an upper limit of request savings of 66.7 \%.
@@ -99,11 +99,11 @@ Since the request saving decreases only slowly, the highest coverage was chosen,
 The simulations were also run with expanding identifiers in one direction only, which yielded very similar results. Thus, it was left in both directions.
 
 
-\subsection{Use probabilities of positive answers block based}
+\section{Use probabilities of positive answers block based}
 
 Most services are simpler and only have one parameter. So, reusing information within the same service is not practical. This approach tackles these kinds of services. The new idea is to scan the blocks more heavily where positive behavior is more likely than others and vice versa.
 
-\subsubsection{Choosing the RDBI service to apply the approach to}
+\subsection{Choosing the RDBI service to apply the approach to}
 
 The Read Data By Identifier (RDBI) service has only one parameter, the identifier of the requested data.
 
@@ -118,14 +118,14 @@ The distribution of positively answered identifiers over all ECUs is visualized 
 
 It is clearly visible that there are some areas where not a single identifier was answered positively, and some areas that are particularly covered, such as the beginning and the end. This behavior of the RDBI will be exploited in the remainder of this section.
 
-\subsubsection{Current behavior}
+\subsection{Current behavior}
 
 As for the RC service, the identifier field has a length of 16-bits. Hence, there are 2\textsuperscript{16} possible identifiers.
 The current RDBI scan is simple. It generates 2\textsuperscript{16} requests counting up from 0 to 65,535 as the identifier. This leads to the following formula, showing how many requests are generated for a UDS scan:
 \[f(n)=2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states. 
 
-\subsubsection{Elaborating the new behavior}
+\subsection{Elaborating the new behavior}
 \label{subsubsec:rdbi-behavior}
 
 To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. For each block a specific number of requests is generated. If any of these requests is answered positively, the whole block is scanned.  An example is illustrated in \autoref{fig:rdbi-behavior-new}.
@@ -190,7 +190,7 @@ This simulation leads to \autoref{fig:rdbi-simulation-result}.
 The request saving is no longer linear; instead, it is highest for medium block sizes. From block sizes 64 to 128, the coverage decreases by 4\% while the request saving remains the same. Thus, it was decided for \textbf{64} as the block size leading to best results.
 
 
-\subsection{Avoid the scan of unsupported services}
+\section{Avoid the scan of unsupported services}
 \label{subsec:unsupported-services-elaboration}
 
 Each ECU usually supports only a subset of the services offered  by the UDS standard. This approach aims to avoid scanning them in order to save requests and therefore, time.
