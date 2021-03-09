@@ -212,7 +212,14 @@ The UDS Scanner starts with scanning each service for the default state of the E
 The following pseudocode aims to make the procedure easier to understand:
 
 \begin{samepage}
-\begin{minted}{python}
+\begin{minted}
+[frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=LightGray,
+fontsize=\footnotesize,
+linenos]
+{python}
 class UDS_Scanner:
     def scan():
        states = [default_state]

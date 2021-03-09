@@ -3,7 +3,14 @@
 \section{RDBI Random enumerator first version}
 \label{app:random-not-compact}
 
-\begin{minted}{python}
+\begin{minted}
+[frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=LightGray,
+fontsize=\footnotesize,
+linenos]
+{python}
 def _get_initial_requests(self, **kwargs):
     probabilities = [0.015625, 0.0, 0.0, 0.0, 0.453125, 0.34375, 0.296875, 0.0,
                 0.171875, 0.171875, 0.203125, 0.21875, 0.484375,

@@ -59,20 +59,27 @@ As described, the simulation starts with getting all identifiers which have been
 The following pseudocode shows the procedure more clearly.
 
 \begin{samepage}
-\begin{minted}{python}
-    coverages = []
-    request_savings = []
-    for expansion_width in range(1001):
-        coverages_width = []
-        request_savings_width = []
-        for ecu in ecus:
-            ids_type1 = get_type1_ids(ecu)
-            to_scan = ids_to_block(ids_type1, expansion_width)
-            count_requests = len(to_scan)
-            coverages_width.append(get_coverage(ecu, to_scan))
-            request_savings_width.append(get_saving(count_requests))
-        coverages[expansion_width] = avg(coverages_ecus)
-        request_savings[expansion_width] = avg(request_saving)
+\begin{minted}
+[frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=LightGray,
+fontsize=\footnotesize,
+linenos]
+{python}
+coverages = []
+request_savings = []
+for expansion_width in range(1001):
+    coverages_width = []
+    request_savings_width = []
+    for ecu in ecus:
+        ids_type1 = get_type1_ids(ecu)
+        to_scan = ids_to_block(ids_type1, expansion_width)
+        count_requests = len(to_scan)
+        coverages_width.append(get_coverage(ecu, to_scan))
+        request_savings_width.append(get_saving(count_requests))
+    coverages[expansion_width] = avg(coverages_ecus)
+    request_savings[expansion_width] = avg(request_saving)
 \end{minted}
 \end{samepage}
 
@@ -138,24 +145,31 @@ The approach has a feature which makes the simulation more complex than the form
 The following pseudocode shows the procedure more clearly.
 
 \begin{samepage}
-\begin{minted}{python}
-    coverages = []
-    request_savings = []
-    for exponent in range(2, 17):
-        block_size = 2 ** exponent
-        probabilities = get_probabilities(ecus, block_size)
-        coverages_block = []
-        request_savings_block = []
-        for ecu in ecus:
-            for i in range(100):
-                req_random = random_samples(block_size, probabilities)
-                positive_identifiers = ecu.get_positive_identifiers(req_random)
-                req_block = to_blocks(positive_identifiers, block_size)
-                positive_identifiers = ecu.get_positive_identifiers(req_block)
-                count_reqs = len(samples) + len(req_list)
-                coverages_block.append(get_coverage(ecu, positive_identifiers))
-                request_savings_block.append(get_saving(count_reqs))
-        request_savings[exponent] = avg(request_savings_block)
+\begin{minted}
+[frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=LightGray,
+fontsize=\footnotesize,
+linenos]
+{python}
+coverages = []
+request_savings = []
+for exponent in range(2, 17):
+    block_size = 2 ** exponent
+    probabilities = get_probabilities(ecus, block_size)
+    coverages_block = []
+    request_savings_block = []
+    for ecu in ecus:
+        for i in range(100):
+            req_random = random_samples(block_size, probabilities)
+            positive_identifiers = ecu.get_positive_identifiers(req_random)
+            req_block = to_blocks(positive_identifiers, block_size)
+            positive_identifiers = ecu.get_positive_identifiers(req_block)
+            count_reqs = len(samples) + len(req_list)
+            coverages_block.append(get_coverage(ecu, positive_identifiers))
+            request_savings_block.append(get_saving(count_reqs))
+    request_savings[exponent] = avg(request_savings_block)
 \end{minted}
 \end{samepage}
 
