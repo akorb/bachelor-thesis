@@ -30,6 +30,10 @@
 %Cross-platform
 \usepackage[utf8]{inputenc}
 
+%Suppress warning caused by Koma-script defining its own floating algorithm
+%but minted is using the float package, which defines such an algorithm too
+\usepackage{scrhack}
+
 %Font coding
 \usepackage[T1]{fontenc}
 
@@ -164,6 +168,9 @@
 
 \thispagestyle{plain}
 \printunsrtglossary[type=\acronymtype]
+
+\thispagestyle{plain}
+\listoflistings
 
 \thispagestyle{plain}
 \listoffigures
