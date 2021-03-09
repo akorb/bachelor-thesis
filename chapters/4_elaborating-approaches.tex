@@ -56,9 +56,9 @@ What needs to be found out is the expansion width which leads to the best covera
 
 As described, the simulation starts with getting all identifiers which have been positively answered by the currently simulated ECU. Subsequently, these identifiers are expanded to both sites from 0 to 1000. Overlapping ranges are resolved to a continuous space. The sizes of the resulting ranges lead to the theoretically generated requests which can be calculated to the coverage and request saving. These values of all ECUs are averaged to the final result.
  
-The following pseudocode shows the procedure more clearly.
+The pseudocode of \autoref{lst:rc-sim} shows the procedure more clearly.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -81,7 +81,9 @@ for expansion_width in range(1001):
     coverages[expansion_width] = avg(coverages_ecus)
     request_savings[expansion_width] = avg(request_saving)
 \end{minted}
-\end{samepage}
+\caption{Simulation procedure for finding the best expansion width.}
+\label{lst:rc-sim}
+\end{listing}
 
 The result of this simulation is plotted in \autoref{fig:rc-simulation-result}. The request saving is almost linear to the expansion width. That makes sense, because the larger the expansions are, the more requests are generated. The expansion width of zero represents the results without using the locality effect.
 
@@ -142,9 +144,10 @@ wherein $p$ stands for the probability function, $i$ for the index of the reques
 The second question is which block size leads to the best results. This is again answered by a simulation. As potential block sizes $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The resulting coverages and request savings are then calculated for each ECU specifically and averaged to the final result. Same as for the RC service, the states are ignored in the simulation.
 
 The approach has a feature which makes the simulation more complex than the former simulation. Since the blocks are first scanned randomly, the scan can lead to a great coverage, but also a low one, depending on the hit rate of the generated identifiers. To reduce this effect, the simulation is made 100 times, each time with newly created random identifiers. The 100 results are averaged to the coverage and request saving corrected from the random factor. This leads to a high processing time. To reduce the runtime, the execution was parallelized.
-The following pseudocode shows the procedure more clearly.
 
-\begin{samepage}
+The pseudocode of \autoref{lst:rdbi-sim} shows the procedure more clearly.
+
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -171,7 +174,9 @@ for exponent in range(2, 17):
             request_savings_block.append(get_saving(count_reqs))
     request_savings[exponent] = avg(request_savings_block)
 \end{minted}
-\end{samepage}
+\caption{Simulation procedure for finding the best block size.}
+\label{lst:rdbi-sim}
+\end{listing}
 
 This simulation leads to \autoref{fig:rdbi-simulation-result}.
 

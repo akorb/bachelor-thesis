@@ -209,9 +209,9 @@ As \autoref{fig:automotive-security-testing-process} shows, the security testing
 
 The UDS Scanner starts with scanning each service for the default state of the ECU (see \autoref{subsec:states}). While doing so, it detects new states, which will be scanned subsequently. So as long as new states are found during an iteration, the scan continues. After each iteration, the ECU is reset to return to the default state. Now, the next state to be scanned is activated by sending a sequence of UDS requests, which is an edge of the UDS Scanner's internally built state machine. An ECU reset is usually done by switching off the ECU, waiting a few seconds, and switching it on again, although there is an ECUReset service in the UDS protocol. However, its specification states that the behavior is implementation-specific, so a power-based reset is the cleaner way.
 
-The following pseudocode aims to make the procedure easier to understand:
+\autoref{lst:uds-scanner} aims to make the procedure easier to understand:
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -230,4 +230,6 @@ class UDS_Scanner:
                service.scan() # detects new states
        ecu.reset()
 \end{minted}
-\end{samepage}
+\caption{Procedure of the UDS Scanner.}
+\label{lst:uds-scanner}
+\end{listing}

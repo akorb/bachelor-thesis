@@ -30,10 +30,7 @@
 %German Umlauts / Coding / Hyphenation
 %\usepackage[ngerman]{babel}
 %improved edge compensation
-\usepackage{microtype}		
-
-%Random text
-\usepackage{blindtext}
+\usepackage{microtype}
 
 %Code highlighting
 \usepackage{minted}
@@ -162,6 +159,8 @@
 \apptocmd{\appendix}{\toggletrue{inappendix}}{}{\errmessage{failed to patch}}
 \apptocmd{\subappendices}{\toggletrue{inappendix}}{}{\errmessage{failed to patch}}
 % end appendix autoref patch
+
+\providecommand*{\listingautorefname}{Listing}
 
 
 \usepackage[acronym, toc, nogroupskip, style=long]{glossaries}

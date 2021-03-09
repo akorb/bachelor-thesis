@@ -6,8 +6,8 @@ One of the core classes in Scapy is the \mintinline{python}{Packet} class. All d
 
 Its most important member is the \mintinline{python}{fields_desc} list. It is a requirement for each layer to overwrite it. Its elements must inherit from the \mintinline{python}{Field} class. The chosen field classes define the structure of each header field.
 
-\begin{samepage}
-    \begin{minted}
+\begin{listing}[H]
+\begin{minted}
 [frame=lines,
 framesep=2mm,
 baselinestretch=1.2,
@@ -25,10 +25,12 @@ class UDS(Packet):
     fields_desc = [
         XByteEnumField('service', 0, services)
     ]
-    \end{minted}
-\end{samepage}
+\end{minted}
+\caption{Implementation of the root class for UDS in Scapy.}
+\label{lst:uds-implementation}
+\end{listing}
 
-The UDS layer contains only an \mintinline{python}{XByteEnumField} field. The field class names are composed of keywords.
+The UDS class (see \autoref{lst:uds-implementation}) contains only an \mintinline{python}{XByteEnumField} field. The field class names are composed of keywords.
 \begin{itemize}
     \item \textbf{X}: Represent its value as a hexadecimal value for the user.
     \item \textbf{Byte}: The field has 8-bits.
@@ -49,7 +51,7 @@ This field contains the Service Identifier (SID).
 
 The Scapy implementation starts a new class whenever the subsequent fields depend on a field value of the current layer. This is the case here, since the next fields depend on the SID. The service specific fields are defined in their own classes, for example:
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -67,29 +69,19 @@ class UDS_DSC(Packet):
     fields_desc = [
         ByteEnumField('diagnosticSessionType', 0,  diagnosticSessionTypes)
     ]
-\end{minted}
-\end{samepage}
 
-So far, these are two independent classes for Scapy. It doesn't know the relationship between them. This can be changed with the \mintinline{python}{bind_layers} function.
-
-\begin{minted}
-[frame=lines,
-framesep=2mm,
-baselinestretch=1.2,
-bgcolor=LightGray,
-fontsize=\footnotesize,
-linenos]
-{python}
 bind_layers(UDS, UDS_DSC, service=0x10)
 \end{minted}
+\caption{Implementation of the DSC service in Scapy.}
+\label{lst:uds-dsc-implementation}
+\end{listing}
 
-This information will be used by Scapy for building and dissecting packets.
-
+The \mintinline{python}{bind_layers} call (line 11) tells Scapy the relationship between the classes \mintinline{python}{UDS} and \mintinline{python}{UDS_DSC}. This information will be used by Scapy for building and dissecting packets.
 Then, if a UDS packet is received with the SID 0x10, it continues dissecting this packet with the field definitions of \mintinline{python}{UDS_DSC}. And vice versa, if a \mintinline{python}{UDS_DSC} packet is stacked on a \mintinline{python}{UDS} packet for building, the UDS packets SID field automatically is set to 0x10.
 
 Layers are stacked with the division operator of python.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -101,7 +93,9 @@ linenos]
 packet = UDS() / UDS_DSC(diagnosticSessionType=0x03)
 bytes(packet) # prints: 0x10 0x03
 \end{minted}
-\end{samepage}
+\caption{Stacking \mintinline{python}{UDS} and \mintinline{python}{UDS_DSC} to a complete UDS request.}
+\label{lst:uds-dsc-stacking}
+\end{listing}
 
 As can be seen, the SID of the packet is 0x10, although it was never explicitly set. Scapy set it because of the previous binding.
 
@@ -114,7 +108,7 @@ An ISO-TP socket contains a source and destination identifier. They have the sam
 
 The usage of the native implementation is illustrated in the following code snippet:
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -128,7 +122,9 @@ socket = ISOTPNativeSocket('vcan0', sid=0x123, did=0x456)
 packet = UDS() / UDS_DSC(diagnosticSessionType=0x03)
 socket.send(packet)
 \end{minted}
-\end{samepage}
+\caption{Sending a UDS packet with an ISO-TP socket.}
+\label{lst:send-packet-isotp}
+\end{listing}
 
 Sniffing the resulting packet with the candump command explained in \autoref{subsubsec:can-utils}, it outputs:
 
@@ -139,7 +135,7 @@ Sniffing the resulting packet with the candump command explained in \autoref{sub
 \end{minted}
 \end{samepage}
 
-This output is explained step-by-step in the following list:
+This output is explained step by step in the following list:
 
 \begin{itemize}
     \item \mintinline{text}{0x123}: The CAN identifier.
@@ -162,7 +158,7 @@ Each enumerator will be executed for each found state of the ECU. So, if an enum
 
 For a better understanding, the \mintinline{python}{UDS_DSCEnumerator} implementation will be described exemplary.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -176,7 +172,9 @@ class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
         session_range = kwargs.pop('session_range', range(2, 0x100))
         return UDS() / UDS_DSC(diagnosticSessionType=session_range)
 \end{minted}
-\end{samepage}
+\caption{Implementation of an enumerator scanning the DSC service.}
+\label{lst:dsc-enumerator}
+\end{listing}
 
 The method can be configured by keyword parameters. The only one read by this method implementation is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 requests for each state by default. It is also a \mintinline{python}{StateGenerator}, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
 
@@ -215,7 +213,7 @@ So-called staged enumerators contain enumerators where each enumerator is a stag
 
 For each stage transition connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here the results of the previous enumerator can be evaluated and the next enumerator can be configured accordingly. The connector will be automatically called by the UDS Scanner, it expects a dictionary as return value that will be passed to the next enumerator. 
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -236,7 +234,9 @@ class MyStagedEnumerator(StagedAutomotiveTestCase):
             stages=[Stage1Enumerator(), Stage2Enumerator()],
             connectors=[None, self.connector_stage1_stage2])
 \end{minted}
-\end{samepage}
+\caption{Example implementation of a staged enumerator.}
+\label{lst:staged-enumerator}
+\end{listing}
 
 \subsection{Implementing new enumerators for the RC service}
 
@@ -259,7 +259,7 @@ For this work, the configurability of the \mintinline{python}{RCEnumerator} has 
 
 First, the \mintinline{python}{RCEnumerator} will be explained by having a closer look at its \mintinline{python}{_get_initial_requests} method.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -279,13 +279,15 @@ class UDS_RCEnumerator(UDS_Enumerator):
             for rc_type, data_id in itertools.product(type_list, scan_range)
         )
 \end{minted}
-\end{samepage}
+\caption{The extended enumerator for the RC service.}
+\label{lst:rc-enumerator}
+\end{listing}
 
 Two parameters can be configured, the \mintinline{python}{type_list} and \mintinline{python}{scan_range}. Both default to the values required to scan the whole RC service. Eventually, the method returns a generator that generates all requests possible by pairing the values of \mintinline{python}{type_list} and \mintinline{python}{scan_range}. This accomplishes the \mintinline{python}{itertools.product} method from the Python Standard library. It returns the cartesian product of the input iterables.
 
 Next, the \mintinline{python}{RCStartEnumerator}.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -299,13 +301,15 @@ class UDS_RCStartEnumerator(UDS_RCEnumerator):
         kwargs["type_list"] = [1]
         return super()._get_initial_requests(**kwargs)
 \end{minted}
-\end{samepage}
+\caption{The enumerator for the RC service only scanning Type1.}
+\label{lst:rc-start-enumerator}
+\end{listing}
 
 Its \mintinline{python}{_get_initial_requests} method is simple. It fixes the \mintinline{python}{type_list} to Type1 and then calls its implementation of the super class, which is the previously explained \mintinline{python}{UDS_RCEnumerator}. This results in generating requests only for Type1.
 
 The \mintinline{python}{UDS_RCSelectiveEnumerator} brings these both enumerators together.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -333,14 +337,16 @@ class UDS_RCSelectiveEnumerator(StagedAutomotiveTestCase):
             [UDS_RCStartEnumerator(), UDS_RCEnumerator()],
             [None, self.connector_start_to_full])
 \end{minted}
-\end{samepage}
+\caption{The staged enumerator combining the start and complete enumerator for the RC service.}
+\label{lst:rc-selective-enumerator}
+\end{listing}
 
 This staged enumerator has the \mintinline{python}{RCStartEnumerator} as the first stage, and the \mintinline{python}{RCEnumerator} as the second and last stage.
 The expansion width is fixed to \textbf{253} as it has been elaborated in \autoref{subsubsec:rc-elaborating}.
 
 The connector calls \mintinline{python}{points_to_ranges} to expand the found identifiers of the first stage to ranges and passes them to the second stage. Additionally, the connector fixes the \mintinline{python}{RCEnumerator} to only scan Type2 and Type3, as Type1 shouldn't be scanned again.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -358,7 +364,9 @@ def points_to_ranges(points, expansion_width):
     ranges_with_overlaps = itertools.chain.from_iterable(generators)
     return sorted(set(ranges_with_overlaps))
 \end{minted}
-\end{samepage}
+\caption{Function extending points to ranges.}
+\label{lst:points-to-ranges}
+\end{listing}
 
 \mintinline{python}{points_to_ranges} expands points to ranges and also resolves any overlaps to a continuous range.
 First, a range generator is created for each given point. Then, they are chained and converted to a set, removing potential overlaps. This set is sorted to a list, to ensure understandable candump logs of a scan.
@@ -384,7 +392,7 @@ The new implementation is two-staged. First, the \mintinline{python}{RDBIRandomE
 
 The explanation starts with the original enumerator, here the \mintinline{python}{RDBIEnumerator}.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -398,13 +406,15 @@ class UDS_RDBIEnumerator(UDS_Enumerator):
         scan_range = kwargs.pop("scan_range", range(0x10000))
         return (UDS() / UDS_RDBI(identifiers=[x]) for x in scan_range)
 \end{minted}
-\end{samepage}
+\caption{The enumerator scanning the whole RDBI service by default.}
+\label{lst:rdbi-enumerator}
+\end{listing}
 
 Since the RDBI service has only one parameter, its \mintinline{python}{_get_initial_requests} remains simple, generating RDBI requests for identifiers from 0 to 65,535, if not configured otherwise.
 
 Implementing the \mintinline{python}{RDBIRandomEnumerator} was a challenge because it must include the probabilities of positively responded identifiers for each block. With a block size of \textbf{64} (see \autoref{subsubsec:rdbi-behavior}), there would need to be a list with $\frac{2^{16}}{64} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on two facts. That the probabilities are ultimately converted to the number of samples, and that at least one request should be generated for each block. For the former, the number of samples for each block were pre-computed instead of being computed at runtime. This simplifies the list in the sense that integers are stored instead of float values. Second, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to 2. And blocks for which no value is stored, the value 1 is used. This automatically solves that each block is probed with at least one request, even if its probability is 0\%. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements. The non-compact version is shown in \autoref{app:random-not-compact}.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -434,7 +444,9 @@ class UDS_RDBIRandomEnumerator(UDS_RDBIEnumerator):
         to_scan = sorted(list(set(to_scan)))
         return (UDS() / UDS_RDBI(identifiers=[x]) for x in to_scan)
 \end{minted}
-\end{samepage}
+\caption{The enumerator scanning randomly the RDBI service based on blocks.}
+\label{lst:rdbi-random-enumerator}
+\end{listing}
 
 The \mintinline{python}{random.sample} function from the Python Standard library returns a list of given length with unique elements chosen from the given sequence.
 
@@ -442,7 +454,7 @@ The implementation exploits the observation that most identifiers are available 
 
 Again, the \mintinline{python}{UDS_RDBISelectiveEnumerator} brings these two enumerators together.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -470,11 +482,13 @@ class UDS_RDBISelectiveEnumerator(StagedAutomotiveTestCase):
             [UDS_RDBIRandomEnumerator(), UDS_RDBIEnumerator()],
             [None, self.connector_random_to_sequential])
 \end{minted}
-\end{samepage}
+\caption{The staged enumerator combining the random and complete enumerator for the RDBI service.}
+\label{lst:rdbi-selective-enumerator}
+\end{listing}
 
 Since it is similar to the \mintinline{python}{RCSelectiveEnumerator}, it will not be explained further. Only the \mintinline{python}{points_to_blocks} will be described in more detail.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -494,7 +508,9 @@ def points_to_blocks(points, block_size):
     scan_range = itertools.chain.from_iterable(generators)
     return scan_range
 \end{minted}
-\end{samepage}
+\caption{Function extending points to fixed blocks.}
+\label{lst:points-to-blocks}
+\end{listing}
 
 Unlike \mintinline{python}{points_to_ranges}, its block boundaries are fixed. It traverses each block and checks if any of the given identifiers is part of that block. If this is the case, the block will be scanned completely.
 
@@ -504,7 +520,7 @@ Unfortunately, this can lead to double-scanned identifiers, since instead of sca
 
 In contrast to the previous approaches, this one is not applied to specific service enumerators, but to their super class. It evaluates each response, for example to detect if a new state was found. Here, a check was added for negative responses if they have an NRC of 0x11 or 0x7f. If they do, the enumerator is set to completed for the currently executed state.
 
-\begin{samepage}
+\begin{listing}[H]
 \begin{minted}
 [frame=lines,
 framesep=2mm,
@@ -534,4 +550,6 @@ class AutomotiveTestCase(AutomotiveTestCaseABC):
 
         return False
 \end{minted}
-\end{samepage}    
+\caption{The extended super class of each enumerator with skipping unsupported services.}
+\label{lst:enumerator-super-class}
+\end{listing}    
