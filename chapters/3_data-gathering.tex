@@ -5,9 +5,9 @@ From here, the procedure and the environment of gathering information to elabora
 
 \section{Remote test environment}
 
-In order to find scan ranges that are likely to be answered positively, data from as many ECUs as possible is needed. In the context of the PetS3 project a remote testing environment has been created. This was particularly helpful in light of the contact limitations at the time of writing.
+In order to find scan ranges that are likely to be answered positively, data from as many ECUs as possible is needed. A remote test environment was created for the PetS3 project that was particularly helpful in light of the contact limitations at the time of writing.
 
-The infrastructure of Laboratory for Safe and Secure Systems (LaS3) was used for that. Specifically, their GitLab server was used, displayed in \autoref{fig:gitlab-screenshot}.
+For this, the infrastructure of \emph{Laboratory for Safe and Secure Systems} (LaS3) was used, specifically their GitLab server, as shown in \autoref{fig:gitlab-screenshot}.
 
 %GitLab screenshot
 \begin{figure}[htb]
@@ -17,13 +17,13 @@ The infrastructure of Laboratory for Safe and Secure Systems (LaS3) was used for
     \label{fig:gitlab-screenshot}
 \end{figure}
 
-Fourteen ECUs are available for testing on this server. However, three of them are from Opel and therefore only support GMLAN but not UDS.
+Fifteen ECUs are available for testing on this server. However, three of them are from Opel and therefore only support GMLAN but not UDS. And two of them are identical, resulting in a total of eleven usable ECUs.
 
-For each ECU a YAML configuration file was created. Various work is done here, for example pulling and checking out the Scapy code from the currently working branch.
+For each ECU a configuration file was created. Various work is done here, for example pulling and checking out the Scapy code from the currently working branch.
 
-Then, the actual tests are executed that are written with the pytest framework. Here, a UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests.
+Then, the actual tests are executed that are written with the pytest framework. Here, a UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests (see \autoref{subsubsec:can-utils}).
 
-Finally, the resulting files are uploaded to the GitLab server so that they can be downloaded via a browser program. Which files these are specifically and what they were used for will be explained in the next section.
+Finally, the resulting files are uploaded to the GitLab server so that they can be downloaded via a browser program. Which files these are and what they were used for is explained in the next section.
 
 \section{Explaining the generated data of a scan}
 
@@ -38,11 +38,11 @@ In total, four files are stored after a scan, which will be explained in this se
 
 \subsection{Record communication between scanner and ECU}
 
-The resulting candump.log file recorded with the command explained in \autoref{subsubsec:can-utils} has a simple structure. Each line represents a CAN frame.
+The resulting 'candump.log' file recorded with the command shown in \autoref{lst:can-utils} (line 3) has a simple structure. Each line represents a CAN frame.
 
 \begin{samepage}
 \begin{minted}{text}
-    (<timestamp>) <interface> <identifier>#<payload>
+    (<timestamp>) <interface> <identifier>#<data>
     (1611779255.926425) can1 714#03225FB2CCCCCCCC
     (1611779255.929936) can1 77E#037F2231AAAAAAAA
     (1611779255.935338) can1 714#03225FB3CCCCCCCC
@@ -60,7 +60,7 @@ Unfortunately, these files contain a lot of information that is not only not nee
     \label{fig:can-unwanted-information}
 \end{figure}
 
-Consequently, an abstraction is desirable. The newly created format is called the generic format. It removes the interface, the padding, resolves the transport protocol information (ISO-TP) and replaces the identifier with representatives (s = Server, c = Client). Each line represents UDS data, instead of a lower layer CAN frame as in the candump logs. \autoref{fig:candump-generic-conversion} illustrates the input and output of a conversion.
+Consequently, an abstraction is desirable. The newly created format is called the generic format. It removes the interface, the padding, resolves the transport protocol information (ISO-TP) and replaces the identifier with representatives (s = Server, c = Client). Each line represents UDS data, instead of a lower layer CAN frames as in the candump logs. \autoref{fig:candump-generic-conversion} illustrates the input and output of a conversion.
 
 %candump to generic conversion
 \begin{figure}[htb]
@@ -83,9 +83,7 @@ For instance, counting the number of requests of a scan is a single command:
 
 \subsection{Store service scan behavior of a scan}
 
-For profiling, a file has been added as output to the UDS scanner, namely profiling.csv.
-
-It contains which service scan ran under which state and when. It follows a fairly simple structure:
+For profiling, a file has been added as output to the UDS scanner, namely 'profiling.csv'. It contains which service scan ran under which state and when. It follows a fairly simple structure:
 
 \begin{samepage}
     \begin{minted}{text}
@@ -103,7 +101,7 @@ Although an ECU Reset has no state, all occurrences of it get the same named sta
 
 \subsection{Store the finished scanner object}
 
-Last but not least, the data.pkl file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The data.pkl file is the serialized UDS Scanner object after the scan and thus contains all the results, consisting of the responses for each request for each state of an ECU. This is helpful for debugging, analysis and also for simulation.
+Last but not least, the 'data.pkl' file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The 'data.pkl' file is the serialized UDS Scanner object after the scan and thus contains all the results, consisting of the responses for each request for each state of an ECU. This is helpful for debugging, analysis and also for simulation.
 
 
 \section{Profiling the UDS Scanner}
@@ -112,7 +110,7 @@ The Pareto principle indicates that small number of causes can be responsible fo
 
 \subsection{Visualizing UDS scans}
 
-To profile the UDS Scanner, the profiling.csv file is used. With its help Gantt charts are created which show the sequence and duration of the scanned services. This visualizes what parts of the UDS Scanner cause most of its runtime.
+To profile the UDS Scanner, the 'profiling.csv' file is used. With its help Gantt charts are created which show the sequence and duration of the scanned services. This visualizes what parts of the UDS Scanner cause most of its runtime.
 
 These charts have been created for each available ECU. For illustration one is sufficient since each showed the same gist (see \autoref{fig:tesla-gantt}).
 

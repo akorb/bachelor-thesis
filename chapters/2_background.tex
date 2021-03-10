@@ -72,7 +72,7 @@ Moreover, CAN busses are using the bus network topology (see \autoref{fig:with-w
     \label{fig:with-without-can}
 \end{figure}
 
-Last but not least, an important feature for the automotive application domain is the priority support. The lower the identifier, the higher the priority. Hence, if ECU1 and ECU2 transmit a CAN frame at exactly the same time, the frame with the lower identifier wins, the other one is discarded and will be retransmitted. This is called the Carrier Sense Multiple Access with Collision Detection (CSMA/CD) protocol \cite{Sharma2016}. For this reason, diagnostic CAN identifiers tend to have a high identifier \cite{Herrewegen2018}.
+Last but not least, an important feature for the automotive application domain is the priority support. The lower the identifier, the higher the priority. Hence, if two ECUs transmit a CAN frame at exactly the same time, the frame with the lower identifier wins, the other one is discarded and will be retransmitted. This is called the Carrier Sense Multiple Access with Collision Detection (CSMA/CD) protocol \cite{Sharma2016}. For this reason, diagnostic CAN identifiers tend to have a high identifier \cite{Herrewegen2018}.
 
 \subsection{Security vulnerabilities}
 
@@ -109,7 +109,7 @@ cansend vcan0 123#01.02
 \label{lst:can-utils}
 \end{listing}
 
-The most common tool set to work with the CAN bus are the can-utils \cite{can-utils}, which can be usually installed with the package manager of the distributions. The candump command (line 2) displays all messages of the CAN bus on interface \mintinline{text}{vcan0} in a terminal:
+The most common toolkit to work with the CAN bus are the can-utils \cite{can-utils}, which can be usually installed with the package manager of the distributions. The candump command (line 2) displays all messages of the CAN bus on interface \mintinline{text}{vcan0} in a terminal:
 
 Adding the \mintinline{text}{-l} option changes the output to be more compact instead of human-readable and stores the received traffic in a \mintinline{text}{candump.log} file (line 3). All traffic recorded in this work was done with this command.
 
@@ -125,7 +125,7 @@ It is defined in ISO 15765-2 and increases the payload size from 8 bytes to 4095
 
 UDS stands for \emph{Unified diagnostic services} and is an application protocol defined in ISO 14229. This protocol defines the structures of request and response data for diagnostic purposes sent over an arbitrary data link \cite{iso14229}.
 
-The reason for the development of such a protocol was that the cars developed in the last decades were more and more able to diagnose themselves. A car repair shop only had to request this information from the car. But since there was no universal standard, car manufacturers tended to implement company-specific protocols for this purpose. UDS is an international standard and not company-specific, the \emph{Unified} in its name underlines this. 
+The reason for the development of such a protocol was that the cars developed in the last decades were more and more able to diagnose themselves. A car repair shop only had to request this information from the car. But since there was no universal standard, car manufacturers tended to implement company-specific protocols for this purpose. UDS solves this by being an international standard and not company-specific. The \emph{Unified} in its name underlines this. 
 
 %UDS stack
 \begin{figure}[htb]
@@ -146,7 +146,7 @@ As shown in \autoref{fig:uds-stack}, the most common data links for the UDS prot
     \label{fig:uds-structure}
 \end{figure}
 
-\autoref{fig:uds-structure} shows how UDS requests are structured. Each service is identified by a Service Identifier (SID). This identifier is the first byte of each UDS data. It must not be confused with the identifier of the CAN frame. Then at least one parameter follows. Most common is only one parameter. But services with multiple parameters exist too.
+\autoref{fig:uds-structure} shows how UDS requests are structured. Each service is identified by a Service Identifier (SID). This identifier is the first byte in all UDS data. It must not be confused with the identifier of the CAN frame. Then at least one parameter follows. Most common is only one parameter, but services with multiple parameters exist too.
 Negative responses have the SID 0x7f.
 For positive responses it is defined as 0x40 added to the SID. Thus, a request with SID 0x27 would be responded with 0x27 + 0x40 = 0x67 (see \autoref{fig:key-seed}).
 
@@ -157,14 +157,14 @@ UDS defines various services with different purposes. The ones used later in thi
 
 The Routine Control (RC) service allows managing predefined routines on the ECU. They can be started, stopped or their results requested. It has two parameters, namely the desired action and the identifier of the routine.
 
-Another service is called Read Data By Identifier (RDBI). With this service, it is possible to retrieve one or more values of a control unit. This can be static information like the software version or dynamic values such as the current readings of sensors. The structure of its requests is simple as it only contains an identifier as parameter.
+Another service is called Read Data By Identifier (RDBI). With this service, it is possible to retrieve one or more values of an ECU. This can be static information like the software version or dynamic values such as the current readings of sensors. The structure of RDBI requests is simple as it only contains an identifier as parameter.
 
 The Diagnostic Session Control (DSC) service is used to enable different diagnostic states in the ECU, and the Security Access (SA) service to unlock restricted access to data or services. They are explained in more detail in the next section, as they affect the state of ECUs.
 
 \subsection{States}
 \label{subsec:states}
 
-There is always exactly one global UDS state active for an ECU. It influences the behavior of the ECU and can be changed by sending specific requests. Just a few services are able to accomplish this. For example, sending a request with the SA or DSC service to the ECU may affect its state. Whether the ECU has actually changed the state can be easily determined by checking whether the sender received a positive or negative response.
+There is always exactly one global UDS state active for an ECU. It influences the behavior of the ECU and can be changed by sending specific requests. Just a few services are able to accomplish this. For example, sending a request to the SA or DSC service of an ECU may affect its state. Whether the ECU has actually changed the state can be easily determined by checking whether the sender received a positive or negative response from the ECU.
 
 \begin{figure}[htb]
     \centering
@@ -204,13 +204,13 @@ As \autoref{fig:automotive-security-testing-process} shows, the security testing
 \item Which services are supported?
 \item What information can be read with these services?
 \item What control options does the ECU offer?
-\item Which states does it have, how does it behave in each?
+\item Which states does it have and how does it behave in each case?
 \end{itemize}
 
 
 \subsection{Procedure}
 
-The UDS Scanner starts with scanning each service for the default state of the ECU (see \autoref{subsec:states}). While doing so, it detects new states, which will be scanned subsequently. So as long as new states are found during an iteration, the scan continues. After each iteration, the ECU is reset to return to the default state. Now, the next state to be scanned is activated by sending a sequence of UDS requests, which is an edge of the UDS Scanner's internally built state machine. An ECU reset is usually done by switching off the ECU, waiting a few seconds, and switching it on again, although there is an ECU Reset service in the UDS protocol. However, its specification states that the behavior is implementation-specific, so a power-based reset is the cleaner way.
+The UDS Scanner starts with scanning each service for the default state of the ECU (see \autoref{subsec:states}). While doing so, it detects new states, which will be scanned subsequently. So as long as new states are found during an iteration, the scan continues. After each iteration, the ECU is reset to return to the default state. Then, the next state to be scanned is activated by sending a sequence of UDS requests, which is an edge of the UDS Scanner's internally built state machine. An ECU reset is usually done by switching off the ECU, waiting a few seconds, and switching it on again, although there is an ECU Reset service in the UDS protocol. However, its specification states that the behavior is implementation-specific, so a power-based reset is the cleaner way.
 
 \autoref{lst:uds-scanner} aims to make the procedure easier to understand:
 

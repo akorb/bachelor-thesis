@@ -8,7 +8,7 @@ This approach aims to reuse information from one part of a service for another p
 
 \subsection{Choosing the RC service to apply the approach to}
 
-This approach is applicable to scans of services with multiple parameters, as it is the case for the Routine Control (RC) service. It has two parameters, the routine type and the routine identifier (more in \autoref{subsubsec:uds-services}). The distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
+This approach is applicable to scans of services with multiple parameters, as it is the case for the Routine Control (RC) service. It has two parameters, the routine type and the routine identifier. Based on the data gathered in \autoref{sec:data-gathering}, the distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
 
 \begin{figure}[htb]
     \centering
@@ -52,7 +52,7 @@ It was observed that there seems to be a locality effect for the identifiers. Th
     \label{fig:rc-behavior-new}
 \end{figure}
 
-What needs to be found out is the expansion width which leads to the best coverage, while maintaining an appropriate request saving. For this, scans with different expansion widths were simulated. These simulations work based on the information gathered from the real ECUs as described in \autoref{sec:data-gathering}. For a quick simulation another observation is used. If an identifier is available in a state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still close to the real ECUs. The required information, which identifiers are supported by an ECU for which type, is extracted from the generic.log files.
+What needs to be found out is the expansion width which leads to the best coverage, while maintaining an appropriate request saving. For this, scans with different expansion widths were simulated. These simulations work based on the information gathered from the real ECUs as described in \autoref{sec:data-gathering}. For a quick simulation another observation is used. If an identifier is available in a state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still close to the real ECUs. The required information, which identifiers are supported by an ECU for which type, is extracted from the 'generic.log' files.
 
 As described, the simulation starts with getting all identifiers which have been positively answered by the currently simulated ECU. Subsequently, these identifiers are expanded to both sites from 0 to 1000. Overlapping ranges are resolved to a continuous space. The sizes of the resulting ranges lead to the theoretically generated requests which can be calculated to the coverage and request saving. These values of all ECUs are averaged to the final result.
  
@@ -108,7 +108,7 @@ Most services are simpler and only have one parameter. So, reusing information w
 
 The Read Data By Identifier (RDBI) service has only one parameter, the identifier of the requested data.
 
-The distribution of positively answered identifiers over all ECUs is visualized in a histogram to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
+The distribution of positively answered identifiers over all available ECUs is visualized in a histogram to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
 
 \begin{figure}[htb]
     \centering
@@ -138,13 +138,13 @@ To reduce this range, first the 2\textsuperscript{16} area is divided into block
     \label{fig:rdbi-behavior-new}
 \end{figure}
 
-The first point to answer is how the number of requests is calculated for each block. It is based on the probability of positive identifiers of this block. This probability is gathered from merging all positively answered identifiers of all ECUs and then for each block calculating $\frac{occurences}{block\_size}$. The number $r$ of requests for a block is calculated with
+The first point to answer is how the number of requests is calculated for each block. It is based on the probability of positive identifiers of this block. This probability is gathered from merging all positively answered identifiers of all available ECUs and then for each block calculating $\frac{occurences}{block\_size}$. The number $r$ of requests for a block is calculated with
 \[r(i, s)=\max(p(i, s) \cdot s, 1)\]
 wherein $p$ stands for the probability function, $i$ for the index of the requested block and $s$ for the block size. For each block should be generated at least one request. The requested identifiers within a block are generated randomly.
 
-The second question is which block size leads to the best results. This is again answered by a simulation. As potential block sizes $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The resulting coverages and request savings are then calculated for each ECU specifically and averaged to the final result. Same as for the RC service, the states are ignored in the simulation.
+The second question is which block size leads to the best results. This is again answered by a simulation. As potential block sizes $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The probabilities and thus the requests per block are calculated based on the merged data of all available ECUs. Then, the resulting coverages and request savings are calculated for each ECU specifically and averaged to the final result. Same as for the RC service, the states are ignored in the simulation.
 
-The approach has a feature which makes the simulation more complex than the former simulation. Since the blocks are first scanned randomly, the scan can lead to a great coverage, but also a low one, depending on the hit rate of the generated identifiers. To reduce this effect, the simulation is made 100 times, each time with newly created random identifiers. The 100 results are averaged to the coverage and request saving corrected from the random factor. This leads to a high processing time. To reduce the runtime, the execution was parallelized.
+Since the blocks are first scanned randomly, this simulation is more complex than the former one for the RC service. The scan can lead to a great coverage, but also a low one, depending on the hit rate of the generated identifiers. To reduce this effect, the simulation is made 100 times, each time with newly created random identifiers. The 100 results are averaged to the coverage and request saving corrected from the random factor. This leads to a high processing time. To reduce the runtime, the execution was parallelized.
 
 The pseudocode of \autoref{lst:rdbi-sim} shows the procedure more clearly.
 
@@ -206,4 +206,4 @@ The first thing to understand is how to tell if a service is supported or not. T
     \label{fig:server-response-behaviour}
 \end{figure}
 
-Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that the NRCs 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current service scan with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service per state, which in turn receives 0x11 NRC again and then stops the service scan. The number of states detected is usually one-digit, so the number of requests generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
+Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that the NRCs 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current service scan with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service per state, which in turn receives a 0x11 NRC again and then stops the service scan. However, the number of states detected is usually one-digit, so the number of requests generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.

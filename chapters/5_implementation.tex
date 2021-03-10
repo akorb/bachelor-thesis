@@ -181,7 +181,7 @@ class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
 \label{lst:dsc-enumerator}
 \end{listing}
 
-The method can be configured by keyword parameters. The only one read by this method implementation is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 requests for each state by default. It is also a \mintinline{python}{StateGenerator}, which means its requests can change the state of the ECU. This is detected by the UDS Scanner and the new state will be scanned as well.
+The method can be configured by keyword parameters. The only one read by this method implementation is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 requests for each state by default. It is also a \mintinline{python}{StateGenerator}, which means its requests can change the state of the ECU (see \autoref{subsec:states}). This is detected by the UDS Scanner and the new state will be scanned as well.
 
 Enumerators can output their results as a text-table. For example a possible output of the UDS enumerator is:
 
@@ -201,19 +201,19 @@ Each row is a request. Here are listed requests of the DSC service with paramete
 
 A PenTester would be able to extract a state machine from this table (see \autoref{fig:state-machine-of-scan}).
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{state-machine-of-scan}
+    \includegraphics[width=0.68\textwidth]{state-machine-of-scan}
     \caption{Partial result for a PenTester of a UDS scan.}
     \label{fig:state-machine-of-scan}
 \end{figure}
 
-So-called staged enumerators contain enumerators where each enumerator is a stage. They start executing the first stage for each state, followed by each subsequent stage in the same way. For example:
+So-called staged enumerators contain enumerators where each enumerator is a stage. They start executing the first enumerator for each state, followed by each subsequent enumerator in the same way. For example:
 \begin{enumerate}
-    \item stage1 : state1
-    \item stage1 : state2
-    \item stage2 : state1
-    \item stage2 : state2
+    \item enumerator1 : state1
+    \item enumerator1 : state2
+    \item enumerator2 : state1
+    \item enumerator2 : state2
 \end{enumerate}
 
 For each stage transition connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here the results of the previous enumerator can be evaluated and the next enumerator can be configured accordingly. The connector will be automatically called by the UDS Scanner and expects a dictionary as return value that will be passed to the next enumerator. 
