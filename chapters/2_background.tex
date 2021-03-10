@@ -43,7 +43,7 @@ All communication performed and recorded in this paper with an ECU is done via t
 
 \begin{table}[htb]
     \centering
-    \begin{tabular}{ccc}
+    \begin{tabular}{cc}
     \hline
     \textbf{Bus Length (m)} & \textbf{Signaling Rate (Mbps)}\\
     \hline
@@ -89,28 +89,28 @@ Since all countermeasures described in the previous paragraph are limited, Intru
 \label{subsubsec:can-utils}
 
 Virtual CAN interfaces can be used for simulations or simple tests. They are supported natively by Linux without additional actions.
-To create a virtual CAN interface, only one command in a Linux shell is required:
-\begin{minted}{text}
+To create a virtual CAN interface, only one command in a Linux shell is required (see line 1 of \autoref{lst:can-utils}).
+
+\begin{listing}[H]
+\begin{minted}
+[baselinestretch=1.2,
+bgcolor=VeryLightGray,
+fontsize=\footnotesize,
+linenos]{text}
 sudo ip link add vcan0 type vcan
-\end{minted}
-
-The most common tool set to work with the CAN bus are the can-utils \cite{can-utils}, which can be usually installed with the package manager of the distributions. For example, the following command displays all messages of the CAN bus on interface \mintinline{text}{vcan0} in a terminal:
-\begin{minted}{text}
 candump vcan0
-\end{minted}
-
-Adding the \mintinline{text}{-l} option changes the output to be more compact instead of human-readable and stores the received traffic in a \mintinline{text}{candump.log} file:
-
-\begin{minted}{text}
 candump -l vcan0
-\end{minted}
-
-All traffic recorded in this work was done with this command.
-
-For sake of completeness, this command sends a CAN packet with the identifier 0x123 and the payload \mintinline{text}{0x01 0x02}:
-\begin{minted}{text}
 cansend vcan0 123#01.02
 \end{minted}
+\caption{How to use the can-utils.}
+\label{lst:can-utils}
+\end{listing}
+
+The most common tool set to work with the CAN bus are the can-utils \cite{can-utils}, which can be usually installed with the package manager of the distributions. The candump command (line 2) displays all messages of the CAN bus on interface \mintinline{text}{vcan0} in a terminal:
+
+Adding the \mintinline{text}{-l} option changes the output to be more compact instead of human-readable and stores the received traffic in a \mintinline{text}{candump.log} file (line 3). All traffic recorded in this work was done with this command.
+
+For sake of completeness, the \mintinline{text}{cansend} command (line 4) sends a CAN packet with the identifier 0x123 and the payload \mintinline{text}{0x01 0x02}:
 
 \section{The ISO-TP transport protocol for CAN}
 
@@ -213,10 +213,8 @@ The UDS Scanner starts with scanning each service for the default state of the E
 
 \begin{listing}[H]
 \begin{minted}
-[frame=lines,
-framesep=2mm,
-baselinestretch=1.2,
-bgcolor=LightGray,
+[baselinestretch=1.2,
+bgcolor=VeryLightGray,
 fontsize=\footnotesize,
 linenos]
 {python}
