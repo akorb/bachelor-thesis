@@ -33,7 +33,7 @@ First, the coverages and request savings are assessed for each approach.
     \label{tab:evaluation-approach1}
 \end{table}
 
-9 of 11 ECUs had a full coverage. The coverage for the dashboard ECU is notable low. Therefore, a closer look was taken there. It turned out that the Dashboard only supports two identifiers. The identifier 515 for Type1 and identifier 61,728 for Type3. The former is detected, but the resulting range for Type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\%.
+9 of 11 ECUs had a full coverage. The coverage for the dashboard ECU is notable low. Therefore, a closer look was taken there. It turned out that the Dashboard only supports two identifiers. The identifier 515 for type1 and identifier 61,728 for type3. The former is detected, but the resulting range for type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\%.
 
 For each ECU the request saving is close to the theoretical maximum of $66.7$ \%. It is so high because ECUs usually support only a few routines (see \autoref{fig:rc-distribution}). Hence, only a few identifiers are expanded to blocks and lead to more requests.
 

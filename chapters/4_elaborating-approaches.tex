@@ -17,7 +17,7 @@ This approach is applicable to scans of services with multiple parameters, as it
     \label{fig:rc-distribution}
 \end{figure}
 
-It can be seen that if an identifier is available in Type1, it is likely that this identifier also occurs in Type2 or Type3. Consequently, if an identifier does not respond positively in Type1, it is unlikely that it will respond in Type2 or Type3.
+It can be seen that if an identifier is available in type1, it is likely that this identifier also occurs in type2 or type3. Consequently, if an identifier does not respond positively in type1, it is unlikely that it will respond in type2 or type3.
 
 Hence, the RC service is a great candidate for this approach.
 
@@ -39,11 +39,11 @@ The current RC scan does exactly this, it generates the full range for each stat
 \subsection{Elaborating the new behavior}
 \label{subsubsec:rc-elaborating}
 
-The new behavior starts with scanning all 2\textsuperscript{16} identifiers with Type1. Only the identifiers, which led to a positive response, are scanned with Type2 and Type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state for this service, resulting in an upper limit of request savings of 66.7 \%.
+The new behavior starts with scanning all 2\textsuperscript{16} identifiers with type1. Only the identifiers, which led to a positive response, are scanned with type2 and type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state for this service, resulting in an upper limit of request savings of 66.7 \%.
 
-It was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with Type1 is answered positively, scanning also nearby identifiers for Type2 and Type3 results in higher coverage. To exploit this, an expansion width is introduced. This width specifies how a single value is expanded to a range in both directions. For example, with an expansion width of 100, the value 1500 would be expanded to the range 1400 – 1600.
+It was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with type1 is answered positively, scanning also nearby identifiers for type2 and type3 results in higher coverage. To exploit this, an expansion width is introduced. This width specifies how a single value is expanded to a range in both directions. For example, with an expansion width of 100, the value 1500 would be expanded to the range 1400 – 1600.
 
-\autoref{fig:rc-behavior-new} illustrates the new behavior. The green areas again show the scanned ranges. In addition, the red areas are the found identifiers in Type1 and their resulting scans for Type2 and Type3. The gray areas show the routine identifiers not requested with this new behavior.
+\autoref{fig:rc-behavior-new} illustrates the new behavior. The green areas again show the scanned ranges. In addition, the red areas are the found identifiers in type1 and their resulting scans for type2 and type3. The gray areas show the routine identifiers not requested with this new behavior.
 
 \begin{figure}[htb]
     \centering

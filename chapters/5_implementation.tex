@@ -232,7 +232,7 @@ Three classes are of interest:
 
 \begin{itemize}
     \item \mintinline{python}{RCEnumerator}: Defaults to scanning the whole RC service, including all three types.
-    \item \mintinline{python}{RCStartEnumerator}: Only scanning Type1 of the RC service.
+    \item \mintinline{python}{RCStartEnumerator}: Only scanning type1 of the RC service.
     \item \mintinline{python}{RCSelectiveEnumerator}: Staged enumerator containing an RCStartEnumerator and an RCEnumerator.
 \end{itemize}
 
@@ -285,11 +285,11 @@ class UDS_RCStartEnumerator(UDS_RCEnumerator):
         kwargs["type_list"] = [1]
         return super()._get_initial_requests(**kwargs)
 \end{minted}
-\caption{The enumerator for the RC service scanning only Type1.}
+\caption{The enumerator for the RC service scanning only type1.}
 \label{lst:rc-start-enumerator}
 \end{listing}
 
-Its \mintinline{python}{_get_initial_requests} method is simple. It fixes the \mintinline{python}{type_list} to Type1 and then calls its implementation of the super class, which is the previously explained \mintinline{python}{UDS_RCEnumerator}. This results in generating requests only for Type1.
+Its \mintinline{python}{_get_initial_requests} method is simple. It fixes the \mintinline{python}{type_list} to type1 and then calls its implementation of the super class, which is the previously explained \mintinline{python}{UDS_RCEnumerator}. This results in generating requests only for type1.
 
 The \mintinline{python}{UDS_RCSelectiveEnumerator} brings these both enumerators together.
 
@@ -326,7 +326,7 @@ class UDS_RCSelectiveEnumerator(StagedAutomotiveTestCase):
 This staged enumerator has the \mintinline{python}{RCStartEnumerator} as the first stage, and the \mintinline{python}{RCEnumerator} as the second and last stage.
 The expansion width is fixed to \textbf{253} as it was elaborated in \autoref{subsubsec:rc-elaborating}.
 
-The connector calls \mintinline{python}{points_to_ranges} to expand the found identifiers of the first stage to ranges and passes them to the second stage. In addition, the connector configures the \mintinline{python}{RCEnumerator} to scan only Type2 and Type3, since Type1 should no longer be scanned.
+The connector calls \mintinline{python}{points_to_ranges} to expand the found identifiers of the first stage to ranges and passes them to the second stage. In addition, the connector configures the \mintinline{python}{RCEnumerator} to scan only type2 and type3, since type1 should no longer be scanned.
 
 \begin{listing}[H]
 \begin{minted}
