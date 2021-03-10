@@ -193,7 +193,7 @@ A PenTester would be able to extract a state machine from this table (see \autor
     \label{fig:state-machine-of-scan}
 \end{figure}
 
-So-called staged enumerators contain enumerators where each enumerator is a stage. They start executing the first state for each state, followed by each subsequent stage in the same way. For example:
+So-called staged enumerators contain enumerators where each enumerator is a stage. They start executing the first stage for each state, followed by each subsequent stage in the same way. For example:
 \begin{enumerate}
     \item stage1 : state1
     \item stage1 : state2
@@ -201,7 +201,7 @@ So-called staged enumerators contain enumerators where each enumerator is a stag
     \item stage2 : state2
 \end{enumerate}
 
-For each stage transition connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here the results of the previous enumerator can be evaluated and the next enumerator can be configured accordingly. The connector will be automatically called by the UDS Scanner, it expects a dictionary as return value that will be passed to the next enumerator. 
+For each stage transition connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here the results of the previous enumerator can be evaluated and the next enumerator can be configured accordingly. The connector will be automatically called by the UDS Scanner and expects a dictionary as return value that will be passed to the next enumerator. 
 
 \begin{listing}[H]
 \begin{minted}
@@ -219,7 +219,7 @@ class MyStagedEnumerator(StagedAutomotiveTestCase):
     
     def __init__(self):
         super().__init__(
-            stages=[Stage1Enumerator(), Stage2Enumerator()],
+            [Stage1Enumerator(), Stage2Enumerator()],
             connectors=[None, self.connector_stage1_stage2])
 \end{minted}
 \caption{Example implementation of a staged enumerator.}
