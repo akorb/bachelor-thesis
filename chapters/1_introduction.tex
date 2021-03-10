@@ -4,7 +4,7 @@
 \section{Motivation}
 Nowadays a car is full of small computers handling tasks for the whole system. Without these helpers, functions like driver-assistance or self-diagnostic would not be possible. Those computers are generally called Electronic Control Units (ECU). Modern cars can contain over 100 of them. The complexity of ECU networks in a car is increasing quickly. The next generation of car networks is expected to be more centralized with less ECUs, as shown in \autoref{fig:centralized-architecture}. This reduces complexity and its inherent risk of security vulnerabilities and high costs.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=1\textwidth]{centralized-architecture}
     \caption{Illustration of the current and the next-gen architecture of cars \cite{car-architecture}.}
@@ -17,7 +17,7 @@ Application protocols are used to ultimately transfer payload. Some protocols we
 
 However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II port (see \autoref{fig:obd-port}), which by regulation must be present near the steering wheel on at least every car built from 2003 onwards, making them a great source of information. This thesis focuses on the UDS protocol, as it is the most widely used protocol that allows extended functionality, such as flashing ECUs. The OBD protocol is excluded because it does not provide valuable information, and the GMLAN protocol because it is limited to General Motors vehicles.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.5\textwidth]{obd-port}
     \caption{The OBD-II port of a BMW.}
@@ -32,7 +32,7 @@ One option to achieve this is to send all possible requests to an ECU and evalua
 With their brute-force approaches, they are effective but not efficient. A scan can take a highly variable amount of time. It can range from a few hours to a day or more. In general, the more states are found on an ECU in a scan, the more time it will need. For example, more authentication information leads to more state detections and thus to higher runtimes. In addition, the response time of the ECU is also a decisive factor. The original runtimes observed of a UDS scan on some ECUs are shown in \autoref{fig:durations}. It should be noted, that these scans have been executed with no additional information about the ECU as well. Accordingly, only the states that can be found without further information were detected (Black-box test).
 
 %durations
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{durations}
     \caption{Observed runtimes for a UDS scan.}

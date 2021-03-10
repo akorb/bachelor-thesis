@@ -41,7 +41,7 @@ All communication performed and recorded in this paper with an ECU is done via t
  Its specification is released in the ISO 11898. Each packet on this bus can transmit up to 8 bytes of payload and has an identifier which a length of either 11 or 29-bits, the former being more common. An identifier does not necessarily have to designate a physical device; it can also indicate one of several software modules of a device.
  The maximum data rate is 1 Mbit/sec with a network length below 40 m. The higher the length, the lower the possible data rate, as can be seen in \autoref{tab:can-speed}.
 
-\begin{table}[h]
+\begin{table}[htb]
     \centering
     \begin{tabular}{ccc}
     \hline
@@ -65,7 +65,7 @@ This bus is robust because it uses two lines of differential signals for communi
 Moreover, CAN busses are using the bus network topology (see \autoref{fig:with-without-can}). This results in a smaller number of wires compared to star topologies, resulting in lower weight, which is an important factor for manufacturers.
 
 %with-without-can
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{with-without-can}
     \caption{CAN effect on decreasing the wire quantity \cite{Sharma2016}.}
@@ -125,7 +125,7 @@ UDS stands for \emph{Unified diagnostic services} and is an application protocol
 The reason for the development of such a protocol was that the cars developed in the last decades were more and more able to diagnose themselves. A car repair shop only had to request this information from the car. But since there was no universal standard, car manufacturers tended to implement company-specific protocols for this purpose. UDS is an international standard and not company-specific, the \emph{Unified} in its name underlines this. 
 
 %UDS stack
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{uds-stack}
     \caption{The most common protocol stack for UDS \cite{Weiss2020}.}
@@ -136,7 +136,7 @@ As shown in \autoref{fig:uds-stack}, the most common data links for the UDS prot
 
 \subsection{Packet structure}
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.5\textwidth]{uds-structure}
     \caption{The structure of UDS requests.}
@@ -163,7 +163,7 @@ The Diagnostic Session Control (DSC) service is used to enable different diagnos
 
 There is always exactly one global UDS state active for an ECU. It influences the behavior of the ECU and can be changed by sending specific requests. Just a few services are able to accomplish this. For example, sending a request with the SA or DSC service to the ECU may affect its state. Whether the ECU has actually changed the state can be easily determined by checking whether the sender received a positive or negative response.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{ecu-state-behavior}
     \caption{State machine example of ECUs for UDS with the DSC service.}
@@ -174,7 +174,7 @@ The default state is the active state after the ECU is switched on. Without an e
 
 The Security Access service uses the challenge–response authentication, in automotive terminology called seed-key protocol. The ECU sends a randomly generated value (the seed) to the client. Both devices generate a response (the key) based on the seed and the client sends its response to the ECU. If the keys match for the received and the generated response for the ECU, the client is authenticated \cite{iso14229}.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{key-seed}
     \caption{The challenge-response protocol \cite{Herrewegen2018}.}
@@ -188,7 +188,7 @@ The UDS Scanner was implemented in Scapy for the PetS3 project.
 
 \subsection{Purpose}
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{automotive-security-testing-process}
     \caption{The Automotive Security Testing process.}

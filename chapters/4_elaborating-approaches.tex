@@ -10,7 +10,7 @@ This approach aims to reuse information from one part of a service for another p
 
 This approach is applicable to scans of services with multiple parameters, as it is the case for the Routine Control (RC) service. It has two parameters, the routine type and the routine identifier (more in \autoref{subsubsec:uds-services}). The distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{rc-distribution}
     \caption{Distribution of the RC identifiers. Each color is one ECU.}
@@ -29,7 +29,7 @@ wherein $n$ stands for the number of detected states.
 
 The current RC scan does exactly this, it generates the full range for each state. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas symbolize the scanned ranges.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{rc-behavior-current}
     \caption{Current behavior of the RC service scan.}
@@ -45,7 +45,7 @@ It was observed that there seems to be a locality effect for the identifiers. Th
 
 \autoref{fig:rc-behavior-new} illustrates the new behavior. The green areas again show the scanned ranges. In addition, the red areas are the found identifiers in Type1 and their resulting scans for Type2 and Type3. The gray areas show the routine identifiers not requested with this new behavior.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{rc-behavior-new}
     \caption{New procedure for scanning the RC service.}
@@ -87,7 +87,7 @@ for expansion_width in range(1001):
 
 The result of this simulation is plotted in \autoref{fig:rc-simulation-result}. The request saving is almost linear to the expansion width. That makes sense, because the larger the expansions are, the more requests are generated. The expansion width of zero represents the results without using the locality effect.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{rc-simulation-result}
     \caption{Result of the RC scan simulation to find the best expansion width.}
@@ -109,7 +109,7 @@ The Read Data By Identifier (RDBI) service has only one parameter, the identifie
 
 The distribution of positively answered identifiers over all ECUs is visualized in a histogram to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{rdbi-distribution}
     \caption{Distribution of the RDBI identifiers. Each color is one ECU.}
@@ -130,7 +130,7 @@ wherein $n$ stands for the number of detected states.
 
 To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. For each block a specific number of requests is generated. If any of these requests is answered positively, the whole block is scanned.  An example is illustrated in \autoref{fig:rdbi-behavior-new}.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{rdbi-behavior-new}
     \caption{New procedure for scanning the RDBI service.}
@@ -180,7 +180,7 @@ for exponent in range(2, 17):
 
 This simulation leads to \autoref{fig:rdbi-simulation-result}.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{rdbi-simulation-result}
     \caption{Simulation result for the RDBI service.}
@@ -197,7 +197,7 @@ Each ECU usually supports only a subset of the services offered  by the UDS stan
 
 The first thing to understand is how to tell if a service is supported or not. The UDS standard defines the general server response behavior, shown in \autoref{fig:server-response-behaviour} with the important area highlighted.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{server-response-behaviour}
     \caption{General server response behavior \cite{iso14229}. SID = service identifier.}

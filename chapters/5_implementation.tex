@@ -196,7 +196,7 @@ Each row is a request. Here are listed requests of the DSC service with paramete
 
 A PenTester would be able to extract a state machine from this table (see \autoref{fig:state-machine-of-scan}).
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{state-machine-of-scan}
     \caption{Partial result for PenTester of a UDS scan.}
@@ -250,7 +250,7 @@ Three classes are of interest:
 
 For this work, the configurability of the \mintinline{python}{RCEnumerator} has been improved, and the \mintinline{python}{RCStartEnumerator} and \mintinline{python}{RCSelectiveEnumerator} have been created. \autoref{fig:rc-schematic} gives a first overview of how the new implementation works.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{rc-schematic}
     \caption{Schematic illustration of the new \mintinline{python}{RCSelectiveEnumerator}.}
@@ -383,7 +383,7 @@ Again, three classes are of interest:
 
 The new implementation is two-staged. First, the \mintinline{python}{RDBIRandomEnumerator} is executed. Then, the connector creates requests for whole blocks, if any of their requests were answered positively, and ensured that for a single block each identifier is queried only once. The resulting packets are passed to the configurable \mintinline{python}{RDBIEnumerator}. \autoref{fig:rdbi-schematic} shows that schematically.
 
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{rdbi-schematic}
     \caption{Schematic illustration of the new \mintinline{python}{RDBISelectiveEnumerator}.}

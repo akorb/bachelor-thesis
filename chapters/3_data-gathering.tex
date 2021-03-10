@@ -10,7 +10,7 @@ In order to find scan ranges that are likely to be answered positively, data fro
 The infrastructure of Laboratory for Safe and Secure Systems (LaS3) was used for that. Specifically, their GitLab server was used, displayed in \autoref{fig:gitlab-screenshot}.
 
 %GitLab screenshot
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{gitlab-screenshot}
     \caption{Screenshot of the GitLab server.}
@@ -63,7 +63,7 @@ Unfortunately, these files contain a lot of information that is not only not nee
 Consequently, an abstraction is desirable. The newly created format is called the generic format. It removes the interface, the padding, resolves the transport protocol information (ISO-TP) and replaces the identifier with representatives (s = Server, c = Client). Each line represents a UDS packet, instead of a lower layer CAN packet as in the candump logs. \autoref{fig:candump-generic-conversion} illustrates the input and output of a conversion.
 
 %candump to generic conversion
-\begin{figure}[h]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=1\textwidth]{candump-generic-conversion}
     \caption{candump.log to generic.log conversion.}
