@@ -24,3 +24,6 @@ defragmentation
 cartesian
 itertools
 iterables
+Mbit
+can-utils
+RDBI
