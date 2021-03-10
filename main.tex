@@ -16,7 +16,7 @@
 	headsepline,	%For dividing line on head side
 	bibliography=totoc,  %Add References to table of contents
 	listof=totoc,    %Add List of Figures to table of contents
-	%openany,        %Allow chapter to start on any page (even or odd)
+	openany,        %Allow chapter to start on any page (even or odd)
 	%twoside,
 ]{scrreprt}
 
@@ -26,6 +26,10 @@
 \RedeclareSectionCommand[
   beforeskip=0pt
 ]{chapter}
+
+% do not put big vertical spacings to force full pages
+% Just leave some space at bottom
+\raggedbottom
 
 %Cross-platform
 \usepackage[utf8]{inputenc}
