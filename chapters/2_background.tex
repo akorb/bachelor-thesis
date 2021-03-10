@@ -19,7 +19,7 @@ Scapy is a powerful interactive packet manipulation program. It is able to forge
 
 So, it fulfills the requirements of protocol scanners:
 \begin{itemize}
-    \item Receiving and transmitting packets
+    \item Receive and transmit packets
     \item Support for many physical layers and transport protocols
     \item Simple definition of packet structures
     \item Matching requests with their responses
@@ -38,7 +38,7 @@ It supports Python 3 and also Python 2, even though its support has ended on 1st
 
 All communication performed and recorded in this paper with an ECU is done via the Control Area Network bus (CAN).
 
- Its specification is released in the ISO 11898. Each packet on this bus can transmit up to 8 bytes of payload and has an identifier which a length of either 11 or 29-bits, the former being more common. An identifier does not necessarily have to designate a physical device; it can also indicate one of several software modules of a device.
+ Its specification is released in the ISO 11898. Each packet on this bus can transmit up to 8 bytes of payload and has an identifier which a length of either 11- or 29-bits, the former being more common. An identifier does not necessarily have to designate a physical device; it can also indicate one of several software modules of a device.
  The maximum data rate is 1 Mbit/sec with a network length below 40 m. The higher the length, the lower the possible data rate, as can be seen in \autoref{tab:can-speed}.
 
 \begin{table}[htb]
@@ -54,7 +54,7 @@ All communication performed and recorded in this paper with an ECU is done via t
     1000 & 0.05 \\
     \hline
 \end{tabular}
-\caption{Suggested Cable Length vs Signaling Rate \cite{slla270}.}
+\caption{Suggested cable lengths for signaling rates of the CAN bus \cite{slla270}.}
 \label{tab:can-speed}
 \end{table}
 
@@ -78,9 +78,9 @@ Last but not least, an important feature for the automotive application domain i
 
 Thinking this one step further, CAN is vulnerable to denial of service attacks. This attack can be performed by flooding the CAN bus with zero-identifier messages resulting in drops of legitimate packets \cite{Buttigieg2017}.
 
-Furthermore, Buttigieg et al. \cite{Buttigieg2017} describe three more security issues of the CAN bus protocol in their paper {Security Issues in Controller Area Networks in Automobiles}.
+Furthermore, Buttigieg et al. \cite{Buttigieg2017} describe three more security issues of the CAN bus protocol in their paper \emph{Security Issues in Controller Area Networks in Automobiles}.
 First, CAN packets do not contain any authentication information. An ECU receiving a message is not able to distinguish between a message from a legitimate ECU and a malicious one \cite{Buttigieg2017}. So, for example, if the state of an ECU is changed to a higher privileged state, all devices, including malicious ones, will have access to its newly unlocked services and information. Countermeasures exist in the form of performing authentication, but there is no satisfying solution yet, which fulfills cost-effectiveness, backward compatibility, support for vehicle repair and maintenance, sufficient implementation details, and acceptable overhead \cite{Bozdal2020}.
-Also, originally, CAN bus networks lacked network segmentation, since each message is broadcasted and received by each node of the network \cite{Buttigieg2017}. Nowadays, car networks of higher-class cars like Audi and BMW are usually divided into less and more critical segments by so-called Gateway ECUs \cite{Bozdal2020}. Despite the increase in the level of security, this makes it more difficult to maintain the system, which is associated with increased costs \cite{Bozdal2020}.
+Also, originally, CAN bus networks lacked network segmentation, since each message is broadcasted and received by each node of the network \cite{Buttigieg2017}. Nowadays, car networks are usually divided into less and more critical segments by so-called Gateway ECUs \cite{Bozdal2020}. Despite the increase in the level of security, this makes it more difficult to maintain the system, which is associated with increased costs \cite{Bozdal2020}.
 The final security vulnerability is the lack of data encryption \cite{Buttigieg2017}. Lightweight encryption systems could be implemented, but are limited by the short length of the data field (8 bytes) and the limited computing power of ECUs \cite{Bozdal2020}.
 
 Since all countermeasures described in the previous paragraph are limited, Intrusion Detection Systems (IDS) are emerging, with the advantages of not having to change the current CAN controller and not increasing bus traffic \cite{Bozdal2020}. A proof of concept of such systems was implemented by eMundo in preparation for the PetS3 project \cite{spahn2018}.
