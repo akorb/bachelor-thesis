@@ -13,7 +13,7 @@ Nowadays a car is full of small computers handling tasks for the whole system. W
 
 ECUs communicate with each other via bus systems. The most common ones are CAN, FlexRay and the Automotive Ethernet, which is becoming increasingly popular. Transport protocols sit on top of these physical layers. For Ethernet these are the well-known TCP or UDP protocols, while for CAN the ISO-TP protocol is the most common one.
 
-Application protocols are used to ultimately transfer payload. Some protocols were created specifically for the development of units like the Universal Measurement and Calibration Protocol (XCP) and some others were defined for diagnostic purposes such as the Unified Diagnostic Services (UDS), General Motors Local Area Network (GMLAN) and On-board diagnostics (OBD). Both types are security critical. The XCP protocol is able to read and even write into the flash memory of an ECU. It shall be disabled on shipped ECUs. The UDS and GMLAN protocol provide definitions for diagnostic related tasks.
+Application protocols are used to ultimately transfer payload. Some protocols were created specifically for the development of units like the Universal Measurement and Calibration Protocol (XCP) and some others were defined for diagnostic related tasks such as the Unified Diagnostic Services (UDS), General Motors Local Area Network (GMLAN) and On-board diagnostics (OBD). Both types are security critical. The XCP protocol is able to read and even write into the flash memory of an ECU. It shall be disabled on shipped ECUs.
 
 However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II port (see \autoref{fig:obd-port}), which by regulation must be present near the steering wheel on at least every car built from 2003 onwards, making them a great source of information. This thesis focuses on the UDS protocol, as it is the most widely used protocol that allows extended functionality, such as flashing ECUs. The OBD protocol is excluded because it does not provide valuable information, and the GMLAN protocol because it is limited to General Motors vehicles.
 
@@ -29,7 +29,7 @@ Furthermore, a diagnostic protocol can define various states. The ECU may show v
 
 One option to achieve this is to send all possible requests to an ECU and evaluate the responses. In the context of the project \emph{Penetration Test Driven Safety and Security System Improvements for Cyber-Critical Systems} (PetS3) \cite{pets3} such scanners have been implemented for UDS, GMLAN and OBD.
 
-With their brute-force approaches, they are effective but not efficient. A scan can take a highly variable amount of time. It can range from a few hours to a day or more. In general, the more states are found on an ECU in a scan, the more time it will need. For example, more authentication information leads to more state detections and thus to higher runtimes. In addition, the response time of the ECU is also a decisive factor. The original runtimes observed of a UDS scan on some ECUs are shown in \autoref{fig:durations}. It should be noted, that these scans have been executed with no additional information about the ECU as well. Accordingly, only the states that can be found without further information were detected (Black-box test).
+With their brute-force approaches, they are effective but not efficient. A scan can take a highly variable amount of time. It can range from a few hours to a day or more. In general, the more states are found on an ECU in a scan, the more time it will need. For example, more authentication information leads to more state detections and thus to higher runtimes. In addition, the response time of the ECU is also a decisive factor. The original runtimes observed of a UDS scan on some ECUs are shown in \autoref{fig:durations}. It should be noted, that these scans have been executed with no additional information about the ECU as well. Accordingly, only the states that can be found without further information were detected (black-box test).
 
 %durations
 \begin{figure}[htb]
@@ -49,7 +49,7 @@ The basic idea of all approaches is to reduce the number of requests where no po
 
 Efficiency improvement is understood as the ratio between the request savings and the coverage. Coverage is here defined as the ratio of finds in the unmodified scanner to the finds of the modified scanner, and the request savings as the ratio of requests in comparison between these two. For both metrics, the higher the better.
 
-Nevertheless, they have to be in balance. A request saving of 90\% is not helpful if this results in 0\% coverage. Hence, the challenge is to narrow down the scanning area to where positive responses are expected.
+Nevertheless, they have to be in balance. A request saving of 90\% is worth little if this results in 0\% coverage. Hence, the challenge is to narrow down the scanning area to where positive responses are expected.
 
 In concrete terms, the following questions are to be answered:
 
@@ -70,4 +70,4 @@ This paper is the final result of this project on the part of eMundo.
 
 \section{Outline}
 
-First, Chapter 2 describes the basics for understanding this thesis. After that, Chapter 3 shows where and what data was collected for the analysis and how it was used for profiling. Then, in Chapter 4, the approaches based on the collected data are elaborated. Consequently, their implementation is explained in Chapter 5. The observed results of the implementations are presented in Chapter 6. Finally, Chapter 7 summarizes the results of this thesis and provides an outlook on future work.
+First, Chapter 2 describes the basics for understanding this thesis. After that, Chapter 3 shows how and what data was collected for the analysis and how it was used for profiling the UDS Scanner. Chapter 4 then elaborates on the approaches based on the data collected. Consequently, their implementation is explained in Chapter 5. The observed results of the implementations on ECUs are presented in Chapter 6. Finally, Chapter 7 summarizes the results of this thesis and provides an outlook on future work.
