@@ -107,7 +107,7 @@ As can be seen, the SID of the UDS data is 0x10, although it was never explicitl
 
 There are two ISO-TP socket implementations in Scapy. A software and a native implementation. Until including Linux kernel 5.9, the corresponding ISO-TP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}. Both implementations handle the ISO-TP data themselves, i.e. segmentation.
 
-An ISO-TP socket contains a source and destination identifier. They have the same purpose as IP addresses. The source identifier is used for outgoing CAN frames, and the destination identifier for incoming frames. They must be detected before being able to send requests and receive their responses.
+An ISO-TP socket contains a source and destination identifier. They have the same purpose as IP addresses. The source identifier (\mintinline{text}{sid}) is used for outgoing CAN frames, and the destination identifier (\mintinline{text}{did}) for incoming frames. In other words, the \mintinline{text}{sid} must contain the identifier to which the ECU expects requests, and the \mintinline{text}{did} must contain the identifier with which it responds. They must be known to be able to send requests to ECUs and receive their responses.
 
 The usage of the native implementation is illustrated in the following code snippet:
 
@@ -130,16 +130,17 @@ socket.send(uds_data)
 \label{lst:send-packet-isotp}
 \end{listing}
 
-The resulting frame can be observed with the \mintinline{text}{candump} program shown in \autoref{subsubsec:can-utils}.
+The resulting frame and its response by the ECU can be observed with the \mintinline{text}{candump} program shown in \autoref{subsubsec:can-utils}. Line 2 of \autoref{lst:send-packet-isotp} defines \mintinline{text}{sid=0x123} and \mintinline{text}{did=0x456}. Thus, the request has the CAN identifier 0x123, and the response the expected CAN identifier 0x456. If the ECU responds with a different identifier, the response would not be received by this ISO-TP socket.
 
 \begin{samepage}
 \begin{minted}{text}
     $ candump vcan0
     vcan0  123   [3]  02 10 03
+    vcan0  456   [7]  06 50 03 00 32 01 f4
 \end{minted}
 \end{samepage}
 
-This output is explained step by step in the following list:
+The request is explained step by step in the following list:
 
 \begin{itemize}
     \item \mintinline{text}{0x123}: The CAN identifier.
