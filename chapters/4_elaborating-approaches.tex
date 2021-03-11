@@ -4,7 +4,7 @@ This section discusses the optimization of the two service scans from the previo
 
 \section{Reuse information within same service}
 
-This approach aims to reuse information from one part of a service for another part of this service. First, it must be checked to which service this approach should be applied to.
+This approach aims to reuse information from one part of a service for another part of this service. First, it must be examined to which service this approach should be applied to.
 
 \subsection{Choosing the RC service to apply the approach to}
 
@@ -13,7 +13,7 @@ This approach is applicable to scans of services with multiple parameters, as it
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{rc-distribution}
-    \caption{Distribution of the RC identifiers. Each color is one ECU.}
+    \caption{Distribution of the RC identifiers.}
     \label{fig:rc-distribution}
 \end{figure}
 
@@ -23,7 +23,7 @@ Hence, the RC service is a great candidate for this approach.
 
 \subsection{Current behavior}
 
-There are three control types, and because the identifier field has a length of 16-bits, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for a UDS scan:
+There are three control types, and because the identifier field has a length of 16-bits, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for an UDS scan:
 \[f(n)=3 \cdot 2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states.
 
@@ -39,11 +39,11 @@ The current RC scan does exactly this, it generates the full range for each stat
 \subsection{Elaborating the new behavior}
 \label{subsubsec:rc-elaborating}
 
-The new behavior starts with scanning all 2\textsuperscript{16} identifiers with type1. Only the identifiers, which led to a positive response, are scanned with type2 and type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state for this service, resulting in an upper limit of request savings of 66.7 \%.
+The new behavior starts with scanning all 2\textsuperscript{16} identifiers with type1. Only the identifiers, which led to a positive response, are scanned with type2 and type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state for this service, resulting in an upper limit on request savings of 66.7\,\%.
 
 It was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with type1 is answered positively, scanning also nearby identifiers for type2 and type3 results in higher coverage. To exploit this, an expansion width is introduced. This width specifies how a single value is expanded to a range in both directions. For example, with an expansion width of 100, the value 1500 would be expanded to the range 1400 – 1600.
 
-\autoref{fig:rc-behavior-new} illustrates the new behavior. The green areas again show the scanned ranges. In addition, the red areas are the found identifiers in type1 and their resulting scans for type2 and type3. The gray areas show the routine identifiers not requested with this new behavior.
+\autoref{fig:rc-behavior-new} illustrates the new behavior. The green areas show the scanned ranges. In addition, the red areas represent the found identifiers in type1 and their resulting scans for type2 and type3. The gray areas show the routine identifiers not requested with this new behavior.
 
 \begin{figure}[htb]
     \centering
@@ -52,9 +52,9 @@ It was observed that there seems to be a locality effect for the identifiers. Th
     \label{fig:rc-behavior-new}
 \end{figure}
 
-What needs to be found out is the expansion width which leads to the best coverage, while maintaining an appropriate request saving. For this, scans with different expansion widths were simulated. These simulations work based on the information gathered from the real ECUs as described in \autoref{sec:data-gathering}. For a quick simulation another observation is used. If an identifier is available in a state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still close to the real ECUs. The required information, which identifiers are supported by an ECU for which type, is extracted from the 'generic.log' files.
+What needs to be found out is the expansion width which leads to the best coverage, while maintaining an appropriate request saving. For this, scans with different expansion widths were simulated. These simulations operate based on the information gathered from the real ECUs as described in \autoref{sec:data-gathering}. For a quick simulation another observation is used. If an identifier is available in a state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still close to the real ECUs. The required information, which identifiers are supported by an ECU for which type, is extracted from the 'generic.log' files.
 
-As described, the simulation starts with getting all identifiers which have been positively answered by the currently simulated ECU. Subsequently, these identifiers are expanded to both sites from 0 to 1000. Overlapping ranges are resolved to a continuous space. The sizes of the resulting ranges lead to the theoretically generated requests which can be calculated to the coverage and request saving. These values of all ECUs are averaged to the final result.
+As described, the simulation starts with receiving all identifiers which have been positively answered by the currently simulated ECU. Subsequently, these identifiers are expanded to both sites from 0 to 1000. Overlapping ranges are resolved to a continuous space. The sizes of the resulting ranges lead to the theoretically generated requests which can be calculated to the coverage and request saving. These values of all ECUs are averaged to the final result.
  
 The pseudocode of \autoref{lst:rc-sim} shows the procedure more clearly.
 
@@ -91,7 +91,7 @@ The result of this simulation is plotted in \autoref{fig:rc-simulation-result}. 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{rc-simulation-result}
-    \caption{Result of the RC scan simulation to find the best expansion width.}
+    \caption{Results of the RC scan simulation.}
     \label{fig:rc-simulation-result}
 \end{figure}
 
@@ -113,7 +113,7 @@ The distribution of positively answered identifiers over all available ECUs is v
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{rdbi-distribution}
-    \caption{Distribution of the RDBI identifiers. Each color is one ECU.}
+    \caption{Distribution of the RDBI identifiers.}
     \label{fig:rdbi-distribution}
 \end{figure}
 
@@ -129,7 +129,7 @@ wherein $n$ stands for the number of detected states.
 \subsection{Elaborating the new behavior}
 \label{subsubsec:rdbi-behavior}
 
-To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. For each block a specific number of requests is generated. If any of these requests is answered positively, the whole block is scanned.  An example is illustrated in \autoref{fig:rdbi-behavior-new}.
+To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. For each block a specific number of requests is generated. If any of these requests is answered positively, the whole block is scanned. An example is illustrated in \autoref{fig:rdbi-behavior-new}.
 
 \begin{figure}[htb]
     \centering
@@ -189,13 +189,13 @@ This simulation leads to \autoref{fig:rdbi-simulation-result}.
     \label{fig:rdbi-simulation-result}
 \end{figure}
 
-The request saving is no longer linear; instead, it is highest for medium block sizes. From block sizes 64 to 128, the coverage decreases by 4\% while the request saving remains the same. Thus, it was decided for \textbf{64} as the block size leading to best results.
+The request saving is no longer linear; instead, it is highest for medium block sizes. From block sizes 64 to 128, the coverage decreases by 4\,\% while the request saving remains the same. Thus, it was decided for \textbf{64} as the block size leading to best results.
 
 
 \section{Avoid the scan of unsupported services}
 \label{subsec:unsupported-services-elaboration}
 
-Each ECU usually supports only a subset of the services offered  by the UDS standard. This approach aims to avoid scanning them in order to save requests and therefore, time.
+Each ECU usually supports only a subset of the services offered by the UDS standard. This approach aims to avoid scanning them in order to save requests and therefore, time.
 
 The first thing to understand is how to tell if a service is supported or not. The UDS standard defines the general server response behavior, shown in \autoref{fig:server-response-behaviour} with the important area highlighted.
 

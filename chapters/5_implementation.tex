@@ -1,10 +1,10 @@
 \chapter{Implementation}
 
-In this chapter, the theoretical explanations of the previous chapters are translated into practical implementations of Python code.
+In this chapter, the theoretical explanations of the previous chapters are translated into practical implementations with Python.
 
 \section{UDS implementation of the Scapy library}
 
-First, to understand the later request generations for each service it is explained how to create UDS data with the Scapy library. And then, for completeness, how the data is sent.
+First, to understand the later request generations for each service it is explained how to create UDS data with the Scapy library. And then, for completeness, how the data is transmitted.
 
 \subsection{Create UDS data}
 
@@ -37,7 +37,7 @@ class UDS(Packet):
 \label{lst:uds-implementation}
 \end{listing}
 
-The UDS class (see \autoref{lst:uds-implementation}) contains only an \mintinline{python}{XByteEnumField} field. Field class names are composed of keywords.
+The UDS class (see \autoref{lst:uds-implementation}) contains only a \mintinline{python}{XByteEnumField} field. Field class names are composed of keywords.
 \begin{samepage}
 \begin{itemize}
     \item \textbf{X}: Represent its value as a hexadecimal value for the user.
@@ -87,7 +87,7 @@ bind_layers(UDS, UDS_DSC, service=0x10)
 \end{listing}
 
 The \mintinline{python}{bind_layers} call (line 11 of \autoref{lst:uds-dsc-implementation}) tells Scapy the relationship between the classes \mintinline{python}{UDS} and \mintinline{python}{UDS_DSC}. This information will be used by Scapy for building and dissecting data.
-Then, if UDS data is received with the SID 0x10, it continues dissecting it with the field definitions of \mintinline{python}{UDS_DSC}. And vice versa, if \mintinline{python}{UDS_DSC} data is stacked on a \mintinline{python}{UDS} data for building, its SID field is automatically set to 0x10.
+Then, if UDS data is received with the SID 0x10, it continues dissecting it with the field definitions of \mintinline{python}{UDS_DSC}. And vice versa, if \mintinline{python}{UDS_DSC} data is stacked on an \mintinline{python}{UDS} data for building, its SID field is automatically set to 0x10.
 
 Layers are stacked with the division operator of python.
 
@@ -117,7 +117,7 @@ There are two ISO-TP socket implementations in Scapy. A software and a native im
 
 An ISO-TP socket contains a source and destination identifier. They have the same purpose as IP addresses. The source identifier (\mintinline{text}{sid}) is used for outgoing CAN frames, and the destination identifier (\mintinline{text}{did}) for incoming frames. In other words, the \mintinline{text}{sid} must contain the identifier to which the ECU expects requests, and the \mintinline{text}{did} must contain the identifier with which it responds. They must be known to be able to send requests to ECUs and receive their responses.
 
-The usage of the native implementation is illustrated in the following code snippet:
+The usage of the native implementation is presented by the following code snippet:
 
 \begin{listing}[H]
 \begin{minted}
@@ -165,7 +165,7 @@ The request is explained step by step in the following list:
 % Out of scope of this work.
 
 Enumerators are service-specific and create all possible requests for a service.
-For example, the enumerator for the DSC service is called \mintinline{python}{UDS_DSCEnumerator}. The most important member of these classes is the \mintinline{python}{_get_initial_requests} method. The return value is an iterable object which contains the requests for this service.
+For example, the enumerator of the DSC service is called \mintinline{python}{UDS_DSCEnumerator}. The most important member of these classes is the \mintinline{python}{_get_initial_requests} method. The return value is an iterable object which contains the requests for this service.
 
 Each enumerator will be executed for each found state of the ECU. So, if an enumerator already was executed, and afterwards a new state is found by the UDS Scanner, this enumerator will be executed again within the same scan with the new-found state.
 
@@ -225,7 +225,7 @@ So-called staged enumerators contain enumerators where each enumerator is a stag
     \item enumerator2 : state2
 \end{enumerate}
 
-For each stage transition connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here the results of the previous enumerator can be evaluated and the next enumerator can be configured accordingly. The connector will be automatically called by the UDS Scanner and expects a dictionary as return value that will be passed to the next enumerator. 
+For each stage transition connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here, the results of the previous enumerator can be evaluated and the next enumerator can be configured accordingly. The connector will be automatically called by the UDS Scanner and expects a dictionary as return value that will be passed to the next enumerator. 
 
 \begin{listing}[H]
 \begin{minted}
@@ -263,7 +263,7 @@ Three classes are of interest:
     \item \mintinline{python}{RCSelectiveEnumerator}: Staged enumerator containing an RCStartEnumerator and an RCEnumerator.
 \end{itemize}
 
-For this work, the configurability of the \mintinline{python}{RCEnumerator} was improved, and the \mintinline{python}{RCStartEnumerator} and \mintinline{python}{RCSelectiveEnumerator} was created. \autoref{fig:rc-schematic} gives a first overview of how the new implementation works.
+For this work, the configurability of the \mintinline{python}{RCEnumerator} was improved, and the \mintinline{python}{RCStartEnumerator} and \mintinline{python}{RCSelectiveEnumerator} was created. \autoref{fig:rc-schematic} gives a first overview of the new implementation mechanisms.
 
 \begin{figure}[htb]
     \centering
@@ -324,7 +324,7 @@ class UDS_RCStartEnumerator(UDS_RCEnumerator):
 
 Its \mintinline{python}{_get_initial_requests} method is simple. It fixes the \mintinline{python}{type_list} to type1 and then calls its implementation of the super class, which is the previously explained \mintinline{python}{UDS_RCEnumerator}. This results in generating requests only for type1.
 
-The \mintinline{python}{UDS_RCSelectiveEnumerator} brings these both enumerators together.
+The \mintinline{python}{UDS_RCSelectiveEnumerator} connects both of these enumerators.
 
 \begin{listing}[H]
 \begin{minted}
@@ -388,7 +388,7 @@ def points_to_ranges(points, expansion_width):
 \end{listing}
 
 \mintinline{python}{points_to_ranges} expands points to ranges and also resolves any overlaps to a continuous range.
-First, a range generator is created for each given point. Then, they are chained and converted to a set, removing potential overlaps. This set is sorted to a list, to ensure understandable candump logs of a scan.
+First, a range generator is created for each given point. Then, they are chained and converted to a set, removing potential overlaps. This set is sorted in a list, to ensure understandable candump logs of a scan.
 
 \section{Implementing new enumerators for the RDBI service}
 
@@ -432,7 +432,7 @@ class UDS_RDBIEnumerator(UDS_Enumerator):
 
 Since the RDBI service has only one parameter, its \mintinline{python}{_get_initial_requests} remains simple, generating RDBI requests for identifiers from 0 to 65,535, if not configured otherwise.
 
-Implementing the \mintinline{python}{RDBIRandomEnumerator} was a challenge because it must include the probabilities of positively responded identifiers for each block. With a block size of \textbf{64} (see \autoref{subsubsec:rdbi-behavior}), there would need to be a list with $\frac{2^{16}}{64} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on two facts. That the probabilities are ultimately converted to the number of samples, and that at least one request should be generated for each block. For the former, the number of samples for each block were pre-computed instead of being computed at runtime. This simplifies the list in the sense that integers are stored instead of float values. Second, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to 2. And blocks for which no value is stored, the value 1 is used. This automatically solves that each block is probed with at least one request, even if its probability is 0\%. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements. The non-simplified version is shown in \autoref{app:random-not-compact}.
+Implementing the \mintinline{python}{RDBIRandomEnumerator} was a challenge because it must include the probabilities of positively responded identifiers for each block. With a block size of \textbf{64} (see \autoref{subsubsec:rdbi-behavior}), there would need to be a list with $\frac{2^{16}}{64} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on two facts. That the probabilities are ultimately converted to the number of samples, and that at least one request should be generated for each block. For the former, the number of samples for each block were pre-computed instead of being computed at runtime. This simplifies the list in the sense that integers are stored instead of float values. Second, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to two. And blocks for which no value is stored, the value one is used. This automatically solves that each block is probed with at least one request, even if its probability is 0\,\%. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements. The non-simplified version is shown in \autoref{app:random-not-compact}.
 
 \begin{listing}[H]
 \begin{minted}
@@ -508,7 +508,7 @@ class UDS_RDBISelectiveEnumerator(StagedAutomotiveTestCase):
 \label{lst:rdbi-selective-enumerator}
 \end{listing}
 
-Since it is similar to the \mintinline{python}{RCSelectiveEnumerator}, it will not be explained further. Only the \mintinline{python}{points_to_blocks} will be described in more detail.
+Since it is similar to the \mintinline{python}{RCSelectiveEnumerator}, it will not be explained any further. Only the \mintinline{python}{points_to_blocks} will be described in more detail.
 
 \begin{listing}[H]
 \begin{minted}

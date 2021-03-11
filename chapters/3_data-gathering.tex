@@ -1,7 +1,7 @@
 \chapter{Data gathering and profiling}
 \label{sec:data-gathering}
 
-From here, the procedure and the environment of gathering information to elaborate approaches is described.
+From here, the procedure and the environment for gathering information to elaborate the different approaches is described.
 
 \section{Remote test environment}
 
@@ -13,7 +13,7 @@ For this, the infrastructure of \emph{Laboratory for Safe and Secure Systems} (L
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{gitlab-screenshot}
-    \caption{Screenshot of the GitLab server.}
+    \caption{GitLab server of LaS3.}
     \label{fig:gitlab-screenshot}
 \end{figure}
 
@@ -21,7 +21,7 @@ Fifteen ECUs are available for testing on this server. However, three of them ar
 
 For each ECU a configuration file was created. Various work is done here, for example pulling and checking out the Scapy code from the currently working branch.
 
-Then, the actual tests are executed that are written with the pytest framework. Here, a UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests (see \autoref{subsubsec:can-utils}).
+Then, the actual tests are executed that are implemented with the pytest framework. Here, an UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests (see \autoref{subsubsec:can-utils}).
 
 Finally, the resulting files are uploaded to the GitLab server so that they can be downloaded via a browser program. Which files these are and what they were used for is explained in the next section.
 
@@ -50,7 +50,7 @@ The resulting 'candump.log' file recorded with the command shown in \autoref{lst
 \end{minted}
 \end{samepage}
 
-Unfortunately, these files contain a lot of information that is not only not needed, but also unwanted, as it leads to more difficult analysis because of higher storage and processing power usage. \autoref{fig:can-unwanted-information} shows the information that is not needed because it is ECU specific and does not add any value for the analysis.
+Unfortunately, these files contain a lot of information that are not only not needed, but also unwanted, as it leads to more difficult analysis because of higher storage and processing power usage. \autoref{fig:can-unwanted-information} shows the information that is not needed because it is ECU specific and does not add any value for the analysis.
 
 %CAN unwanted information
 \begin{figure}[H]
@@ -97,7 +97,7 @@ For profiling, a file has been added as output to the UDS scanner, namely 'profi
 
 The start and end timestamps are specified in Unix times.
 
-Although an ECU Reset has no state, all occurrences of it get the same named state for better visualization of the log later.
+Although an ECU Reset has no state, all occurrences of it obtain the same named state for better visualization for the log later on.
 
 \subsection{Store the finished scanner object}
 
@@ -112,12 +112,12 @@ The Pareto principle indicates that small number of causes can be responsible fo
 
 To profile the UDS Scanner, the 'profiling.csv' file is used. With its help Gantt charts are created which show the sequence and duration of the scanned services. This visualizes what parts of the UDS Scanner cause most of its runtime.
 
-These charts have been created for each available ECU. For illustration one is sufficient since each showed the same gist (see \autoref{fig:tesla-gantt}).
+These charts have been created for each available ECU. For illustration, one is sufficient since each showed the same gist (see \autoref{fig:tesla-gantt}).
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{tesla-gantt}
-    \caption{Gantt chart of the Tesla-Airbag-ECU. Each color is a state.}
+    \caption{Gantt chart of the Tesla-Airbag-ECU.}
     \label{fig:tesla-gantt}
 \end{figure}
 
