@@ -1,6 +1,12 @@
 \chapter{Implementation}
 
+In this chapter, the theoretical explanations of the previous chapters are translated into practical implementations.
+
 \section{UDS implementation of the Scapy library}
+
+First, to understand the later request generations for each service it is explained how to create UDS data with the Scapy library. And then, for completeness, how the data is sent.
+
+\subsection{Create UDS data}
 
 One of the core classes in Scapy is the \mintinline{python}{Packet} class. All definitions of network layers, such as Ethernet, IP, TCP, CAN, UDS and so on, are defined in a class inheriting from it, regardless of the layer level.
 
@@ -31,12 +37,14 @@ class UDS(Packet):
 \label{lst:uds-implementation}
 \end{listing}
 
-The UDS class (see \autoref{lst:uds-implementation}) contains only an \mintinline{python}{XByteEnumField} field. The field class names are composed of keywords.
+The UDS class (see \autoref{lst:uds-implementation}) contains only an \mintinline{python}{XByteEnumField} field. Field class names are composed of keywords.
+\begin{samepage}
 \begin{itemize}
     \item \textbf{X}: Represent its value as a hexadecimal value for the user.
     \item \textbf{Byte}: The field has 8-bits.
     \item \textbf{Enum}: The field expects a dictionary mapping from machine-readable values to human-readable texts.
 \end{itemize}
+\end{samepage}
 
 \mintinline{python}{X} and \mintinline{python}{Enum} only affect the representation of the field. The \mintinline{python}{Byte} keyword is the only one here that defines the actual structure of the field.
 
@@ -103,7 +111,7 @@ bytes(uds_data) # prints: 0x10 0x03
 As can be seen, the SID of the UDS data is 0x10, although it was never explicitly set. Scapy set it because of the previous binding.
 
 
-\section{Send UDS data with an ISO-TP socket}
+\subsection{Send UDS data with an ISO-TP socket}
 
 There are two ISO-TP socket implementations in Scapy. A software and a native implementation. Until including Linux kernel 5.9, the corresponding ISO-TP module for Linux had to be installed separately \cite{isotp-module}. Since Linux kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}. Both implementations handle the ISO-TP data themselves, i.e. segmentation.
 
