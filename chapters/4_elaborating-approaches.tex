@@ -8,7 +8,7 @@ This approach aims to reuse information from one part of a service for another p
 
 \subsection{Choosing the RC service to apply the approach to}
 
-This approach is applicable to scans of services with multiple parameters, as it is the case for the Routine Control (RC) service. It has two parameters, the routine type and the routine identifier. Based on the data gathered in \autoref{sec:data-gathering}, the distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}.
+This approach is applicable to scans of services with multiple parameters, as it is the case for the Routine Control (RC) service. It has two parameters, the routine type and the routine identifier. Based on the data gathered in \autoref{sec:data-gathering}, the distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}, with each color representing an ECU.
 
 \begin{figure}[htb]
     \centering
@@ -23,11 +23,11 @@ Hence, the RC service is a great candidate for this approach.
 
 \subsection{Current behavior}
 
-There are three control types, and because the identifier field has a length of 16-bits, there are 2\textsuperscript{16} identifiers. This leads to the following formula, showing how many requests are generated for an UDS scan:
+The current RC scan generates each possible request of this service for each state. Since there are three control types and the identifier field has a length of 16 bits, this leads to the following formula, which shows how many requests are generated for a UDS scan:
 \[f(n)=3 \cdot 2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states.
 
-The current RC scan does exactly this, it generates the full range for each state. Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas symbolize the scanned ranges.
+Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The green areas symbolize the scanned ranges.
 
 \begin{figure}[htb]
     \centering
@@ -39,7 +39,7 @@ The current RC scan does exactly this, it generates the full range for each stat
 \subsection{Elaborating the new behavior}
 \label{subsubsec:rc-elaborating}
 
-The new behavior starts with scanning all 2\textsuperscript{16} identifiers with type1. Only the identifiers, which led to a positive response, are scanned with type2 and type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state for this service, resulting in an upper limit on request savings of 66.7\,\%.
+The new behavior starts with scanning all 2\textsuperscript{16} identifiers with type1. Only the identifiers, which led to a positive response, are scanned with type2 and type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state for this service, resulting in an upper limit of request savings of 66.7\,\%.
 
 It was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with type1 is answered positively, scanning also nearby identifiers for type2 and type3 results in higher coverage. To exploit this, an expansion width is introduced. This width specifies how a single value is expanded to a range in both directions. For example, with an expansion width of 100, the value 1500 would be expanded to the range 1400 – 1600.
 
@@ -54,7 +54,7 @@ It was observed that there seems to be a locality effect for the identifiers. Th
 
 What needs to be found out is the expansion width which leads to the best coverage, while maintaining an appropriate request saving. For this, scans with different expansion widths were simulated. These simulations operate based on the information gathered from the real ECUs as described in \autoref{sec:data-gathering}. For a quick simulation another observation is used. If an identifier is available in a state, it is likely to be available in the other states too. Thus, the states are ignored in the simulation, which improves the performance by a multiple, while it is still close to the real ECUs. The required information, which identifiers are supported by an ECU for which type, is extracted from the 'generic.log' files.
 
-As described, the simulation starts with receiving all identifiers which have been positively answered by the currently simulated ECU. Subsequently, these identifiers are expanded to both sites from 0 to 1000. Overlapping ranges are resolved to a continuous space. The sizes of the resulting ranges lead to the theoretically generated requests which can be calculated to the coverage and request saving. These values of all ECUs are averaged to the final result.
+As described, the simulation starts with collecting all identifiers which have been positively answered by the currently simulated ECU. Subsequently, these identifiers are expanded to both sites from 0 to 1000. Overlapping ranges are resolved to a continuous space. The sizes of the resulting ranges lead to the theoretically generated requests which can be calculated to the coverage and request saving. These values of all ECUs are averaged to the final result.
  
 The pseudocode of \autoref{lst:rc-sim} shows the procedure more clearly.
 
@@ -86,7 +86,7 @@ for expansion_width in range(1001):
 \label{lst:rc-sim}
 \end{listing}
 
-The result of this simulation is plotted in \autoref{fig:rc-simulation-result}. The request saving is almost linear to the expansion width. That makes sense, because the larger the expansions are, the more requests are generated. The expansion width of zero represents the results without using the locality effect.
+The result of this simulation is plotted in \autoref{fig:rc-simulation-result}. The request saving is nearly linear to the expansion width, because the larger the expansions are, the more requests are generated. The expansion width of zero represents the results without using the locality effect.
 
 \begin{figure}[htb]
     \centering
@@ -121,7 +121,7 @@ It is clearly visible that there are some areas where not a single identifier wa
 
 \subsection{Current behavior}
 
-As for the RC service, the identifier field has a length of 16-bits. Hence, there are 2\textsuperscript{16} possible identifiers.
+As for the RC service, the identifier field has a length of 16 bits. Hence, there are 2\textsuperscript{16} possible identifiers.
 The current RDBI scan is simple. It generates 2\textsuperscript{16} requests counting up from 0 to 65,535 as the identifier. This leads to the following formula, showing how many requests are generated for a UDS scan:
 \[f(n)=2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states. 
@@ -142,7 +142,7 @@ The first point to answer is how the number of requests is calculated for each b
 \[r(i, s)=\max(p(i, s) \cdot s, 1)\]
 wherein $p$ stands for the probability function, $i$ for the index of the requested block and $s$ for the block size. For each block should be generated at least one request. The requested identifiers within a block are generated randomly.
 
-The second question is which block size leads to the best results. This is again answered by a simulation. As potential block sizes $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The probabilities and thus the requests per block are calculated based on the merged data of all available ECUs. Then, the resulting coverages and request savings are calculated for each ECU specifically and averaged to the final result. Same as for the RC service, the states are ignored in the simulation.
+The second question is which block size leads to the best results. This is again answered by a simulation. As potential block sizes $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The probabilities and thus the requests per block are calculated based on the merged data of all available ECUs. Then, the resulting coverages and request savings are calculated for each ECU specifically and averaged to the final result. As for the RC service, the states are ignored in the simulation.
 
 Since the blocks are first scanned randomly, this simulation is more complex than the former one for the RC service. The scan can lead to a great coverage, but also a low one, depending on the hit rate of the generated identifiers. To reduce this effect, the simulation is made 100 times, each time with newly created random identifiers. The 100 results are averaged to the coverage and request saving corrected from the random factor. This leads to a high processing time. To reduce the runtime, the execution was parallelized.
 

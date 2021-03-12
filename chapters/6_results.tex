@@ -83,7 +83,7 @@ The biggest problem with this approach is the newly added random factor. The cov
     \label{fig:serviceNotSupported-savings}
 \end{figure}
 
-There is a potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is conceivable that the ECU responds to an identifier with 0x11 or 0x7f, although a subsequent identifier would actually has been answered positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. It was calculated by evaluating the responses for each enumerator for each state. Once a negative response with NRC 0x11 or 0x7f was received, a counter was incremented with each subsequent positive response.
+There is a potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is conceivable that the ECU responds to an identifier with 0x11 or 0x7f, although a later identifier would have been answered positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. It was calculated by evaluating the responses for each enumerator for each state. Once a negative response with NRC 0x11 or 0x7f was received, a counter was incremented with each subsequent positive response.
 And in comparison to the potential savings (\autoref{fig:serviceNotSupported-savings}), the losses are negligible.
 
 \begin{figure}[htb]
@@ -102,7 +102,7 @@ For each ECU, the same scans were executed again as in the introduction (\autore
 \begin{figure}[htb]
     \centering
     \includegraphics[width=1\textwidth]{durations-diff}
-    \caption{Side by side illustration of runtimes of an UDS scan with old and new implementations.}
+    \caption{Side by side illustration of runtimes of a UDS scan with old and new implementations.}
     \label{fig:durations-diff}
 \end{figure}
 

@@ -1,7 +1,7 @@
 \chapter{Data gathering and profiling}
 \label{sec:data-gathering}
 
-From here, the procedure and the environment for gathering information to elaborate the different approaches is described.
+From here, the procedure and the environment of gathering information to elaborate the different approaches is described.
 
 \section{Remote test environment}
 
@@ -13,7 +13,7 @@ For this, the infrastructure of \emph{Laboratory for Safe and Secure Systems} (L
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{gitlab-screenshot}
-    \caption{GitLab server of LaS3.}
+    \caption{Screenshot of the GitLab page from the LaS3 server.}
     \label{fig:gitlab-screenshot}
 \end{figure}
 
@@ -21,9 +21,9 @@ Fifteen ECUs are available for testing on this server. However, three of them ar
 
 For each ECU a configuration file was created. Various work is done here, for example pulling and checking out the Scapy code from the currently working branch.
 
-Then, the actual tests are executed that are implemented with the pytest framework. Here, an UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests (see \autoref{subsubsec:can-utils}).
+Then, the actual tests are executed that are implemented with the pytest framework. Here, a UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests (see \autoref{subsubsec:can-utils}).
 
-Finally, the resulting files are uploaded to the GitLab server so that they can be downloaded via a browser program. Which files these are and what they were used for is explained in the next section.
+Finally, the resulting files are uploaded to the GitLab server so that they can be downloaded via a browser program.
 
 \section{Explaining the generated data of a scan}
 
@@ -50,7 +50,7 @@ The resulting 'candump.log' file recorded with the command shown in \autoref{lst
 \end{minted}
 \end{samepage}
 
-Unfortunately, these files contain a lot of information that are not only not needed, but also unwanted, as it leads to more difficult analysis because of higher storage and processing power usage. \autoref{fig:can-unwanted-information} shows the information that is not needed because it is ECU specific and does not add any value for the analysis.
+Unfortunately, these files contain a lot of information that is not only not needed, but also unwanted, as it leads to more difficult analysis because of higher storage and processing power usage. \autoref{fig:can-unwanted-information} shows the information that is not needed because it is ECU specific and does not add any value for the analysis.
 
 %CAN unwanted information
 \begin{figure}[H]
@@ -60,7 +60,7 @@ Unfortunately, these files contain a lot of information that are not only not ne
     \label{fig:can-unwanted-information}
 \end{figure}
 
-Consequently, an abstraction is desirable. The newly created format is called the generic format. It removes the interface, the padding, resolves the transport protocol information (ISO-TP) and replaces the identifier with representatives (s = Server, c = Client). Each line represents UDS data, instead of a lower layer CAN frames as in the candump logs. \autoref{fig:candump-generic-conversion} illustrates the input and output of a conversion.
+Consequently, an abstraction is desirable. The newly created format is called the generic format. It removes the interface, the padding, resolves the transport protocol information (ISO-TP) and replaces the identifier with representatives (s = Server, c = Client). Each line represents UDS data, instead of a lower layer CAN frame as in the candump logs. \autoref{fig:candump-generic-conversion} illustrates the input and output of a conversion.
 
 %candump to generic conversion
 \begin{figure}[htb]
@@ -97,11 +97,11 @@ For profiling, a file has been added as output to the UDS scanner, namely 'profi
 
 The start and end timestamps are specified in Unix times.
 
-Although an ECU Reset has no state, all occurrences of it obtain the same named state for better visualization for the log later on.
+Although an ECU Reset has no state, all occurrences of it are given the same named state for better visualization of the log later.
 
 \subsection{Store the finished scanner object}
 
-Last but not least, the 'data.pkl' file. Pickle is the object serialization module of the Python Standard library \cite{pickle}. The 'data.pkl' file is the serialized UDS Scanner object after the scan and thus contains all the results, consisting of the responses for each request for each state of an ECU. This is helpful for debugging, analysis and also for simulation.
+The 'data.pkl' file is the serialized UDS Scanner object after the scan and thus contains all the results, consisting of the responses for each request for each state of an ECU. This is helpful for debugging, analysis and also for simulation. 'pkl' stands for 'pickle', which is the name of the object serialization module of the Python standard library \cite{pickle}. 
 
 
 \section{Profiling the UDS Scanner}
@@ -112,7 +112,7 @@ The Pareto principle indicates that small number of causes can be responsible fo
 
 To profile the UDS Scanner, the 'profiling.csv' file is used. With its help Gantt charts are created which show the sequence and duration of the scanned services. This visualizes what parts of the UDS Scanner cause most of its runtime.
 
-These charts have been created for each available ECU. For illustration, one is sufficient since each showed the same gist (see \autoref{fig:tesla-gantt}).
+These charts have been created for each available ECU, with each color representing a state. For illustration, one is sufficient since each showed the same gist (see \autoref{fig:tesla-gantt})
 
 \begin{figure}[H]
     \centering
@@ -126,7 +126,7 @@ These charts have been created for each available ECU. For illustration, one is 
 
 Although it seems that some services and events do not require any time, their time consumption is only so small that they are not or hardly visible in this scaled-down version of the diagram.
 
-The main cause of runtime is the RC service. This was expected, since it requires the most requests for a complete scan.
+The main cause of runtime is the scan of the RC service. This was expected, since it requires the most requests.
 In second place are the IOCBI and the RDBI service. They generate the same runtime, this was to be expected as well since they require the same number of requests. However, the IOCBI service is less frequently supported by ECUs than the RDBI service, resulting in a smaller runtime contribution when considering approach 3.
 
 In summary, the RC and the RDBI service are the most critical runtime causes of the UDS scanner and therefore belong to the matters to be optimized.

@@ -5,13 +5,6 @@ This section will explain the technical fundamentals which are necessary to unde
 \section{The Scapy program}
 \label{sec:scapy}
 
-%UDS stack
-\begin{wrapfigure}{r}{0.15\textwidth}
-    %\includegraphics[width=0.1\textwidth]{scapy_logo}
-    \raisebox{0pt}[\dimexpr\height-1.5\baselineskip\relax]{\includegraphics[width=0.15\textwidth]{scapy_logo}}
-    %\label{fig:scapy-logo}
-\end{wrapfigure}
-
 The homepage of Scapy introduces itself with \cite{scapy}:
 \begin{displayquote}
 Scapy is a powerful interactive packet manipulation program. It is able to forge or decode packets of a wide number of protocols, send them on the wire, capture them, match requests and replies, and much more.
@@ -25,7 +18,7 @@ So, it fulfills the requirements of protocol scanners:
     \item Matching requests with their responses
 \end{itemize} 
 
-It is used through a text-based user interface. This has the advantage of being lightweight, and working via ssh connections out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into the a own Python program.
+It is used through a text-based user interface. This has the advantage of being lightweight, and working via ssh connections out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into an own Python program.
 
 It supports Python 3 and also Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains why \cite{scapy-py2}:
 
@@ -38,7 +31,7 @@ It supports Python 3 and also Python 2, even though its support has ended on 1st
 
 All communication performed and recorded in this paper with an ECU is done via the Control Area Network bus (CAN).
 
-Its specification is released in the ISO 11898. Each frame on this bus can transmit up to 8 bytes of payload and has an identifier with a length of either 11- or 29-bits, the former being more common. An identifier does not necessarily have to designate a physical device; it can also indicate one of several software modules of a device.
+Its specification is released in the ISO 11898. Each frame on this bus can transmit up to 8 bytes of payload and has an identifier with a length of either 11 or 29 bits, the former being more common. An identifier does not necessarily have to designate a physical device; it can also indicate one of several software modules of a device.
 The maximum data rate is 1 Mbit/sec with a network length below 40\,m. The higher the length, the lower the possible data rate, as can be seen in \autoref{tab:can-speed}.
 
 \begin{table}[htb]
@@ -81,9 +74,9 @@ Thinking this one step further, CAN is vulnerable to denial of service attacks. 
 Furthermore, Buttigieg et al. \cite{Buttigieg2017} describe three more security issues of the CAN bus protocol in their paper \emph{Security Issues in Controller Area Networks in Automobiles}.
 First, CAN frames do not contain any authentication information. An ECU receiving a message is not able to distinguish between a message from a legitimate ECU and a malicious one \cite{Buttigieg2017}. So, for example, if the state of an ECU is changed to a higher privileged state, all devices, including malicious ones, will have access to its newly unlocked services and information. Countermeasures exist in the form of performing authentication, but there is no satisfying solution yet, which fulfills cost-effectiveness, backward compatibility, support for vehicle repair and maintenance, sufficient implementation details, and acceptable overhead \cite{Bozdal2020}.
 Also, originally, CAN bus networks lacked network segmentation, since each message is broadcasted and received by each node of the network \cite{Buttigieg2017}. Nowadays, car networks are usually divided into less and more critical segments by so-called Gateway ECUs \cite{Bozdal2020}. Despite the increase in the level of security, this makes it more difficult to maintain the system, which is associated with increased costs \cite{Bozdal2020}.
-The final security vulnerability is the lack of data encryption \cite{Buttigieg2017}. Lightweight encryption systems could be implemented, but are limited by the short length of the data field (8\,bytes) and the limited computing power of ECUs \cite{Bozdal2020}.
+The final security vulnerability is the lack of data encryption \cite{Buttigieg2017}. Lightweight encryption systems could be implemented, but are limited by the short length of the data field (8 bytes) and the limited computing power of ECUs \cite{Bozdal2020}.
 
-Since all countermeasures described in the previous paragraph are limited, Intrusion Detection Systems (IDS) are emerging, with the advantages of not having to change the current CAN controller and not increasing bus traffic \cite{Bozdal2020}. A proof of concept for such systems was implemented by eMundo in preparation for the PetS3 project \cite{spahn2018}.
+Since all countermeasures described in the previous paragraph are limited, Intrusion Detection Systems (IDS) are emerging, with the advantages of not having to change the current CAN controller and not increasing bus traffic \cite{Bozdal2020}. A proof of concept of such systems was implemented by eMundo in preparation for the PetS3 project \cite{spahn2018}.
 
 \subsection{Virtual CAN interfaces and using the can-utils}
 \label{subsubsec:can-utils}
@@ -119,7 +112,7 @@ For sake of completeness, the \mintinline{text}{cansend} command (line 4) sends 
 
 CAN frames have a payload size of 8 bytes. This is sufficient for most UDS requests, but not for many UDS responses. Thus, ISO-TP is used as the transport protocol on the CAN bus for UDS communication.
 
-It is defined in ISO 15765-2 and increases the payload size from 8\,bytes to 4095\,bytes per message. At least one byte of the data of each CAN frame is then transport protocol information, indicating whether this frame contains the entire application data or only a fragment of it, with more frames to come.
+It is defined in ISO 15765-2 and increases the payload size from 8 bytes to 4095 bytes per message. At least one byte of the data of each CAN frame is then transport protocol information, indicating whether this frame contains the entire application data or only a fragment of it, with more frames to come.
 
 \section{The UDS protocol}
 
@@ -135,7 +128,7 @@ The reason for the development of such a protocol was that the cars developed in
     \label{fig:uds-stack}
 \end{figure}
 
-As shown in \autoref{fig:uds-stack}, the most common data links for the UDS protocol are Ethernet and CAN bus. Others can and are used as well, explicitly stated in the UDS standard are FlexRay, K-Line and LIN.
+As shown in \autoref{fig:uds-stack}, the most common data links for the UDS protocol are Ethernet and the CAN bus. Others can and are used as well, explicitly stated in the UDS standard are FlexRay, K-Line and LIN.
 
 \subsection{Data structure}
 
@@ -198,13 +191,13 @@ The UDS Scanner was implemented in Scapy for the PetS3 project.
     \label{fig:automotive-security-testing-process}
 \end{figure}
 
-As \autoref{fig:automotive-security-testing-process} shows, the security testing process in the automotive domain contains a scanning step that aims to detect what services of a protocol are implemented and what information can be retrieved in these services \cite{Bayer2015}. The UDS Scanner fulfills these tasks. It can also be used for fuzzing, even though scanning is its main use-case. The retrieved information answers the following questions:
+As \autoref{fig:automotive-security-testing-process} shows, the security testing process in the automotive domain contains a scanning step that aims to detect what services of a protocol are implemented and what information can be obtained in these services \cite{Bayer2015}. The UDS Scanner fulfills these tasks. It can also be used for fuzzing, even though scanning is its main use-case. The retrieved information answers the following questions:
 
 \begin{itemize}
 \item Which services are supported?
 \item What information can be read with these services?
 \item What control options does the ECU offer?
-\item Which states does it have and how does it behave in each case?
+\item Which states does the ECU support and how does it behave in each case?
 \end{itemize}
 
 

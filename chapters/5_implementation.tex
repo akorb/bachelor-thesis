@@ -37,11 +37,11 @@ class UDS(Packet):
 \label{lst:uds-implementation}
 \end{listing}
 
-The UDS class (see \autoref{lst:uds-implementation}) contains only a \mintinline{python}{XByteEnumField} field. Field class names are composed of keywords.
+The UDS class (see \autoref{lst:uds-implementation}) contains only an \mintinline{python}{XByteEnumField} field. Field class names are composed of keywords.
 \begin{samepage}
 \begin{itemize}
     \item \textbf{X}: Represent its value as a hexadecimal value for the user.
-    \item \textbf{Byte}: The field has 8-bits.
+    \item \textbf{Byte}: The field has 8 bits.
     \item \textbf{Enum}: The field expects a dictionary mapping from machine-readable values to human-readable texts.
 \end{itemize}
 \end{samepage}
@@ -87,7 +87,7 @@ bind_layers(UDS, UDS_DSC, service=0x10)
 \end{listing}
 
 The \mintinline{python}{bind_layers} call (line 11 of \autoref{lst:uds-dsc-implementation}) tells Scapy the relationship between the classes \mintinline{python}{UDS} and \mintinline{python}{UDS_DSC}. This information will be used by Scapy for building and dissecting data.
-Then, if UDS data is received with the SID 0x10, it continues dissecting it with the field definitions of \mintinline{python}{UDS_DSC}. And vice versa, if \mintinline{python}{UDS_DSC} data is stacked on an \mintinline{python}{UDS} data for building, its SID field is automatically set to 0x10.
+Then, if UDS data is received with the SID 0x10, it continues dissecting it with the field definitions of \mintinline{python}{UDS_DSC}. And vice versa, if \mintinline{python}{UDS_DSC} data is stacked on a \mintinline{python}{UDS} data for building, its SID field is automatically set to 0x10.
 
 Layers are stacked with the division operator of python.
 
@@ -263,7 +263,7 @@ Three classes are of interest:
     \item \mintinline{python}{RCSelectiveEnumerator}: Staged enumerator containing an RCStartEnumerator and an RCEnumerator.
 \end{itemize}
 
-For this work, the configurability of the \mintinline{python}{RCEnumerator} was improved, and the \mintinline{python}{RCStartEnumerator} and \mintinline{python}{RCSelectiveEnumerator} was created. \autoref{fig:rc-schematic} gives a first overview of the new implementation mechanisms.
+For this work, the configurability of the \mintinline{python}{RCEnumerator} was improved, and the \mintinline{python}{RCStartEnumerator} and \mintinline{python}{RCSelectiveEnumerator} was created. \autoref{fig:rc-schematic} provides an initial overview of the new implementation mechanisms.
 
 \begin{figure}[htb]
     \centering
