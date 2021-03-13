@@ -263,7 +263,7 @@ Three classes are of interest:
     \item \mintinline{python}{RCSelectiveEnumerator}: Staged enumerator containing an RCStartEnumerator and an RCEnumerator.
 \end{itemize}
 
-For this work, the configurability of the \mintinline{python}{RCEnumerator} was improved, and the \mintinline{python}{RCStartEnumerator} and \mintinline{python}{RCSelectiveEnumerator} was created. \autoref{fig:rc-schematic} provides an initial overview of the new implementation mechanisms.
+For this work, the configurability of the \mintinline{python}{RCEnumerator} was improved, and the \mintinline{python}{RCStartEnumerator} and \mintinline{python}{RCSelectiveEnumerator} were created. \autoref{fig:rc-schematic} provides an initial overview of the new implementation mechanisms.
 
 \begin{figure}[htb]
     \centering
@@ -432,7 +432,7 @@ class UDS_RDBIEnumerator(UDS_Enumerator):
 
 Since the RDBI service has only one parameter, its \mintinline{python}{_get_initial_requests} remains simple, generating RDBI requests for identifiers from 0 to 65,535, if not configured otherwise.
 
-Implementing the \mintinline{python}{RDBIRandomEnumerator} was a challenge because it must include the count of requests for each block. With a block size of \textbf{64} (see \autoref{subsubsec:rdbi-behavior}), there would need to be a list with $\frac{2^{16}}{64} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on the fact that many blocks have a calculated number of requests of zero, but at least one request should be generated for each block. So, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to two. And blocks for which no value is stored, the value one is used. This automatically solves that each block is probed with at least one request. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements. The non-simplified version is shown in \autoref{app:random-not-compact}.
+Implementing the \mintinline{python}{RDBIRandomEnumerator} was a challenge because it must include the count of requests for each block. With a block size of \textbf{64} (see \autoref{subsubsec:rdbi-behavior}), there would need to be a list with $\frac{2^{16}}{64} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on the fact that many blocks have a calculated number of requests of zero, but at least one request should be generated for each block. So, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to two. And for blocks for which no value is stored, the value one is derived. This automatically solves that each block is probed with at least one request. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements. The non-simplified version is shown in \autoref{app:random-not-compact}.
 
 \begin{listing}[H]
 \begin{minted}

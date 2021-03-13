@@ -138,7 +138,7 @@ To reduce this range, first the 2\textsuperscript{16} area is divided into block
     \label{fig:rdbi-behavior-new}
 \end{figure}
 
-The first point to answer is how the number of requests for each block is calculated. It is based on the probability of positive identifiers per block. To determine the number of samples of each block, first all positively answered identifiers of all available ECUs are combined to a set of identifiers. Then, for each block, it is obtained how many of its identifiers are included in this set. The resulting value is the number of samples for this block, but for each block should be generated at least one request. In summary, the number $r$ of requests for a block is calculated using
+The first point to address is how the number of requests for each block is calculated. It is based on the probability of positive identifiers per block. For this, all positively answered identifiers of all available ECUs are combined to a set of identifiers. Then, for each block, it is obtained how many of its identifiers are included in this set. The resulting value is the number of samples for this block, but for each block should be generated at least one request. In summary, the number $r$ of requests for a block is calculated using
 \[r(i, s)=\max(b_i(s), \,1)\]
 wherein $i$ stand for the index of the requested block, $s$ for the block size and $b$ for the function that counts the overlapping occurrences of the block identifiers and the positively answered identifiers. The requested identifiers of a block are randomly generated.
 
