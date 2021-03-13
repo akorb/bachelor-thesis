@@ -129,7 +129,7 @@ wherein $n$ stands for the number of detected states.
 \subsection{Elaborating the new behavior}
 \label{subsubsec:rdbi-behavior}
 
-To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. For each block a specific number of requests is generated. If any of these requests is answered positively, the whole block is scanned. An example is illustrated in \autoref{fig:rdbi-behavior-new}.
+To reduce this range, first the 2\textsuperscript{16} area is divided into blocks. For each block a specific number of requests is generated. If any of these requests is answered positively, the whole block is scanned. An example with random values is illustrated in \autoref{fig:rdbi-behavior-new}.
 
 \begin{figure}[htb]
     \centering
@@ -138,11 +138,11 @@ To reduce this range, first the 2\textsuperscript{16} area is divided into block
     \label{fig:rdbi-behavior-new}
 \end{figure}
 
-The first point to answer is how the number of requests is calculated for each block. It is based on the probability of positive identifiers of this block. This probability is gathered from merging all positively answered identifiers of all available ECUs and then for each block calculating $\frac{occurences}{block\_size}$. The number $r$ of requests for a block is calculated with
-\[r(i, s)=\max(p(i, s) \cdot s, 1)\]
-wherein $p$ stands for the probability function, $i$ for the index of the requested block and $s$ for the block size. For each block should be generated at least one request. The requested identifiers within a block are generated randomly.
+The first point to answer is how the number of requests for each block is calculated. It is based on the probability of positive identifiers per block. To determine the number of samples of each block, first all positively answered identifiers of all available ECUs are combined to a set of identifiers. Then, for each block, it is obtained how many of its identifiers are included in this set. The resulting value is the number of samples for this block, but for each block should be generated at least one request. In summary, the number $r$ of requests for a block is calculated using
+\[r(i, s)=\max(b_i(s), \,1)\]
+wherein $i$ stand for the index of the requested block, $s$ for the block size and $b$ for the function that counts the overlapping occurrences of the block identifiers and the positively answered identifiers. The requested identifiers of a block are randomly generated.
 
-The second question is which block size leads to the best results. This is again answered by a simulation. As potential block sizes $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The probabilities and thus the requests per block are calculated based on the merged data of all available ECUs. Then, the resulting coverages and request savings are calculated for each ECU specifically and averaged to the final result. As for the RC service, the states are ignored in the simulation.
+The second question is which block size leads to the best results. This is again answered by a simulation. As potential block sizes $2^2, 2^3, ..., 2^{15}, 2^{16}$ were chosen because they are divisors for 2\textsuperscript{16}. The number of random requests per block for the currently simulated block size are calculated as explained in the previous paragraph. Then, the resulting coverages and request savings are obtained for each ECU specifically and averaged to the final result. As for the RC service, the states are ignored in the simulation.
 
 Since the blocks are first scanned randomly, this simulation is more complex than the former one for the RC service. The scan can lead to a great coverage, but also a low one, depending on the hit rate of the generated identifiers. To reduce this effect, the simulation is made 100 times, each time with newly created random identifiers. The 100 results are averaged to the coverage and request saving corrected from the random factor. This leads to a high processing time. To reduce the runtime, the execution was parallelized.
 
@@ -162,19 +162,21 @@ coverages = []
 request_savings = []
 for exponent in range(2, 17):
     block_size = 2 ** exponent
-    probabilities = get_probabilities(ecus, block_size)
-    coverages_block = []
-    request_savings_block = []
+    samples_per_block = get_samples_per_block(ecus, block_size)
+    coverages_per_block = []
+    request_savings_per_block = []
     for ecu in ecus:
         for i in range(100):
-            req_random = random_samples(block_size, probabilities)
+            req_random = random_samples(block_size, samples_per_block)
             positive_identifiers = ecu.get_positive_identifiers(req_random)
             req_block = to_blocks(positive_identifiers, block_size)
-            positive_identifiers = ecu.get_positive_identifiers(req_block)
-            count_reqs = len(samples) + len(req_list)
-            coverages_block.append(get_coverage(ecu, positive_identifiers))
-            request_savings_block.append(get_saving(count_reqs))
-    request_savings[exponent] = avg(request_savings_block)
+            positive_identifiers += ecu.get_positive_identifiers(req_block)
+            count_reqs = len(samples) + len(req_block)
+            coverages_per_block.append(get_coverage(ecu, positive_identifiers))
+            request_savings_per_block.append(get_saving(count_reqs))
+
+    coverages[exponent] = avg(coverages_per_block)
+    request_savings[exponent] = avg(request_savings_per_block)
 \end{minted}
 \caption{Simulation procedure for finding the best block size.}
 \label{lst:rdbi-sim}
