@@ -13,9 +13,11 @@ Nowadays a car is full of small computers handling tasks for the whole system. W
 
 ECUs communicate with each other via bus systems. The most common ones are CAN(Controller Area Network), FlexRay and the Automotive Ethernet, which is becoming increasingly popular. Transport protocols sit on top of these physical layers. For Ethernet these are the well-known TCP or UDP protocols, while for CAN the ISO-TP protocol is the most common one.
 
-Application protocols are used to ultimately transfer payload. Some protocols were created specifically for the development of units like the Universal Measurement and Calibration Protocol (XCP) and some others were defined for diagnostic related tasks, such as the Unified Diagnostic Services (UDS), General Motors Local Area Network (GMLAN) and On-board diagnostics (OBD). Both types are security critical. The XCP protocol is able to read and even write into the flash memory of an ECU. It shall be disabled on shipped ECUs.
+Application protocols are used to ultimately transfer payload. Some protocols were created specifically for the development of units like the Universal Measurement and Calibration Protocol (XCP) and some others were defined for diagnostic related tasks, such as the Unified Diagnostic Services (UDS), General Motors Local Area Network (GMLAN) and On-board diagnostics (OBD). Both types are security critical. 
+The XCP protocol is able to read and even write into the flash memory of an ECU. It shall be disabled on shipped ECUs.
 
-However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II port (see \autoref{fig:obd-port}), which by regulation must be present near the steering wheel on at least every car built from 2003 onwards, making them a great source of information. This thesis focuses on the UDS protocol, as it is the most widely used protocol that allows extended functionality, such as flashing ECUs. The OBD protocol is excluded because it does not provide valuable information, and the GMLAN protocol because it is limited to General Motors vehicles.
+However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II port (see \autoref{fig:obd-port}), which by regulation must be present near the steering wheel on at least every car built from 2003 onwards, making them a great source of information.
+This thesis focuses on the UDS protocol, as it is the most widely used protocol that allows extended functionality, such as flashing ECUs. The OBD protocol is excluded because it does not provide valuable information, and the GMLAN protocol because it is limited to General Motors vehicles.
 
 \begin{figure}[htb]
     \centering
@@ -25,11 +27,15 @@ However, diagnostic protocols are explicitly designed for actively used cars and
 \end{figure}
 
 The initial step in testing a system for weaknesses is to gather as much information from it as possible. In most cases, a protocol definition does not require that its specification is fully supported; instead, a subset is sufficient.
-Furthermore, a diagnostic protocol can define various states. The ECU may show varying behaviors in different states, for example support for other services. Since this kind of information is highly relevant for the security of the ECU, it would be helpful for security testers to gain this knowledge quickly and automatically.
+Furthermore, a diagnostic protocol can define various states. 
+The ECU may show varying behaviors in different states, for example support for other services. Since this kind of information is highly relevant for the security of the ECU, it would be helpful for security testers to gain this knowledge quickly and automatically.
 
 One option to achieve this is to send all possible requests to an ECU and evaluate the responses. In the context of the project \emph{Penetration Test Driven Safety and Security System Improvements for Cyber-Critical Systems} (PetS3) \cite{pets3} such scanners have been implemented for UDS, GMLAN and OBD.
 
-With their brute-force approaches, they are effective but not efficient. A scan can take a highly variable amount of time. It can range from a few hours to a day or more. In general, the more states are found on an ECU in a scan, the more time it will need. For example, more authentication information lead to more state detections and thus to higher runtimes. In addition, the response time of the ECU is also a decisive factor. The original runtimes observed for a UDS scan on some ECUs are shown in \autoref{fig:durations}. It should be noted, that these scans have been executed with no additional information about the ECU as well. Accordingly, only the states that can be found without further information were detected (black-box test).
+With their brute-force approaches, they are effective but not efficient. A scan can take a highly variable amount of time. 
+It can range from a few hours to a day or more. In general, the more states are found on an ECU in a scan, the more time it will need. For example, more authentication information lead to more state detections and thus to higher runtimes. In addition, the response time of the ECU is also a decisive factor. 
+The original runtimes observed for a UDS scan on some ECUs are shown in \autoref{fig:durations}. It should be noted, that these scans have been executed with no additional information about the ECU as well. 
+Accordingly, only the states that can be found without further information were detected (black-box test).
 
 %durations
 \begin{figure}[htb]
@@ -70,4 +76,5 @@ This paper is the final result of this project on the part of eMundo.
 
 \section{Outline}
 
-First, Chapter 2 describes the basics for understanding this thesis. After that, Chapter 3 shows how and what data was collected for the analysis and how it was used for profiling the UDS Scanner. Chapter 4 then elaborates on the approaches based on the data collected. Consequently, their implementation is explained in Chapter 5. The observed results of the implementations on ECUs are presented in Chapter 6. Finally, Chapter 7 summarizes the results of this thesis and provides an outlook on future work.
+First, Chapter 2 describes the basics for understanding this thesis. After that, Chapter 3 shows how and what data was collected for the analysis and how it was used for profiling the UDS Scanner. Chapter 4 then elaborates on the approaches based on the data collected.
+Consequently, their implementation is explained in Chapter 5. The observed results of the implementations on ECUs are presented in Chapter 6. Finally, Chapter 7 summarizes the results of this thesis and provides an outlook on future work.
