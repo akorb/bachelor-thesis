@@ -2,19 +2,30 @@
 
 \section{Conclusion}
 
-In this thesis, three approaches were evaluated and implemented to improve the efficiency of a UDS scan. Reusing information within the same service (approach 1), using probabilities of positive answers based on blocks (approach 2) and avoiding scanning unsupported services (approach 3). Simulations were performed to find their implementation parameters that lead to the best results.
+In this thesis, three approaches were evaluated and implemented to improve the efficiency of a UDS scan. 
+Reusing information within the same service (approach 1), using probabilities of positive answers based on blocks (approach 2) and avoiding scanning unsupported services (approach 3). Simulations were performed to find their implementation parameters that lead to the best results.
 
 All three approaches turned out to maintain a high request saving while still offering a high coverage.
+
 Nevertheless, all three approaches are not able to provide a 100\,\% coverage at all times. 
-If a coverage of 100\,\% is desired, a full scan might be the preferred solution, even if it is more time-consuming. This may be acceptable, if this scan will be executed only once. For fast results and good, but possibly not complete coverage, the new implementation should be preferred. It depends on the requirements. Therefore, the new enumerators are not a replacement for the original ones, but an addition.
+If a coverage of 100\,\% is desired, a full scan might be the preferred solution, even if it is more time-consuming. 
+This may be acceptable, if this scan will be executed only once. 
+For fast results and good, but possibly not complete coverage, the new implementation should be preferred. It depends on the requirements. Therefore, the new enumerators are not a replacement for the original ones, but an addition.
 
 \section{Future Work}
 
-Approach 2 could also be applied to the IOCBI service. Theoretically, to many more services, but most have only 8 bit identifiers, which results in almost no time savings and thus is not worth lower coverage.
+Approach 2 could also be applied to the IOCBI service. 
+Theoretically, to many more services, but most have only 8 bit identifiers, which results in almost no time savings and thus is not worth lower coverage.
 
-Also, while elaborating this work, it was observed that manufacturers tend to use the same identifiers across their ECUs for the RDBI service. So, these identifiers could be collected, grouped by manufacturers and used for more precise scanning through fixing some requests accordingly instead of only scanning randomly. One could go one step further here and not only group by manufacturers, but also by ECU type.
-For example, all four available BMW ECUs turned out to have 11 identifiers in common. But the both available BMW central gateway ECUs turned out to have 61 identifiers in common. But this approach requires more data. For this work, only from BMW more than one ECU was available. This is the reason why it was not pursued further.
+Also, while elaborating this work, it was observed that manufacturers tend to use the same identifiers across their ECUs for the RDBI service. 
+So, these identifiers could be collected, grouped by manufacturers and used for more precise scanning through fixing some requests accordingly instead of only scanning randomly. 
+One could go one step further here and not only group by manufacturers, but also by ECU type.
+For example, all four available BMW ECUs turned out to have 11 identifiers in common. 
+But the both available BMW central gateway ECUs turned out to have 61 identifiers in common. But this approach requires more data. For this work, only from BMW more than one ECU was available. This is the reason why it was not pursued further.
 
-Approach 1 and approach 2 could be merged. For example, type1 of the RC service could be no longer scanned completely, but randomly based on probabilities. The second stage would remain unchanged, where type2 and type3 are scanned based on the results of the first stage. This would lead to even higher speed increases, but also to lower coverages.
+Approach 1 and approach 2 could be merged. For example, type1 of the RC service could be no longer scanned completely, but randomly based on probabilities. 
+The second stage would remain unchanged, where type2 and type3 are scanned based on the results of the first stage. 
+This would lead to even higher speed increases, but also to lower coverages.
 
-In addition, the UDS Scanner and enumerators are not yet part of the official Scapy repository at press time. They will be refined and gradually added to the official repository.
+In addition, the UDS Scanner and enumerators are not yet part of the official Scapy repository at press time. 
+They will be refined and gradually added to the official repository.
