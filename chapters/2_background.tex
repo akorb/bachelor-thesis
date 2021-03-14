@@ -10,7 +10,7 @@ The homepage of Scapy introduces itself with \cite{scapy}:
 Scapy is a powerful interactive packet manipulation program. It is able to forge or decode packets of a wide number of protocols, send them on the wire, capture them, match requests and replies, and much more.
 \end{displayquote}
 
-So, it fulfills the requirements of protocol scanners:
+Therefore, it fulfills the requirements of protocol scanners:
 \begin{itemize}
     \item Receive and transmit packets
     \item Support for many physical layers and transport protocols
@@ -18,9 +18,11 @@ So, it fulfills the requirements of protocol scanners:
     \item Matching requests with their responses
 \end{itemize} 
 
-It is used through a text-based user interface. This has the advantage of being lightweight, and working via ssh connections out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into an own Python program.
+It is used through a text-based user interface. This has the advantage of being lightweight, and working via ssh connections out-of-the-box.
+While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into an own Python program.
 
-It supports Python 3 and also Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains why \cite{scapy-py2}:
+It supports Python 3 and also Python 2, even though its support has ended on 1st of January 2020. 
+The following quote from a maintainer explains why \cite{scapy-py2}:
 
 \begin{displayquote}
     Scapy is a tool that can be used in a very large number of situations. Often, you don't get to choose the Python interpreter you have when you run Scapy. So, [...] we need to keep supporting Python 2.7 as long as we can.
@@ -53,9 +55,12 @@ The maximum data rate is 1 Mbit/sec with a network length below 40\,m. The highe
 
 \subsection{Advantages for the automotive domain}
 
-This bus is robust because it uses two lines of differential signals for communication. This means that if one wire is driven high, the other one is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
+This bus is robust because it uses two lines of differential signals for communication.
+This means that if one wire is driven high, the other one is driven low. 
+Thus, the receiver can reliably detect interferences by comparing these signals.
 
-Moreover, CAN busses are using the bus network topology (as illustrated in \autoref{fig:with-without-can}). This results in a smaller number of wires compared to star topologies, resulting in lower weight, which is an important factor for manufacturers.
+Moreover, CAN busses are using the bus network topology (as illustrated in \autoref{fig:with-without-can}). 
+This results in a smaller number of wires compared to star topologies, resulting in lower weight, which is an important factor for manufacturers.
 
 %with-without-can
 \begin{figure}[htb]
@@ -65,23 +70,33 @@ Moreover, CAN busses are using the bus network topology (as illustrated in \auto
     \label{fig:with-without-can}
 \end{figure}
 
-Last but not least, an important feature for the automotive application domain is the priority support. The lower the identifier, the higher the priority. Hence, if two ECUs transmit a CAN frame at exactly the same time, the frame with the lower identifier wins, the other one is discarded and will be retransmitted. This is called the Carrier Sense Multiple Access with Collision Detection (CSMA/CD) protocol \cite{Sharma2016}. For this reason, diagnostic CAN identifiers tend to have a high identifier \cite{Herrewegen2018}.
+Last but not least, an important feature for the automotive application domain is the priority support. 
+The lower the identifier, the higher the priority. 
+Hence, if two ECUs transmit a CAN frame at exactly the same time, the frame with the lower identifier wins, the other one is discarded and will be retransmitted. This is called the Carrier Sense Multiple Access with Collision Detection (CSMA/CD) protocol \cite{Sharma2016}.
+For this reason, diagnostic CAN identifiers tend to have a high identifier \cite{Herrewegen2018}.
 
 \subsection{Security vulnerabilities}
 
-Thinking this one step further, CAN is vulnerable to denial of service attacks. This attack can be performed by flooding the CAN bus with zero-identifier messages resulting in drops of legitimate frames \cite{Buttigieg2017}.
+Thinking this one step further, CAN is vulnerable to denial of service attacks. 
+This attack can be performed by flooding the CAN bus with zero-identifier messages resulting in drops of legitimate frames \cite{Buttigieg2017}.
 
 Furthermore, Buttigieg et al. \cite{Buttigieg2017} describe three more security issues of the CAN bus protocol in their paper \emph{Security Issues in Controller Area Networks in Automobiles}.
-First, CAN frames do not contain any authentication information. An ECU receiving a message is not able to distinguish between a message from a legitimate ECU and a malicious one \cite{Buttigieg2017}. So, for example, if the state of an ECU is changed to a higher privileged state, all devices, including malicious ones, will have access to its newly unlocked services and information. Countermeasures exist in the form of performing authentication, but there is no satisfying solution yet, which fulfills cost-effectiveness, backward compatibility, support for vehicle repair and maintenance, sufficient implementation details, and acceptable overhead \cite{Bozdal2020}.
-Also, originally, CAN bus networks lacked network segmentation, since each message is broadcasted and received by each node of the network \cite{Buttigieg2017}. Nowadays, car networks are usually divided into less and more critical segments by so-called Gateway ECUs \cite{Bozdal2020}. Despite the increase in the level of security, this makes it more difficult to maintain the system, which is associated with increased costs \cite{Bozdal2020}.
-The final security vulnerability is the lack of data encryption \cite{Buttigieg2017}. Lightweight encryption systems could be implemented, but are limited by the short length of the data field (8 bytes) and the limited computing power of ECUs \cite{Bozdal2020}.
+First, CAN frames do not contain any authentication information. 
+An ECU receiving a message is not able to distinguish between a message from a legitimate ECU and a malicious one \cite{Buttigieg2017}.
+So, for example, if the state of an ECU is changed to a higher privileged state, all devices, including malicious ones, will have access to its newly unlocked services and information. Countermeasures exist in the form of performing authentication, but there is no satisfying solution yet, which fulfills cost-effectiveness, backward compatibility, support for vehicle repair and maintenance, sufficient implementation details, and acceptable overhead \cite{Bozdal2020}.
+Also, originally, CAN bus networks lacked network segmentation, since each message is broadcasted and received by each node of the network \cite{Buttigieg2017}. Nowadays, car networks are usually divided into less and more critical segments by so-called Gateway ECUs \cite{Bozdal2020}.
+Despite the increase in the level of security, this makes it more difficult to maintain the system, which is associated with increased costs \cite{Bozdal2020}.
+The final security vulnerability is the lack of data encryption \cite{Buttigieg2017}.
+Lightweight encryption systems could be implemented, but are limited by the short length of the data field (8 bytes) and the limited computing power of ECUs \cite{Bozdal2020}.
 
-Since all countermeasures described in the previous paragraph are limited, Intrusion Detection Systems (IDS) are emerging, with the advantages of not having to change the current CAN controller and not increasing bus traffic \cite{Bozdal2020}. A proof of concept of such systems was implemented by eMundo in preparation for the PetS3 project \cite{spahn2018}.
+Since all countermeasures described in the previous paragraph are limited, Intrusion Detection Systems (IDS) are emerging, with the advantages of not having to change the current CAN controller and not increasing bus traffic \cite{Bozdal2020}.
+A proof of concept of such systems was implemented by eMundo in preparation for the PetS3 project \cite{spahn2018}.
 
 \subsection{Virtual CAN interfaces and using the can-utils}
 \label{subsubsec:can-utils}
 
-Virtual CAN interfaces can be used for simulations or simple tests. They are supported natively by Linux without additional actions.
+Virtual CAN interfaces can be used for simulations or simple tests. 
+They are supported natively by Linux without additional actions.
 To create a virtual CAN interface, only one command in a Linux shell is required (see line 1 of \autoref{lst:can-utils}).
 
 \begin{listing}[H]
@@ -110,7 +125,8 @@ For sake of completeness, the \mintinline{text}{cansend} command (line 4) sends 
 
 \section{The ISO-TP transport protocol for CAN}
 
-CAN frames have a payload size of 8 bytes. This is sufficient for most UDS requests, but not for many UDS responses. Thus, ISO-TP is used as the transport protocol on the CAN bus for UDS communication.
+CAN frames have a payload size of 8 bytes.
+This is sufficient for most UDS requests, but not for many UDS responses. Thus, ISO-TP is used as the transport protocol on the CAN bus for UDS communication.
 
 It is defined in ISO 15765-2 and increases the payload size from 8 bytes to 4095 bytes per message. At least one byte of the data of each CAN frame is then transport protocol information, indicating whether this frame contains the entire application data or only a fragment of it, with more frames to come.
 
