@@ -19,7 +19,7 @@ For this, the infrastructure of \emph{Laboratory for Safe and Secure Systems} (L
 
 Fifteen ECUs are available for testing on this server. However, three of them are from Opel and therefore, only support GMLAN but not UDS. Additionally, two of them are identical, resulting in a total of eleven usable ECUs.
 
-For each ECU a configuration file was created. Various work is done here, for example pulling and checking out the Scapy code from the currently working branch.
+For each ECU a configuration file was created. Various work is done here, for example pulling and checking out the Scapy code from the current working branch.
 
 Then, the tests are executed that are implemented with the pytest framework. Here, a UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests (see \autoref{subsubsec:can-utils}).
 
