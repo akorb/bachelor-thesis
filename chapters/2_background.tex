@@ -23,7 +23,7 @@ It is used through a text-based user interface. This has the advantage of being 
 
 \section{The CAN bus}
 
-All communication performed and recorded in this paper with an ECU is done via the Control Area Network bus (CAN).
+All communication performed and recorded in this thesis with an ECU is done via the Control Area Network bus (CAN).
 
 Its specification is released in the ISO 11898. Each frame on this bus can transmit up to 8 bytes of payload and has an identifier with a length of either 11 or 29 bits, the former being more common. An identifier does not necessarily have to designate a physical device; it can also indicate one of several software modules of a device.
 The maximum data rate is 1 Mbit/sec with a network length below 40\,m. The higher the length, the lower the possible data rate, as can be seen in \autoref{tab:can-speed}.
@@ -140,7 +140,7 @@ For positive responses it is defined as \mintinline{text}{0x40} added to the SID
 \subsection{Services}
 \label{subsubsec:uds-services}
 
-UDS defines various services with different purposes. The ones used later in this paper are explained here.
+UDS defines various services with different purposes. The ones used later in this thesis are explained here.
 
 The \emph{RoutineControl} (RC) service enables the management of predefined routines on the ECU. They can be started, stopped or their results requested. Examples for routines are resetting or learning adaptive data, running a self-test or closing convertible roofs. It has two parameters, namely the desired action and the identifier of the routine.
 
