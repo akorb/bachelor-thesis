@@ -33,7 +33,7 @@ First, the coverages and request savings are assessed for each approach.
     \label{tab:evaluation-approach1}
 \end{table}
 
-9 of 11 ECUs had a full coverage. The coverage for the dashboard ECU is notable low. Therefore, a closer look was taken there. It turned out that the Dashboard only supports two identifiers. The identifier 515 for type1 and identifier 61,728 for type3. The former is detected, but the resulting range for type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\,\%.
+9 of 11 ECUs had a full coverage, as shown in \autoref{tab:evaluation-approach1}. The coverage for the dashboard ECU is notable low. Therefore, a closer look was taken there. It turned out that the Dashboard only supports two identifiers. The identifier 515 for type1 and identifier 61,728 for type3. The former is detected, but the resulting range for type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\,\%.
 
 For each ECU the request saving is close to the theoretical maximum of $66.7$\,\%. It is so high because ECUs usually support only a few routines (see \autoref{fig:rc-distribution}). Hence, only a few identifiers are expanded to blocks and lead to more requests.
 
@@ -74,7 +74,7 @@ The biggest problem with this approach is the newly added random factor. The cov
 
 \subsection{Not scanning unsupported services}
 
-\autoref{fig:serviceNotSupported-savings} illustrates the number of saved requests for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs (0x11 and 0x7f) were counted. But actually, not every request can be saved with this approach, since at least one request must first be made to detect that this service is not supported. But this number of requests is low and negligible, especially considering that the lowest value of saved requests is about 70,000.
+\autoref{fig:serviceNotSupported-savings} illustrates the number of saved requests for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs (\mintinline{text}{0x11} and \mintinline{text}{0x7f}) were counted. But actually, not every request can be saved with this approach, since at least one request must first be made to detect that this service is not supported. But this number of requests is low and negligible, especially considering that the lowest value of saved requests is about 70,000.
 
 \begin{figure}[htb]
     \centering
@@ -83,7 +83,7 @@ The biggest problem with this approach is the newly added random factor. The cov
     \label{fig:serviceNotSupported-savings}
 \end{figure}
 
-There is a potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is conceivable that the ECU responds to an identifier with 0x11 or 0x7f, although a later identifier would have been answered positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. It was calculated by evaluating the responses for each enumerator for each state. Once a negative response with NRC 0x11 or 0x7f was received, a counter was incremented with each subsequent positive response.
+There is a potential problem with this approach. Reliance is placed on the manufacturer to properly implement these NRCs. It is conceivable that the ECU responds to an identifier with \mintinline{text}{0x11} or \mintinline{text}{0x7f}, although a later identifier would have been answered positively. The occurrences of this behavior are shown in \autoref{fig:serviceNotSupported-losses}. It was calculated by evaluating the responses for each enumerator for each state. Once a negative response with NRC \mintinline{text}{0x11} or \mintinline{text}{0x7f} was received, a counter was incremented with each subsequent positive response.
 And in comparison to the potential savings (\autoref{fig:serviceNotSupported-savings}), the losses are negligible.
 
 \begin{figure}[htb]
@@ -107,4 +107,4 @@ For each ECU, the same scans were executed again as in the introduction (\autore
 \end{figure}
 
 As \autoref{fig:durations-diff} shows, the durations decreased significantly, especially for the Tesla ECU, which has a relatively high average response time (about 20\,ms) compared to the others (1 – 8\,ms).
-Three ECUs are excluded from this observation because they were no longer available at the time of re-evaluating the scan durations.
+Three ECUs were excluded from this observation because they were no longer available at the time of re-evaluating the scan durations.

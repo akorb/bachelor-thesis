@@ -23,7 +23,7 @@ Hence, the RC service is a great candidate for this approach.
 
 \subsection{Current behavior}
 
-The current RC scan generates each possible request of this service for each state. Since there are three control types and the identifier field has a length of 16 bits, this leads to the following formula, which shows how many requests are generated for a UDS scan:
+The current RC scan generates each possible request of this service for each state. Since there are three control types and the identifier field has a length of 16 bits, the following formula results, which shows how many requests are generated for a UDS scan:
 \[f(n)=3 \cdot 2^{16} \cdot n\]
 wherein $n$ stands for the number of detected states.
 
@@ -41,7 +41,7 @@ Its current behavior is illustrated in \autoref{fig:rc-behavior-current}. The gr
 
 The new behavior starts with scanning all 2\textsuperscript{16} identifiers with type1. Only the identifiers, which led to a positive response, are scanned with type2 and type3 as well. So, 2\textsuperscript{16} is the new minimum number of requests for each state for this service, resulting in an upper limit of request savings of 66.7\,\%.
 
-It was observed that there seems to be a locality effect for the identifiers. Thus, if an identifier with type1 is answered positively, scanning also nearby identifiers for type2 and type3 results in higher coverage. To exploit this, an expansion width is introduced. This width specifies how a single value is expanded to a range in both directions. For example, with an expansion width of 100, the value 1500 would be expanded to the range 1400 – 1600.
+A locality effect was observed for the identifiers. Thus, if an identifier with type1 is answered positively, scanning also nearby identifiers for type2 and type3 results in higher coverage. To exploit this, an expansion width is introduced. This width specifies how a single value is expanded to a range in both directions. For example, with an expansion width of 100, the value 1500 would be expanded to the range 1400 – 1600.
 
 \autoref{fig:rc-behavior-new} illustrates the new behavior. The green areas show the scanned ranges. In addition, the red areas represent the found identifiers in type1 and their resulting scans for type2 and type3. The gray areas show the routine identifiers not requested with this new behavior.
 
@@ -95,7 +95,7 @@ The result of this simulation is plotted in \autoref{fig:rc-simulation-result}. 
     \label{fig:rc-simulation-result}
 \end{figure}
 
-Since the request saving decreases only slowly, the highest coverage was chosen, which starts with the expansion width \textbf{253}. Hence, this value is the chosen and implemented one.
+Since the request saving decreases only slowly, the highest coverage was chosen, which starts with the expansion width \textbf{253}. Hence, this value is the chosen and implemented expansion width.
 
 The simulations were also run with expanding identifiers in one direction only, which yielded very similar results. Thus, it was left in both directions.
 
@@ -138,7 +138,7 @@ To reduce this range, first the 2\textsuperscript{16} area is divided into block
     \label{fig:rdbi-behavior-new}
 \end{figure}
 
-The first point to address is how the number of requests for each block is calculated. It is based on the probability of positive identifiers per block. For this, all positively answered identifiers of all available ECUs are combined to a set of identifiers. Then, for each block, it is obtained how many of its identifiers are included in this set. The resulting value is the number of samples for this block, but for each block should be generated at least one request. In summary, the number $r$ of requests for a block is calculated using
+The first point to address is how the number of requests for each block is calculated. It is based on the probability of positive identifiers per block. For this, all positively answered identifiers of all available ECUs are combined to a set of identifiers. Then, for each block, it is obtained how many of its identifiers are included in this set. The resulting value is the number of samples for this block, but at least one request should be generated for each block. In summary, the number $r$ of requests for a block is calculated using
 \[r(i, s)=\max(b_i(s), \,1)\]
 wherein $i$ stand for the index of the requested block, $s$ for the block size and $b$ for the function that counts the overlapping occurrences of the block identifiers and the positively answered identifiers. The requested identifiers of a block are randomly generated.
 
@@ -191,7 +191,7 @@ This simulation leads to \autoref{fig:rdbi-simulation-result}.
     \label{fig:rdbi-simulation-result}
 \end{figure}
 
-The request saving is no longer linear; instead, it is highest for medium block sizes. From block sizes 64 to 128, the coverage decreases by 4\,\% while the request saving remains the same. Thus, it was decided for \textbf{64} as the block size leading to best results.
+The request saving is no longer linear; instead, it is highest for medium block sizes. From block sizes 64 to 128, the coverage decreases by 4\,\% while the request saving remains the same. Thus, \textbf{64} was deducted as the block size that leads to the best results.
 
 
 \section{Avoid the scan of unsupported services}
@@ -199,7 +199,7 @@ The request saving is no longer linear; instead, it is highest for medium block 
 
 Each ECU usually supports only a subset of the services offered by the UDS standard. This approach aims to avoid scanning them in order to save requests and therefore, time.
 
-The first thing to understand is how to tell if a service is supported or not. The UDS standard defines the general server response behavior, shown in \autoref{fig:server-response-behaviour} with the important area highlighted.
+The first thing to know is how to determine whether a service is supported or not. The UDS standard defines the general server response behavior, shown in \autoref{fig:server-response-behaviour} with the important area highlighted.
 
 \begin{figure}[htb]
     \centering
@@ -208,4 +208,4 @@ The first thing to understand is how to tell if a service is supported or not. T
     \label{fig:server-response-behaviour}
 \end{figure}
 
-Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that the NRCs 0x11 and 0x7f are relevant for this approach. 0x11 indicates that the requested service is not supported at all. 0x7f is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current service scan with the current state and start with the next one. Although a 0x11 NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service per state, which in turn receives a 0x11 NRC again and then stops the service scan. However, the number of states detected is usually one-digit, so the number of requests generated is negligible. But in the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
+Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that the NRCs \mintinline{text}{0x11} and \mintinline{text}{0x7f} are relevant for this approach. \mintinline{text}{0x11} indicates that the requested service is not supported at all. \mintinline{text}{0x7f} is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current service scan with the current state and start with the next one. Although a \mintinline{text}{0x11} NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service per state, which in turn receives a \mintinline{text}{0x11} NRC again and then stops the service scan. However, the number of states detected is usually one-digit, so the number of requests generated is negligible. In the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.

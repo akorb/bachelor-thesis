@@ -11,16 +11,16 @@ Nowadays a car is full of small computers handling tasks for the whole system. W
     \label{fig:centralized-architecture}
 \end{figure}
 
-ECUs communicate with each other via bus systems. The most common ones are CAN, FlexRay and the Automotive Ethernet, which is becoming increasingly popular. Transport protocols sit on top of these physical layers. For Ethernet these are the well-known TCP or UDP protocols, while for CAN the ISO-TP protocol is the most common one.
+ECUs communicate with each other via bus systems. The most common ones are CAN (Control Area Network), FlexRay and the Automotive Ethernet, which is becoming increasingly popular. Transport protocols sit on top of these physical layers. For Ethernet these are the well-known TCP or UDP protocols, while for CAN the ISO-TP protocol is the most common one.
 
-Application protocols are used to ultimately transfer payload. Some protocols were created specifically for the development of units like the Universal Measurement and Calibration Protocol (XCP) and some others were defined for diagnostic related tasks, such as the Unified Diagnostic Services (UDS), General Motors Local Area Network (GMLAN) and On-board diagnostics (OBD). Both types are security critical. The XCP protocol is able to read and even write into the flash memory of an ECU. It shall be disabled on shipped ECUs.
+Application protocols are used to ultimately transfer payload. Some protocols were created specifically for the development of units like the Universal Measurement and Calibration Protocol (XCP). Others were defined for diagnostic related tasks, such as the Unified Diagnostic Services (UDS), General Motors Local Area Network (GMLAN) and On-board diagnostics (OBD). Both types are security critical. The XCP protocol is able to read and even write into the flash memory of an ECU. It shall be disabled on shipped ECUs.
 
-However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II port (see \autoref{fig:obd-port}), which by regulation must be present near the steering wheel on at least every car built from 2003 onwards, making them a great source of information. This thesis focuses on the UDS protocol, as it is the most widely used protocol that allows extended functionality, such as flashing ECUs. The OBD protocol is excluded because it does not provide valuable information, and the GMLAN protocol because it is limited to General Motors vehicles.
+However, diagnostic protocols are explicitly designed for actively used cars and thus exposed to the easily accessible OBD-II connector (see \autoref{fig:obd-port}). According to EU regulations, this connector must be located in the footwell on the driver's side at least on all vehicles built after 1 January 2004 \cite{eu-regulation, iso15031}, making it an excellent source of information. This thesis focuses on the UDS protocol, as it is the most widely used protocol that allows extended functionality, such as flashing ECUs. The OBD protocol is excluded because it does not provide valuable information, and the GMLAN protocol because it is limited to General Motors vehicles.
 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.5\textwidth]{obd-port}
-    \caption{The OBD-II port of a BMW.}
+    \caption{The OBD-II connector of a BMW.}
     \label{fig:obd-port}
 \end{figure}
 
@@ -29,7 +29,7 @@ Furthermore, a diagnostic protocol can define various states. The ECU may show v
 
 One option to achieve this is to send all possible requests to an ECU and evaluate the responses. In the context of the project \emph{Penetration Test Driven Safety and Security System Improvements for Cyber-Critical Systems} (PetS3) \cite{pets3} such scanners have been implemented for UDS, GMLAN and OBD.
 
-With their brute-force approaches, they are effective but not efficient. A scan can take a highly variable amount of time. It can range from a few hours to a day or more. In general, the more states are found on an ECU in a scan, the more time it will need. For example, more authentication information lead to more state detections and thus to higher runtimes. In addition, the response time of the ECU is also a decisive factor. The original runtimes observed for a UDS scan on some ECUs are shown in \autoref{fig:durations}. It should be noted, that these scans have been executed with no additional information about the ECU as well. Accordingly, only the states that can be found without further information were detected (black-box test).
+With their brute-force approaches, they are effective but not efficient. A scan can take a highly variable amount of time. It can range from a few hours to a day or more. In general, the more states are found on an ECU in a scan, the more time it will need. For example, more authentication information lead to more state detections and thus to higher runtimes. In addition, the response time of the ECU is also a decisive factor. The original runtimes observed for a UDS scan on some ECUs are shown in \autoref{fig:durations}. It should be noted, that these scans have been executed with no additional information about the ECU. Accordingly, only the states that can be found without further information were detected (black-box test).
 
 %durations
 \begin{figure}[htb]

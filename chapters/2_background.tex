@@ -10,7 +10,7 @@ The homepage of Scapy introduces itself with \cite{scapy}:
 Scapy is a powerful interactive packet manipulation program. It is able to forge or decode packets of a wide number of protocols, send them on the wire, capture them, match requests and replies, and much more.
 \end{displayquote}
 
-So, it fulfills the requirements of protocol scanners:
+Therefore, it fulfills the requirements of protocol scanners:
 \begin{itemize}
     \item Receive and transmit packets
     \item Support for many physical layers and transport protocols
@@ -18,13 +18,7 @@ So, it fulfills the requirements of protocol scanners:
     \item Matching requests with their responses
 \end{itemize} 
 
-It is used through a text-based user interface. This has the advantage of being lightweight, and working via ssh connections out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into an own Python program.
-
-It supports Python 3 and also Python 2, even though its support has ended on 1st of January 2020. The following quote from a maintainer explains why \cite{scapy-py2}:
-
-\begin{displayquote}
-    Scapy is a tool that can be used in a very large number of situations. Often, you don't get to choose the Python interpreter you have when you run Scapy. So, [...] we need to keep supporting Python 2.7 as long as we can.
-\end{displayquote}
+It is used through a text-based user interface. This has the advantage of being lightweight, and working via ssh connections out-of-the-box. While being mainly a program, it can also be used as a library by importing the necessary classes and interfaces into an own program. Scapy is written in Python.
 
 
 \section{The CAN bus}
@@ -53,7 +47,7 @@ The maximum data rate is 1 Mbit/sec with a network length below 40\,m. The highe
 
 \subsection{Advantages for the automotive domain}
 
-This bus is robust because it uses two lines of differential signals for communication. This means that if one wire is driven high, the other one is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
+This bus is robust because it uses two lines with differential signals for communication, i.e. when one line is driven high, the other is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
 
 Moreover, CAN busses are using the bus network topology (as illustrated in \autoref{fig:with-without-can}). This results in a smaller number of wires compared to star topologies, resulting in lower weight, which is an important factor for manufacturers.
 
@@ -69,14 +63,14 @@ Last but not least, an important feature for the automotive application domain i
 
 \subsection{Security vulnerabilities}
 
-Thinking this one step further, CAN is vulnerable to denial of service attacks. This attack can be performed by flooding the CAN bus with zero-identifier messages resulting in drops of legitimate frames \cite{Buttigieg2017}.
+If you take this one step further, CAN is vulnerable to denial of service attacks. This attack can be performed by flooding the CAN bus with zero-identifier messages resulting in drops of legitimate frames \cite{Buttigieg2017}.
 
 Furthermore, Buttigieg et al. \cite{Buttigieg2017} describe three more security issues of the CAN bus protocol in their paper \emph{Security Issues in Controller Area Networks in Automobiles}.
 First, CAN frames do not contain any authentication information. An ECU receiving a message is not able to distinguish between a message from a legitimate ECU and a malicious one \cite{Buttigieg2017}. So, for example, if the state of an ECU is changed to a higher privileged state, all devices, including malicious ones, will have access to its newly unlocked services and information. Countermeasures exist in the form of performing authentication, but there is no satisfying solution yet, which fulfills cost-effectiveness, backward compatibility, support for vehicle repair and maintenance, sufficient implementation details, and acceptable overhead \cite{Bozdal2020}.
 Also, originally, CAN bus networks lacked network segmentation, since each message is broadcasted and received by each node of the network \cite{Buttigieg2017}. Nowadays, car networks are usually divided into less and more critical segments by so-called Gateway ECUs \cite{Bozdal2020}. Despite the increase in the level of security, this makes it more difficult to maintain the system, which is associated with increased costs \cite{Bozdal2020}.
 The final security vulnerability is the lack of data encryption \cite{Buttigieg2017}. Lightweight encryption systems could be implemented, but are limited by the short length of the data field (8 bytes) and the limited computing power of ECUs \cite{Bozdal2020}.
 
-Since all countermeasures described in the previous paragraph are limited, Intrusion Detection Systems (IDS) are emerging, with the advantages of not having to change the current CAN controller and not increasing bus traffic \cite{Bozdal2020}. A proof of concept of such systems was implemented by eMundo in preparation for the PetS3 project \cite{spahn2018}.
+Since all countermeasures described in the previous paragraph are limited, Intrusion Detection Systems (IDS) are emerging, with the advantages of not having to change existing ECUs and not increasing bus traffic \cite{Bozdal2020}. A proof of concept of such systems was implemented by eMundo in preparation for the PetS3 project \cite{spahn2018}.
 
 \subsection{Virtual CAN interfaces and using the can-utils}
 \label{subsubsec:can-utils}
@@ -106,7 +100,7 @@ The most common toolkit to work with the CAN bus are the can-utils \cite{can-uti
 
 Adding the \mintinline{text}{-l} option changes the output to be more compact instead of human-readable and stores the received traffic in a \mintinline{text}{candump.log} file (line 3). All traffic recorded in this work was done with this command.
 
-For sake of completeness, the \mintinline{text}{cansend} command (line 4) sends a CAN frame with the identifier 0x123 and the payload \mintinline{text}{0x01 0x02}:
+For sake of completeness, the \mintinline{text}{cansend} command (line 4) sends a CAN frame with the identifier \mintinline{text}{0x123} and the payload \mintinline{text}{0x01 0x02}:
 
 \section{The ISO-TP transport protocol for CAN}
 
@@ -140,15 +134,15 @@ As shown in \autoref{fig:uds-stack}, the most common data links for the UDS prot
 \end{figure}
 
 \autoref{fig:uds-structure} shows how UDS requests are structured. Each service is identified by a Service Identifier (SID). This identifier is the first byte in all UDS data. It must not be confused with the identifier of the CAN frame. Then at least one parameter follows. Most common is only one parameter, but services with multiple parameters exist too.
-Negative responses have the SID 0x7f.
-For positive responses it is defined as 0x40 added to the SID. Thus, a request with SID 0x27 would be responded with 0x27 + 0x40 = 0x67 (see \autoref{fig:key-seed}).
+Negative responses have the SID \mintinline{text}{0x7f}.
+For positive responses it is defined as \mintinline{text}{0x40} added to the SID. Thus, a request with SID \mintinline{text}{0x27} would be responded with \mintinline{text}{0x27 + 0x40 = 0x67} (see \autoref{fig:key-seed}).
 
 \subsection{Services}
 \label{subsubsec:uds-services}
 
 UDS defines various services with different purposes. The ones used later in this paper are explained here.
 
-The Routine Control (RC) service allows managing predefined routines on the ECU. They can be started, stopped or their results requested. It has two parameters, namely the desired action and the identifier of the routine.
+The Routine Control (RC) service enables the management of predefined routines on the ECU. They can be started, stopped or their results requested. Examples for routines are resetting or learning adaptive data, running a self-test or closing convertible roofs. It has two parameters, namely the desired action and the identifier of the routine.
 
 Another service is called Read Data By Identifier (RDBI). With this service, it is possible to retrieve one or more values of an ECU. This can be static information like the software version or dynamic values such as the current readings of sensors. The structure of RDBI requests is simple as it only contains an identifier as parameter.
 

@@ -17,13 +17,13 @@ For this, the infrastructure of \emph{Laboratory for Safe and Secure Systems} (L
     \label{fig:gitlab-screenshot}
 \end{figure}
 
-Fifteen ECUs are available for testing on this server. However, three of them are from Opel and therefore only support GMLAN but not UDS. And two of them are identical, resulting in a total of eleven usable ECUs.
+Fifteen ECUs are available for testing on this server. However, three of them are from Opel and therefore, only support GMLAN but not UDS. Additionally, two of them are identical, resulting in a total of eleven usable ECUs.
 
 For each ECU a configuration file was created. Various work is done here, for example pulling and checking out the Scapy code from the currently working branch.
 
-Then, the actual tests are executed that are implemented with the pytest framework. Here, a UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests (see \autoref{subsubsec:can-utils}).
+Then, the tests are executed that are implemented with the pytest framework. Here, a UDS scan can be started. At the same time, another process is started to record all CAN traffic that takes place during the execution of the tests (see \autoref{subsubsec:can-utils}).
 
-Finally, the resulting files are uploaded to the GitLab server so that they can be downloaded via a browser program.
+Finally, the resulting files are uploaded to the GitLab server so that they can be downloaded via a browser.
 
 \section{Explaining the generated data of a scan}
 
@@ -101,7 +101,7 @@ Although an ECU Reset has no state, all occurrences of it are given the same nam
 
 \subsection{Store the finished scanner object}
 
-The 'data.pkl' file is the serialized UDS Scanner object after the scan and thus contains all the results, consisting of the responses for each request for each state of an ECU. This is helpful for debugging, analysis and also for simulation. 'pkl' stands for 'pickle', which is the name of the object serialization module of the Python standard library \cite{pickle}. 
+The 'data.pkl' file is the serialized UDS Scanner object after the scan and thus contains all the results, consisting of the responses for each request for each state of an ECU. This is helpful for debugging, analysis and for simulation. 'pkl' stands for 'pickle', which is the name of the object serialization module of the Python standard library \cite{pickle}. 
 
 
 \section{Profiling the UDS Scanner}
@@ -124,9 +124,9 @@ These charts have been created for each available ECU, with each color represent
 
 \subsection{Identifying the services causing the most runtime}
 
-Although it seems that some services and events do not require any time, their time consumption is only so small that they are not or hardly visible in this scaled-down version of the diagram.
+Although it seems that some services and events do not require any time, their time consumption is so small that they are not or hardly visible in this scaled-down version of the diagram.
 
 The main cause of runtime is the scan of the RC service. This was expected, since it requires the most requests.
-In second place are the IOCBI and the RDBI service. They generate the same runtime, this was to be expected as well since they require the same number of requests. However, the IOCBI service is less frequently supported by ECUs than the RDBI service, resulting in a smaller runtime contribution when considering approach 3.
+In second place are the IOCBI and the RDBI service. They generate the same runtime, which was to be expected as well since they require the same number of requests. However, the IOCBI service is less frequently supported by ECUs than the RDBI service, resulting in a smaller runtime contribution when considering approach 3.
 
-In summary, the RC and the RDBI service are the most critical runtime causes of the UDS scanner and therefore belong to the matters to be optimized.
+In summary, the RC and the RDBI service are the most critical runtime causes of the UDS scanner and therefore, belong to the matters to be optimized.

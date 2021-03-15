@@ -4,7 +4,7 @@ In this chapter, the theoretical explanations of the previous chapters are trans
 
 \section{UDS implementation of the Scapy library}
 
-First, to understand the later request generations for each service it is explained how to create UDS data with the Scapy library. And then, for completeness, how the data is transmitted.
+First, to understand the later request generations for each service it is explained how to create UDS data with the Scapy library. Finally, for completeness, how the data is transmitted.
 
 \subsection{Create UDS data}
 
@@ -87,7 +87,7 @@ bind_layers(UDS, UDS_DSC, service=0x10)
 \end{listing}
 
 The \mintinline{python}{bind_layers} call (line 11 of \autoref{lst:uds-dsc-implementation}) tells Scapy the relationship between the classes \mintinline{python}{UDS} and \mintinline{python}{UDS_DSC}. This information will be used by Scapy for building and dissecting data.
-Then, if UDS data is received with the SID 0x10, it continues dissecting it with the field definitions of \mintinline{python}{UDS_DSC}. And vice versa, if \mintinline{python}{UDS_DSC} data is stacked on a \mintinline{python}{UDS} data for building, its SID field is automatically set to 0x10.
+Then, if UDS data is received with the SID \mintinline{text}{0x10}, it continues dissecting it with the field definitions of \mintinline{python}{UDS_DSC}. Vice versa, if \mintinline{python}{UDS_DSC} data is stacked on a \mintinline{python}{UDS} data for building, its SID field is automatically set to \mintinline{text}{0x10}.
 
 Layers are stacked with the division operator of python.
 
@@ -108,7 +108,7 @@ bytes(uds_data) # prints: 0x10 0x03
 \label{lst:uds-dsc-stacking}
 \end{listing}
 
-As can be seen, the SID of the UDS data is 0x10, although it was never explicitly set. Scapy set it because of the previous binding.
+As can be seen, the SID of the UDS data is \mintinline{text}{0x10}, although it was never explicitly set. Scapy set it because of the previous binding.
 
 
 \subsection{Send UDS data with an ISO-TP socket}
@@ -138,7 +138,7 @@ socket.send(uds_data)
 \label{lst:send-packet-isotp}
 \end{listing}
 
-The resulting frame and its response by the ECU can be observed with the \mintinline{text}{candump} program shown in \autoref{subsubsec:can-utils}. Line 2 of \autoref{lst:send-packet-isotp} defines \mintinline{text}{sid=0x123} and \mintinline{text}{did=0x456}. Thus, the request has the CAN identifier 0x123, and the response the expected CAN identifier 0x456. If the ECU responds with a different identifier, the response would not be received by this ISO-TP socket.
+The resulting frame and its response by the ECU can be observed with the \mintinline{text}{candump} program shown in \autoref{subsubsec:can-utils}. Line 2 of \autoref{lst:send-packet-isotp} defines \mintinline{text}{sid=0x123} and \mintinline{text}{did=0x456}. Thus, the request has the CAN identifier \mintinline{text}{0x123}, and the response the expected CAN identifier \mintinline{text}{0x456}. If the ECU responds with a different identifier, the response would not be received by this ISO-TP socket.
 
 \begin{samepage}
 \begin{minted}{text}
@@ -190,7 +190,7 @@ class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
 \label{lst:dsc-enumerator}
 \end{listing}
 
-The method can be configured by keyword parameters. The only one read by this method implementation is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from 0x02 to 0xff. So, this enumerator creates 254 requests for each state by default. It is also a \mintinline{python}{StateGenerator}, which means its requests can change the state of the ECU (see \autoref{subsec:states}). This is detected by the UDS Scanner and the new state will be scanned as well.
+The method can be configured by keyword parameters. The only one read by this method implementation is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from \mintinline{text}{0x02} to \mintinline{text}{0xff}. So, this enumerator creates 254 requests for each state by default. It is also a \mintinline{python}{StateGenerator}, which means its requests can change the state of the ECU (see \autoref{subsec:states}). This is detected by the UDS Scanner and the new state will be scanned as well.
 
 Enumerators can output their results as a text-table. For example a possible output of the UDS enumerator is:
 
@@ -206,7 +206,7 @@ Enumerators can output their results as a text-table. For example a possible out
 \end{minted}
 \end{samepage}
 
-Each row is a request. Here are listed requests of the DSC service with parameters 0x02, 0x03 and 0x82. Each column is a state. And each cell shows the response for each request per state (PR = positive response, NR = negative response).
+Each row is a request. Here are listed requests of the DSC service with parameters \mintinline{text}{0x02}, \mintinline{text}{0x03} and \mintinline{text}{0x82}. Each column is a state. And each cell shows the response for each request per state (PR = positive response, NR = negative response).
 
 A PenTester would be able to extract a state machine from this table (see \autoref{fig:state-machine-of-scan}).
 
@@ -541,7 +541,7 @@ Unfortunately, this can lead to double-scanned identifiers, since instead of sca
 
 \section{Extending the enumerators to skip unsupported services}
 
-In contrast to the previous approaches, this one is not applied to specific service enumerators, but to their super class. It evaluates each response, for example to detect if a new state was found. Here, a check was added for negative responses if they have an NRC of 0x11 or 0x7f. If they do, the enumerator is set to completed for the currently executed state.
+In contrast to the previous approaches, this one is not applied to specific service enumerators, but to their super class. It evaluates each response, for example to detect if a new state was found. Here, a check was added for negative responses if they have an NRC of \mintinline{text}{0x11} or \mintinline{text}{0x7f}. If they do, the enumerator is set to completed for the currently executed state.
 
 \begin{listing}[H]
 \begin{minted}
