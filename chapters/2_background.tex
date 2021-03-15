@@ -142,11 +142,11 @@ For positive responses it is defined as \mintinline{text}{0x40} added to the SID
 
 UDS defines various services with different purposes. The ones used later in this paper are explained here.
 
-The Routine Control (RC) service enables the management of predefined routines on the ECU. They can be started, stopped or their results requested. Examples for routines are resetting or learning adaptive data, running a self-test or closing convertible roofs. It has two parameters, namely the desired action and the identifier of the routine.
+The \emph{RoutineControl} (RC) service enables the management of predefined routines on the ECU. They can be started, stopped or their results requested. Examples for routines are resetting or learning adaptive data, running a self-test or closing convertible roofs. It has two parameters, namely the desired action and the identifier of the routine.
 
-Another service is called Read Data By Identifier (RDBI). With this service, it is possible to retrieve one or more values of an ECU. This can be static information like the software version or dynamic values such as the current readings of sensors. The structure of RDBI requests is simple as it only contains an identifier as parameter.
+Another service is called \emph{ReadDataByIdentifier} (RDBI). With this service, it is possible to retrieve one or more values of an ECU. This can be static information like the software version or dynamic values such as the current readings of sensors. The structure of RDBI requests is simple as it only contains an identifier as parameter.
 
-The Diagnostic Session Control (DSC) service is used to enable different diagnostic states in the ECU, and the Security Access (SA) service to unlock restricted access to data or services. They are explained in more detail in the next section, as they affect the state of ECUs.
+The \emph{DiagnosticSessionControl} (DSC) service is used to enable different diagnostic states in the ECU, and the \emph{SecurityAccess} (SA) service to unlock restricted access to data or services. They are explained in more detail in the next section, as they affect the state of ECUs.
 
 \subsection{States}
 \label{subsec:states}
@@ -162,7 +162,7 @@ There is always exactly one global UDS state active for an ECU. It influences th
 
 The default state is the active state after the ECU is switched on. Without an external request, it remains in this state. \autoref{fig:ecu-state-behavior} illustrates the behavior of the ECU when a request is received for the DSC service and parameter value $n$. In the DSC service, each parameter value specifies a state. Thus, if the ECU designers integrated a state for $n$, the controller will respond positively. It will now remain in this state until there has been no UDS communication for usually five seconds, then it will automatically return to the default state. If the ECU designers did not integrate such a state, it will answer with a negative response and remain in its current state.
 
-The Security Access service uses the challenge–response authentication, in automotive terminology called seed-key protocol. The ECU sends a randomly generated value (the seed) to the client. Both devices generate a response (the key) based on the seed and the client sends its response to the ECU. If the keys match for the received and the generated response for the ECU, the client is authenticated \cite{iso14229}.
+The \emph{SecurityAccess} service uses the challenge–response authentication, in automotive terminology called seed-key protocol. The ECU sends a randomly generated value (the seed) to the client. Both devices generate a response (the key) based on the seed and the client sends its response to the ECU. If the keys match for the received and the generated response for the ECU, the client is authenticated \cite{iso14229}.
 
 \begin{figure}[htb]
     \centering

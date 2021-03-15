@@ -8,7 +8,7 @@ This approach aims to reuse information from one part of a service for another p
 
 \subsection{Choosing the RC service to apply the approach to}
 
-This approach is applicable to scans of services with multiple parameters, as it is the case for the Routine Control (RC) service. It has two parameters, the routine type and the routine identifier. Based on the data gathered in \autoref{sec:data-gathering}, the distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}, with each color representing an ECU.
+This approach is applicable to scans of services with multiple parameters, as it is the case for the \emph{RoutineControl} (RC) service. It has two parameters, the routine type and the routine identifier. Based on the data gathered in \autoref{sec:data-gathering}, the distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}, with each color representing an ECU.
 
 \begin{figure}[htb]
     \centering
@@ -106,7 +106,7 @@ Most services are simpler and only have one parameter. So, reusing information w
 
 \subsection{Choosing the RDBI service to apply the approach to}
 
-The Read Data By Identifier (RDBI) service has only one parameter, the identifier of the requested data.
+The \emph{ReadDataByIdentifier} (RDBI) service has only one parameter, the identifier of the requested data.
 
 The distribution of positively answered identifiers over all available ECUs is visualized in a histogram to check if there is potential. The result can be seen in \autoref{fig:rdbi-distribution}.
 
