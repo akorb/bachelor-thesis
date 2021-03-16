@@ -1,0 +1,70 @@
+@startuml overview
+
+skinparam classAttributeIconSize 0
+
+AutomotiveTestCaseExecutor "1" - "*" AutomotiveTestCaseABC : \t\t\t
+
+UDS_RDBISelectiveEnumerator "0..1" -down- "1" UDS_RDBIEnumerator
+UDS_RDBISelectiveEnumerator "0..1" -down- "1" UDS_RDBIRandomEnumerator
+
+UDS_RCSelectiveEnumerator "0..1" -down- "1" UDS_RCEnumerator
+UDS_RCSelectiveEnumerator "0..1" -down- "1" UDS_RCStartEnumerator
+
+AutomotiveTestCaseExecutor <|-- UDS_Scanner
+AutomotiveTestCaseExecutor <|-- GMLAN_Scanner
+AutomotiveTestCaseExecutor <|-- OBD_Scanner
+
+AutomotiveTestCaseABC <|-- AutomotiveTestCase
+AutomotiveTestCaseABC <|-- StagedAutomotiveTestCase
+
+AutomotiveTestCase <|-- UDS_Enumerator
+
+UDS_Enumerator <|-- UDS_RCEnumerator
+UDS_Enumerator <|-- UDS_RCStartEnumerator
+UDS_Enumerator <|-- UDS_RDBIEnumerator
+UDS_Enumerator <|-- UDS_RDBIRandomEnumerator
+
+StagedAutomotiveTestCase <|-- UDS_RDBISelectiveEnumerator
+StagedAutomotiveTestCase <|-- UDS_RCSelectiveEnumerator
+
+abstract AutomotiveTestCaseExecutor {
+    + socket : SuperSocket
+    + test_cases : AutomotiveTestCaseABC[]
+}
+
+class StagedAutomotiveTestCase {
+    - test_cases : AutomotiveTestCaseABC[]
+    - connectors : Callable[]
+    + execute() : void
+}
+
+abstract AutomotiveTestCaseABC {
+    {abstract} + execute() : void
+}
+
+abstract AutomotiveTestCase {
+    {abstract} # get_initial_requests(**kwargs) : Packet[]
+    # evaluate_response(response : Packet) : bool
+    + execute() : void
+}
+
+abstract UDS_Enumerator {
+}
+
+class UDS_RDBIRandomEnumerator {
+    # get_initial_requests(**kwargs) : Packet[]
+}
+
+class UDS_RDBIEnumerator {
+    # get_initial_requests(**kwargs) : Packet[]
+}
+
+class UDS_RCEnumerator {
+    # get_initial_requests(**kwargs) : Packet[]
+}
+
+class UDS_RCStartEnumerator {
+    # get_initial_requests(**kwargs) : Packet[]
+}
+
+@enduml

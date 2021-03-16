@@ -1,0 +1,60 @@
+@startuml enumerators
+
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 15
+
+UDS_RDBISelectiveEnumerator "0..1" -down- "1   " UDS_RDBIEnumerator
+UDS_RDBISelectiveEnumerator "0..1" -down- "1" UDS_RDBIRandomEnumerator
+
+UDS_RCSelectiveEnumerator "0..1" -down- "1" UDS_RCEnumerator
+UDS_RCSelectiveEnumerator "0..1" -down- "1" UDS_RCStartEnumerator
+
+abstract AutomotiveTestCaseABC {
+    {abstract} + execute() : void
+}
+
+abstract AutomotiveTestCase {
+    {abstract} # get_initial_requests() : Packet[]
+    # evaluate_response(response: Packet) : bool
+}
+
+abstract UDS_Enumerator {
+}
+
+class UDS_RDBIRandomEnumerator {
+    # get_initial_requests() : Packet[]
+}
+
+class UDS_RDBIEnumerator {
+    # get_initial_requests() : Packet[]
+}
+
+class UDS_RCEnumerator {
+    # get_initial_requests() : Packet[]
+}
+
+class UDS_RCStartEnumerator {
+    # get_initial_requests() : Packet[]
+}
+
+class StagedAutomotiveTestCase {
+    - test_cases : AutomotiveTestCaseABC[]
+    - connectors : Callable[]
+}
+
+AutomotiveTestCaseABC <|-- AutomotiveTestCase
+AutomotiveTestCaseABC <|-- StagedAutomotiveTestCase
+
+AutomotiveTestCase <|-- UDS_Enumerator
+
+UDS_Enumerator <|-- UDS_RCEnumerator
+UDS_Enumerator <|-- UDS_RCStartEnumerator
+UDS_Enumerator <|-- UDS_RDBIEnumerator
+UDS_Enumerator <|-- UDS_RDBIRandomEnumerator
+
+StagedAutomotiveTestCase <|-- UDS_RDBISelectiveEnumerator
+StagedAutomotiveTestCase <|-- UDS_RCSelectiveEnumerator
+
+
+
+@enduml

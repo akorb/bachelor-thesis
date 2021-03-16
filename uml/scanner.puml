@@ -1,0 +1,14 @@
+@startuml scanners
+
+skinparam classAttributeIconSize 0
+
+abstract AutomotiveTestCaseExecutor {
+    + socket : SuperSocket
+    + test_cases : AutomotiveTestCaseABC[]
+}
+
+AutomotiveTestCaseExecutor <|-- UDS_Scanner
+AutomotiveTestCaseExecutor <|-- GMLAN_Scanner
+AutomotiveTestCaseExecutor <|-- OBD_Scanner
+
+@enduml
