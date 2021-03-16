@@ -5,6 +5,7 @@ skinparam classAttributeIconSize 0
 abstract AutomotiveTestCaseExecutor {
     + socket : SuperSocket
     + test_cases : AutomotiveTestCaseABC[]
+    + scan() : void
 }
 
 AutomotiveTestCaseExecutor <|-- UDS_Scanner

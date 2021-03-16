@@ -10,10 +10,10 @@ UDS_RCSelectiveEnumerator "0..1" -down- "1" UDS_RCEnumerator
 UDS_RCSelectiveEnumerator "0..1" -down- "1" UDS_RCStartEnumerator
 
 abstract AutomotiveTestCaseABC {
-    {abstract} + execute() : void
+    {abstract} + execute(socket : SuperSocket, state : EcuState) : void
 }
 
-abstract AutomotiveTestCase {
+abstract AutomotiveTestCase #back:PeachPuff {
     {abstract} # get_initial_requests() : Packet[]
     # evaluate_response(response: Packet) : bool
 }
@@ -21,7 +21,9 @@ abstract AutomotiveTestCase {
 abstract UDS_Enumerator {
 }
 
-class UDS_RDBIRandomEnumerator {
+class UDS_RDBISelectiveEnumerator #back:PeachPuff
+
+class UDS_RDBIRandomEnumerator #back:PeachPuff {
     # get_initial_requests() : Packet[]
 }
 
@@ -29,11 +31,11 @@ class UDS_RDBIEnumerator {
     # get_initial_requests() : Packet[]
 }
 
-class UDS_RCEnumerator {
+class UDS_RCEnumerator #back:PeachPuff {
     # get_initial_requests() : Packet[]
 }
 
-class UDS_RCStartEnumerator {
+class UDS_RCStartEnumerator #back:PeachPuff {
     # get_initial_requests() : Packet[]
 }
 
