@@ -13,11 +13,11 @@ Enumerators are service-specific and create all possible requests for a service.
 \begin{figure}[htb]
     \centering
     \includegraphics[width=1\textwidth]{uml/enumerators}
-    \caption{Class diagram of the enumerators.}
+    \caption{Class diagram of some enumerators.}
     \label{fig:uml-enumerators}
 \end{figure}
 
-\autoref{fig:uml-enumerators} shows the class tree of the enumerators and its super classes. The classes with a darker background are the classes that were modified or created for this thesis. The root is the \mintinline{python}{AutomotiveTestCaseABC} class. It requires each subclass to implement the \mintinline{python}{execute} method. Its first parameter \mintinline{python}{socket} specifies on which socket the requests and responses are communicated. \mintinline{python}{SuperSocket} is the root class of Scapy for all sockets. For the UDS Scanner, this is usually an \mintinline{python}{ISOTPSocket}.
+\autoref{fig:uml-enumerators} shows the class tree of some enumerators and its super classes. The classes with a darker background are the classes that were modified or created for this thesis. The root is the \mintinline{python}{AutomotiveTestCaseABC} class. It requires each subclass to implement the \mintinline{python}{execute} method. Its first parameter \mintinline{python}{socket} specifies on which socket the requests and responses are communicated. \mintinline{python}{SuperSocket} is the root class of Scapy for all sockets. For the UDS Scanner, this is usually an \mintinline{python}{ISOTPSocket}.
 
 In general, a scanner like the UDS Scanner executes automotive test cases. For a normal UDS scan, these test cases are only service enumerators. However, other test cases are also conceivable. The inheritance tree of all enumerators starts at \mintinline{python}{AutomotiveTestCaseABC}. This is the type that is expected from scanners.
 Staged enumerators inherit from \mintinline{python}{StagedAutomotiveTestCase} and single enumerators from \mintinline{python}{AutomotiveTestCase}. The \mintinline{python}{UDS_Enumerator} defines UDS-specific behavior that it doesn't need to be specified again for each UDS enumerator. For example, how the negative response code (NRC) of a response is read.
@@ -35,6 +35,11 @@ The most important member of the enumerator classes is the \mintinline{python}{g
 \end{figure}
 
 \autoref{fig:uml-scanners} shows the class diagram of the three protocol scanners in Scapy. Each has a list of test cases (see \autoref{fig:uml-enumerators}). They also contain a socket that is passed to each test case's \mintinline{python}{execute} method. Their \mintinline{python}{scan} method starts a scan.
+
+\subsection{Dependencies}
+
+First, a Python interpreter is required.
+The enumerators and the UDS Scanner itself are implemented in Scapy. Therefore, Scapy must also be installed. The last dependency results from the socket used. If the native ISO-TP Socket is used, a Linux-based operating system is required and possibly the installation of a driver module (see \autoref{subsec:isotp}). For using a CAN bus without Linux the 'python-can' library is needed. Complete instructions can be found in the Scapy documentation. For a scan over an Ethernet interface, no further action is necessary.
 
 \subsection{Usage}
 
@@ -59,11 +64,6 @@ with ISOTPSocket("can0", sid=0x6fd, did=0x610, basecls=UDS) as tester:
 \caption{Using the UDS Scanner with the new enumerators and behavior.}
 \label{lst:usage}
 \end{listing}
-
-\subsection{Dependencies}
-
-First, a Python interpreter is required.
-The enumerators and the UDS Scanner itself are implemented in Scapy. Therefore, Scapy must also be installed. The last dependency results from the socket used. If the native ISO-TP Socket is used, a Linux-based operating system is required and possibly the installation of a driver module (see \autoref{subsec:isotp}). For using a CAN bus without Linux the 'python-can' library is needed. Complete instructions can be found in the Scapy documentation. For a scan over an Ethernet interface, no further action is necessary.
 
 \section{Explaining the service enumerators of the UDS Scanner}
 \label{sec:enumerators}
