@@ -17,9 +17,9 @@ Trims all images to its content but pads it with one pixel line on the top and b
 
 Convert *.puml file (PlantUML) to a PDF file containing vectorized data.
 
-`plantuml -tsvg myfile.puml && inkscape myfile.svg --export-type="pdf" myfile.pdf`
+`cat myfile.puml | plantuml -tsvg -p | inkscape --export-type="pdf" -p > myfile.pdf`
 
 
-Rotate a PDF file containing vector data clockwise with 90°. The vector data stays vectorized instead of getting rasterized.
+Convert *.puml file (PlantUML) to a PDF file containing vectorized data rotated by 90 degrees clockwise.
 
-`pdfjam --angle 90 myfile.pdf`
+`cat overview.puml | plantuml -tsvg -p | inkscape --export-type="pdf" -p | pdfjam --angle 90 --outfile overview.pdf`
