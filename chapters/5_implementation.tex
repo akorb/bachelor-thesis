@@ -8,7 +8,7 @@ First, an overview is given to make the implementation easier to follow.
 
 \subsection{Service enumerators}
 
-Enumerators are service-specific and create all possible requests for a service. They are explained in more detail in \autoref{sec:enumerators}.
+Enumerators are service-specific and create all possible requests for a service. For example, the enumerator of the RDBI service is called \mintinline{python}{UDS_RDBIEnumerator}. They are explained in more detail in \autoref{sec:enumerators}.
 
 \begin{figure}[htb]
     \centering
@@ -34,6 +34,32 @@ The most important member of the enumerator classes is the \mintinline{python}{g
     \label{fig:uml-scanners}
 \end{figure}
 
+\autoref{fig:uml-scanners} shows the class diagram of the three protocol scanners in Scapy. Each has a list of test cases (see \autoref{fig:uml-enumerators}). They also contain a socket that is passed to each test case's \mintinline{python}{execute} method. Their \mintinline{python}{scan} method starts a scan.
+
+\subsection{Usage}
+
+A minimal example that uses the new enumerators and skips unsupported services can be run as shown in \autoref{lst:usage}.
+
+\begin{listing}[H]
+\begin{minted}
+[frame=single,
+framerule=0pt,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=VeryLightGray,
+fontsize=\footnotesize,
+linenos]
+{python}
+with ISOTPSocket("can0", sid=0x6fd, did=0x610, basecls=UDS) as tester:
+    enumerators = [UDS_RCSelectiveEnumerator, UDS_RDBISelectiveEnumerator]
+    scanner = UDS_Scanner(tester, test_cases=es, exit_if_service_not_supported=True)
+    scanner.scan()
+
+\end{minted}
+\caption{Using the UDS Scanner with the new enumerators and behavior.}
+\label{lst:usage}
+\end{listing}
+
 \subsection{Dependencies}
 
 First, a Python interpreter is required.
@@ -41,9 +67,6 @@ The enumerators and the UDS Scanner itself are implemented in Scapy. Therefore, 
 
 \section{Explaining the service enumerators of the UDS Scanner}
 \label{sec:enumerators}
-
-Enumerators are service-specific and create all possible requests for a service.
-For example, the enumerator of the DSC service is called \mintinline{python}{UDS_DSCEnumerator}.
 
 Each enumerator will be executed for each found state of the ECU. So, if an enumerator already was executed, and afterwards a new state is found by the UDS Scanner, this enumerator will be executed again within the same scan with the new-found state.
 
@@ -458,6 +481,3 @@ class AutomotiveTestCase(AutomotiveTestCaseABC):
 \caption{The extended super class of each enumerator with skipping unsupported services.}
 \label{lst:enumerator-super-class}
 \end{listing}    
-
-
-\section{Usage}
