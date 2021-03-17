@@ -16,12 +16,15 @@ abstract AutomotiveTestCaseABC {
 abstract AutomotiveTestCase #back:PeachPuff {
     {abstract} # get_initial_requests() : Packet[]
     # evaluate_response(response: Packet) : bool
+    + execute(socket : SuperSocket, state : EcuState) : void
 }
 
 abstract UDS_Enumerator {
 }
 
 class UDS_RDBISelectiveEnumerator #back:PeachPuff
+
+class UDS_RCSelectiveEnumerator #back:PeachPuff
 
 class UDS_RDBIRandomEnumerator #back:PeachPuff {
     # get_initial_requests() : Packet[]
@@ -42,6 +45,7 @@ class UDS_RCStartEnumerator #back:PeachPuff {
 class StagedAutomotiveTestCase {
     - test_cases : AutomotiveTestCaseABC[]
     - connectors : Callable[]
+    + execute(socket : SuperSocket, state : EcuState) : void
 }
 
 AutomotiveTestCaseABC <|-- AutomotiveTestCase
