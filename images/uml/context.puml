@@ -1,5 +1,8 @@
 @startuml
 
+() "CAN" as can1
+() "CAN" as can2
+
 package "scapy.core" {
     [Packet]
     [SuperSocket]
@@ -25,9 +28,11 @@ package "scapy.contrib.automotive.uds_scan" {
 }
 
 node {
-    [ECU] - CAN
+    [ECU] - can1
 }
-[ISOTPSocket] <.up.> CAN : UDS data
+
+[ISOTPSocket] - can2
+can1 <.down.> can2 : UDS data
 [UDS Scanner] ..> [ISOTPSocket] : Change state\nof ECU
 
 note left of [UDS Scanner]
