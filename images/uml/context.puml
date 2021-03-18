@@ -19,7 +19,7 @@ package "scapy.contrib.automotive.uds" {
 
 package "scapy.contrib.automotive.uds_scan" {
     [UDS Scanner] ..> [UDS Enumerator] : executes
-    [UDS Enumerator] <..> [ISOTPSocket] : send and\n receive
+    [UDS Enumerator] <..> [ISOTPSocket] : send and\nreceive
 
     [UDS Enumerator] ..> [UDS] : creates UDS requests
 }
@@ -28,6 +28,7 @@ node {
     [ECU] - CAN
 }
 [ISOTPSocket] <.up.> CAN : UDS data
+[UDS Scanner] ..> [ISOTPSocket] : Change state\nof ECU
 
 note left of [UDS Scanner]
 Executes enumerators
