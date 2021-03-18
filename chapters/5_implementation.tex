@@ -6,6 +6,25 @@ In this chapter, the theoretical explanations of the previous chapters are trans
 
 First, an overview is given to make the implementation easier to follow.
 
+\subsection{Scapy modules}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.79\textwidth]{uml/context}
+    \caption{Interconnected modules of Scapy for UDS scanning.}
+    \label{fig:uml-context}
+\end{figure}
+
+Scapy is a large program with many functions for all possible use cases. For a UDS scan, its modules shown in \autoref{fig:uml-context} are used together. Basically it needs four components:
+
+\begin{itemize}
+    \item An ISOTPSocket for communication with the ECU.
+    \item The UDS data definitions to generate requests and interpret responses (see \autoref{subsec:uds-scapy}).
+    \item Service enumerators, which generate UDS requests. Only here changes were made.
+    \item The UDS Scanner, which executes the enumerators and manages the state of the ECU.
+\end{itemize}
+
+
 \subsection{Service enumerators}
 
 Enumerators are service-specific and create all possible requests for a service. For example, the enumerator of the RDBI service is called \mintinline{python}{UDS_RDBIEnumerator}. They are explained in more detail in \autoref{sec:enumerators}.
@@ -34,7 +53,7 @@ The most important member of the enumerator classes is the \mintinline{python}{g
     \label{fig:uml-scanners}
 \end{figure}
 
-\autoref{fig:uml-scanners} shows the class diagram of the three protocol scanners in Scapy. Each has a list of test cases (see \autoref{fig:uml-enumerators}). They also contain a socket that is passed to each test case's \mintinline{python}{execute} method. Their \mintinline{python}{scan} method starts a scan.
+\autoref{fig:uml-scanners} shows the class diagram of the three protocol scanners in Scapy. Each is given a list of test cases (see \autoref{fig:uml-enumerators}) and a socket that is passed to each test case's \mintinline{python}{execute} method. Their \mintinline{python}{scan} method starts a scan.
 
 \subsection{Dependencies}
 

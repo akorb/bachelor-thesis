@@ -1,0 +1,52 @@
+@startuml
+
+package "scapy.core" {
+    [Packet]
+    [SuperSocket]
+}
+
+package "scapy.contrib.isotp" {
+    [ISOTPSocket] ..> [SuperSocket] : specializes
+}
+
+package "scapy.contrib.automotive.uds" {
+    [UDS]
+    [UDS_RC]
+    [UDS_RDBI]
+}
+
+[UDS] ..> [Packet] : specializes 
+
+package "scapy.contrib.automotive.uds_scan" {
+    [UDS Scanner] ..> [UDS Enumerator] : executes
+    [UDS Enumerator] <..> [ISOTPSocket] : send and\n receive
+
+    [UDS Enumerator] ..> [UDS] : creates UDS requests
+}
+
+node {
+    [ECU] - CAN
+}
+[ISOTPSocket] <.up.> CAN : UDS data
+
+note left of [UDS Scanner]
+Executes enumerators
+and manages the state
+of the ECU.
+end note
+
+
+note as N1
+Defines service specific
+data structure.
+end note
+
+'note right of [ISOTPSocket]
+'To exchange data
+'with the ECU.
+'end note
+
+[UDS_RDBI] .. N1
+[UDS_RC] .. N1
+
+@enduml
