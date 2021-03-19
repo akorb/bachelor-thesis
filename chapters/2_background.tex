@@ -347,7 +347,7 @@ The software version resolves the protocol communication in Scapy itself. Its ad
 
 The native socket uses an ISO-TP module for the Linux kernel. It uses the socket interface of Linux and brings all its advantages, such as asynchronous waiting for responses while the process is sleeping. Until including Linux kernel 5.9, this module had to be installed separately \cite{isotp-module}. Since kernel 5.10, it is part of the Linux mainline kernel \cite{isotp-commit}.
 
-An ISO-TP socket contains a source and destination identifier. They have the same purpose as IP addresses. The source identifier (\mintinline{text}{sid}) is used for outgoing CAN frames, and the destination identifier (\mintinline{text}{did}) for incoming frames. In other words, the \mintinline{text}{sid} must contain the identifier to which the ECU expects requests, and the \mintinline{text}{did} must contain the identifier with which it responds. They must be known to be able to send requests to ECUs and receive their responses.
+An ISO-TP socket contains a source and destination identifier. They have the same purpose as IP addresses. The source identifier (\mintinline{text}{sid}) is used for outgoing CAN frames, and the destination identifier (\mintinline{text}{did}) for incoming frames. In other words, the \mintinline{text}{sid} must contain the identifier to which the ECU expects requests, and the \mintinline{text}{did} must contain the identifier with which it responds. They must be known to be able to send requests to ECUs and receive their responses. The \mintinline{python}{basecls} argument tells the socket how to interpret incoming data.
 
 The usage of the native implementation is presented by the following code snippet:
 
@@ -361,8 +361,8 @@ bgcolor=VeryLightGray,
 fontsize=\footnotesize,
 linenos]
 {python}
-from scapy.contrib.isotp import ISOTPNativeSocket
-socket = ISOTPNativeSocket('vcan0', sid=0x123, did=0x456)
+from scapy.contrib.isotp import ISOTPNativeSocket as ISOTPSocket
+socket = ISOTPSocket('vcan0', sid=0x123, did=0x456, basecls=UDS)
 uds_data = UDS() / UDS_DSC(diagnosticSessionType=0x03)
 # sr1 stands for: send and receive one response
 response = socket.sr1(uds_data)
