@@ -136,22 +136,24 @@ The \emph{DiagnosticSessionControl} (DSC) service is used to enable different di
 
 There is always exactly one global UDS state active for an ECU. It influences the behavior of the ECU and can be changed by sending specific requests. Just a few services are able to accomplish this. For example, sending a request to the SA or DSC service of an ECU may affect its state. Whether the ECU has actually changed the state can be easily determined by checking whether the sender received a positive or negative response from the ECU.
 
-\begin{figure}[htb]
-    \centering
-    \includegraphics[width=0.7\textwidth]{uml/ecu-state-machine}
-    \caption{State machine example of ECUs for UDS.}
-    \label{fig:ecu-state-behavior}
-\end{figure}
+The default state is the active state after the ECU is switched on. Without an external request, it remains in this state. In the DSC service, each parameter value specifies a state. Thus, if the ECU designers integrated a state for $n$, the controller will respond positively to a DSC request to activate this state. It will now remain in this state until there has been no UDS communication for usually five seconds, then it will automatically return to the default state. If the ECU designers did not integrate such a state, it will answer with a negative response and remain in its current state.
 
-The default state is the active state after the ECU is switched on. Without an external request, it remains in this state. \autoref{fig:ecu-state-behavior} illustrates the behavior of the ECU when a request is received for the DSC service and parameter value $n$. In the DSC service, each parameter value specifies a state. Thus, if the ECU designers integrated a state for $n$, the controller will respond positively. It will now remain in this state until there has been no UDS communication for usually five seconds, then it will automatically return to the default state. If the ECU designers did not integrate such a state, it will answer with a negative response and remain in its current state.
-
-The \emph{SecurityAccess} service uses the challenge–response authentication, in automotive terminology called seed-key protocol. The ECU sends a randomly generated value (the seed) to the client. Both devices generate a response (the key) based on the seed and the client sends its response to the ECU. If the keys match for the received and the generated response for the ECU, the client is authenticated \cite{iso14229}.
+The \emph{SecurityAccess} (SA) service uses the challenge–response authentication, in automotive terminology called seed-key protocol. The ECU sends a randomly generated value (the seed) to the client. Both devices generate a response (the key) based on the seed and the client sends its response to the ECU. If the keys match for the received and the generated response for the ECU, the client is authenticated (see \autoref{fig:key-seed}) \cite{iso14229}.
 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{key-seed}
     \caption{The challenge-response protocol \cite{Herrewegen2018}.}
     \label{fig:key-seed}
+\end{figure}
+
+\autoref{fig:ecu-state-behavior} illustrates the behavior of the ECU when a request is received for the DSC service and parameter value $n$. The state $n$ is considered as a state that can be further unlocked with the SA service.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.7\textwidth]{uml/ecu-state-machine}
+    \caption{State machine example of ECUs for UDS.}
+    \label{fig:ecu-state-behavior}
 \end{figure}
 
 

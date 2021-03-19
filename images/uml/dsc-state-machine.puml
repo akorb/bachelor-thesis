@@ -4,10 +4,10 @@ hide empty description
 [*] -right-> defaultState
 defaultState -right-> state2 : DSC request\nwith parameter 0x02
 state2 -right-> state3 : DSC request\nwith parameter 0x03
-state2 -down-> state82 : DSC request \nwith parameter 0x82\n[condition unknown]
-defaultState -down-> state82 : DSC request \nwith parameter 0x82\n[condition unknown]
 
 state2 -left-> defaultState : timeout
 state3 -left-> defaultState : \ntimeout
-state82 -left-> defaultState : timeout
+state82 -up-> defaultState : timeout
+defaultState -down-> state82 : DSC request \nwith parameter 0x82\n[unknown]
+
 @enduml

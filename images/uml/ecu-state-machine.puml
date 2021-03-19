@@ -1,10 +1,17 @@
 @startuml
 hide empty description
 
-state "state n" as stateN
 
-[*] -right-> defaultState
-defaultState -right-> stateN : Received DSC request to DSC\nservice with parameter n
+[*] -right> defaultState
+defaultState -right-> stateN : Received DSC request\nwith parameter n
 
 stateN -left->  defaultState : timeout
+
+state "state n" as stateN {
+  state Locked
+  state Unlocked
+  [*] -> Locked
+  Locked --> Unlocked : SA\nhandshake
+  Unlocked --> Locked
+}
 @enduml

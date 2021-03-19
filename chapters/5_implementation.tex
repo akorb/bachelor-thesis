@@ -122,20 +122,20 @@ Enumerators can output their results as a text-table. For example a possible out
 ----------+--------------------------+--------------------------+--------------------------+
           | defaultState             | state2                   | state3                   | 
 ----------+--------------------------+--------------------------+--------------------------+
-0x02      | PR: Supported            | NR: conditionsNotCorrect | PR: conditionsNotCorrect | 
-0x03      | NR: conditionsNotCorrect | PR: Supported            | PR: conditionsNotCorrect | 
-0x82      | NR: conditionsNotCorrect | NR: conditionsNotCorrect | -                        | 
+0x02      | PR: Supported            | NR: -                    | NR: -                    | 
+0x03      | NR: -                    | PR: Supported            | NR: -                    | 
+0x82      | NR: conditionsNotCorrect | NR: -                    | NR: -                    | 
 ----------+--------------------------+--------------------------+--------------------------+
 \end{minted}
 \end{samepage}
 
 Each row is a request. Here are listed requests of the DSC service with parameters \mintinline{text}{0x02}, \mintinline{text}{0x03} and \mintinline{text}{0x82}. Each column is a state. And each cell shows the response for each request per state (PR = positive response, NR = negative response).
 
-A PenTester would be able to extract a state machine from this table (see \autoref{fig:state-machine-of-scan}).
+A PenTester is able to extract a state machine from this table (see \autoref{fig:state-machine-of-scan}).
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.68\textwidth]{uml/dsc-state-machine}
+    \includegraphics[width=0.7\textwidth]{uml/dsc-state-machine}
     \caption{Partial result for a PenTester of a UDS scan.}
     \label{fig:state-machine-of-scan}
 \end{figure}
