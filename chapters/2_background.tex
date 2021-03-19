@@ -337,7 +337,7 @@ bytes(uds_data) # prints: 0x10 0x03
 
 
 
-\subsection{Transmitting UDS data via an ISO-TP socket}
+\subsection{Transmit and receive UDS data via an ISO-TP socket}
 \label{subsec:isotp}
 
 As described in \autoref{sec:uds}, UDS mostly uses the ISO-TP protocol on the CAN bus for sending and transmitting data.
@@ -364,9 +364,11 @@ linenos]
 from scapy.contrib.isotp import ISOTPNativeSocket
 socket = ISOTPNativeSocket('vcan0', sid=0x123, did=0x456)
 uds_data = UDS() / UDS_DSC(diagnosticSessionType=0x03)
-socket.send(uds_data)
+# sr1 stands for: send and receive one response
+response = socket.sr1(uds_data)
+bytes(response) # prints: 50 00 32 01 f4 (hex)
 \end{minted}
-\caption{Sending UDS data with an ISO-TP socket.}
+\caption{Sending a UDS request and receive its response with an ISO-TP socket.}
 \label{lst:send-packet-isotp}
 \end{listing}
 
