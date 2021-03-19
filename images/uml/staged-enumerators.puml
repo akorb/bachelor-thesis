@@ -1,0 +1,14 @@
+
+@startuml
+|defaultState|
+start
+:stage1;
+:stage2;
+|#AntiqueWhite|state2|
+:stage1;
+:stage2;
+|state3|
+:stage1;
+:stage2;
+stop
+@enduml
