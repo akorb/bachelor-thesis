@@ -36,10 +36,11 @@ Enumerators are service-specific and create all possible requests for a service.
     \label{fig:uml-enumerators}
 \end{figure}
 
-\autoref{fig:uml-enumerators} shows the class tree of some enumerators and their super classes. The classes with a darker background are the classes that were modified or created for this thesis. The root is the \mintinline{python}{AutomotiveTestCaseABC} class. It requires each subclass to implement the \mintinline{python}{execute} method. Its first parameter \mintinline{python}{socket} specifies on which socket the requests and responses are communicated. \mintinline{python}{SuperSocket} is the root class of Scapy for all sockets. For the UDS Scanner, this is usually an \mintinline{python}{ISOTPSocket}.
+\autoref{fig:uml-enumerators} shows the class tree of some enumerators and their super classes. The classes with a darker background are the classes that were modified or created for this thesis.
 
-In general, a scanner like the UDS Scanner executes automotive test cases. For a normal UDS scan, these test cases are only service enumerators. However, other test cases are also conceivable. The inheritance tree of all enumerators starts at \mintinline{python}{AutomotiveTestCaseABC}. This is the type that is expected from scanners.
-Staged enumerators inherit from \mintinline{python}{StagedAutomotiveTestCase} and single enumerators from \mintinline{python}{AutomotiveTestCase}. The \mintinline{python}{UDS_Enumerator} defines UDS-specific behavior that it doesn't need to be specified again for each UDS enumerator. For example, how the negative response code (NRC) of a response is read.
+In general, scanners execute automotive test cases. For a normal UDS scan, these test cases are only service enumerators. However, other test cases are also conceivable. The root class of each enumerator is \mintinline{python}{AutomotiveTestCaseABC}. This is the type that is expected from scanners. Staged enumerators inherit from \mintinline{python}{StagedAutomotiveTestCase} and single enumerators from \mintinline{python}{AutomotiveTestCase}. The \mintinline{python}{UDS_Enumerator} defines UDS-specific behavior that it doesn't need to be specified again for each UDS enumerator. For example, how the negative response code (NRC) of a response is read.
+
+\mintinline{python}{AutomotiveTestCaseABC} requires each subclass to implement the \mintinline{python}{execute} method. Its first parameter \mintinline{python}{socket} specifies on which socket the requests and responses are communicated. \mintinline{python}{SuperSocket} is the root class of Scapy for all sockets. For the UDS Scanner, this is usually an \mintinline{python}{ISOTPSocket}.
 
 The most important member of the enumerator classes is the \mintinline{python}{get_initial_requests} method. The return value is an iterable object which contains the requests for this service. It actually has a parameter which enables the caller to configure the enumerator. Due to lack of space it is hidden in \autoref{fig:uml-enumerators}. The full diagram can be seen in \autoref{app:uml}.
 
@@ -48,21 +49,21 @@ The most important member of the enumerator classes is the \mintinline{python}{g
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.6\textwidth]{uml/scanners}
+    \vspace*{-0.5cm}\includegraphics[width=0.57\textwidth]{uml/scanners}
     \caption{Class diagram of the protocol scanners.}
     \label{fig:uml-scanners}
 \end{figure}
 
-\autoref{fig:uml-scanners} shows the class diagram of the three protocol scanners in Scapy. Each is given a list of test cases (see \autoref{fig:uml-enumerators}) and a socket that is passed to each test case's \mintinline{python}{execute} method. Their \mintinline{python}{scan} method starts a scan.
+\autoref{fig:uml-scanners} shows the class diagram of the three protocol scanners in Scapy. Each is given a list of test cases (see \autoref{fig:uml-enumerators}) and a socket that is passed to each test case's \mintinline{python}{execute} method. Their \mintinline{python}{scan} method starts the scan.
 
 \subsection{Dependencies}
 
 First, a Python interpreter is required.
-The enumerators and the UDS Scanner itself are implemented in Scapy. Therefore, Scapy must also be installed. The last dependency results from the socket used. If the native ISO-TP Socket is used, a Linux-based operating system is required and possibly the installation of a driver module (see \autoref{subsec:isotp}). For using a CAN bus without Linux the 'python-can' library is needed. Complete instructions can be found in the Scapy documentation. For a scan over an Ethernet interface, no further action is necessary.
+The enumerators and the UDS Scanner itself are implemented in Scapy. Therefore, Scapy must also be installed. The last dependency results from the socket used. If the native ISO-TP Socket is used, a Linux-based operating system is required and possibly the installation of a driver module (see \autoref{subsec:isotp}). For using the CAN bus without Linux Scapy needs the library 'python-can' \cite{python-can}. Complete instructions can be found in the Scapy documentation \cite{scapy-automotive-doc}. For a scan over an Ethernet interface, no further action is necessary.
 
 \subsection{Usage}
 
-A minimal example that uses the new enumerators and skips unsupported services can be run as shown in \autoref{lst:usage}. All implementations of the approaches are used with this code. The \mintinline{python}{UDS_RCSelectiveEnumerator} (approach 1), the \mintinline{python}{UDS_RDBISelectiveEnumerator} (approach 2) and \mintinline{python}{exit_if_service_not_supported} (approach 3). Since this is a minimal example and neither the RC nor the RDBI service change the state of the ECU, this scan would not detect any other states besides the default state. To detect further states, the \mintinline{python}{UDS_DSCEnumerator} should be included.
+A minimal example that uses the new enumerators and skips unsupported services can be run as shown in \autoref{lst:usage}. All implementations of the approaches are used with this code. The \mintinline{python}{UDS_RCSelectiveEnumerator} (approach 1), the \mintinline{python}{UDS_RDBISelectiveEnumerator} (approach 2) and \mintinline{python}{exit_if_service_not_supported} (approach 3). Since this is a minimal example and neither the RC nor the RDBI service change the state of the ECU, this scan would not detect any other states besides the default state. To detect further states, the \mintinline{python}{UDS_DSCEnumerator} and \mintinline{python}{UDS_SA_XOR_Enumerator} should be included.
 
 
 
@@ -76,10 +77,10 @@ bgcolor=VeryLightGray,
 fontsize=\footnotesize,
 linenos]
 {python}
-with ISOTPSocket("can0", sid=0x6fd, did=0x610, basecls=UDS) as tester:
-    enumerators = [UDS_RCSelectiveEnumerator, UDS_RDBISelectiveEnumerator]
-    scanner = UDS_Scanner(tester, test_cases=es, exit_if_service_not_supported=True)
-    scanner.scan()
+socket = ISOTPSocket("can0", sid=0x6fd, did=0x610, basecls=UDS)
+enumerators = [UDS_RCSelectiveEnumerator, UDS_RDBISelectiveEnumerator]
+scanner = UDS_Scanner(socket, test_cases=es, exit_if_service_not_supported=True)
+scanner.scan()
 
 \end{minted}
 \caption{Using the UDS Scanner with the new enumerators and behavior.}
