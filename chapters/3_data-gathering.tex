@@ -71,7 +71,7 @@ Consequently, an abstraction is desirable. The newly created format is called th
 \end{figure}
 
 This format proved to be very useful as it allows quick analysis by chaining common Linux programs.
-For instance, counting the number of requests of a scan is a single command:
+For instance, counting the number of requests of a scan is a single command (see \autoref{lst:usage-generic}).
 \begin{listing}[H]
 \begin{minted}{bash}
         $ grep '^c.*' -c generic.log
@@ -80,6 +80,8 @@ For instance, counting the number of requests of a scan is a single command:
 \caption{Example usage of the generic format.}
 \label{lst:usage-generic}
 \end{listing}
+
+\newpage
 
 \subsection{Store service scan behavior of a scan}
 
