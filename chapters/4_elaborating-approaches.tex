@@ -8,7 +8,7 @@ This approach aims to reuse information from one part of a service for another p
 
 \subsection{Choosing the RC service to apply the approach to}
 
-This approach is applicable to scans of services with multiple parameters, as it is the case for the \emph{RoutineControl} (RC) service. It has two parameters, the routine type and the routine identifier. Based on the data gathered in \autoref{sec:data-gathering}, the distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}, with each color representing an ECU.
+This approach is applicable to scans of services with multiple parameters, as it is the case for the \emph{RoutineControl} (RC) service. It has two parameters, the type of action and the routine identifier. Based on the data gathered in \autoref{sec:data-gathering}, the distribution of the identifiers is visualized grouped by the type as a histogram in \autoref{fig:rc-distribution}, with each color representing an ECU.
 
 \begin{figure}[htb]
     \centering
@@ -68,19 +68,19 @@ bgcolor=VeryLightGray,
 fontsize=\footnotesize,
 linenos]
 {python}
-coverages = []
-request_savings = []
+coverages_per_width = []
+request_savings_per_width = []
 for expansion_width in range(1001):
-    coverages_width = []
-    request_savings_width = []
+    coverages_per_ecu = []
+    request_savings_per_ecu = []
     for ecu in ecus:
         ids_type1 = get_type1_ids(ecu)
-        to_scan = ids_to_block(ids_type1, expansion_width)
+        to_scan = ids_to_ranges(ids_type1, expansion_width)
         count_requests = len(to_scan)
-        coverages_width.append(get_coverage(ecu, to_scan))
-        request_savings_width.append(get_saving(count_requests))
-    coverages[expansion_width] = avg(coverages_ecus)
-    request_savings[expansion_width] = avg(request_saving)
+        coverages_per_ecu.append(get_coverage(ecu, to_scan))
+        request_savings_per_ecu.append(get_saving(count_requests))
+    coverages_per_width[expansion_width] = avg(coverages_ecus)
+    request_savings_per_width[expansion_width] = avg(request_saving)
 \end{minted}
 \caption{Simulation procedure for finding the best expansion width.}
 \label{lst:rc-sim}
@@ -102,7 +102,7 @@ The simulations were also run with expanding identifiers in one direction only, 
 
 \section{Use probabilities of positive answers block based}
 
-Most services are simpler and only have one parameter. So, reusing information within the same service is not practical. This approach tackles these kinds of services. The new idea is to scan the blocks more heavily where positive behavior is more likely than others and vice versa.
+Most services are simpler and only have one parameter. So, reusing information within the same service is not practical. This approach tackles these kinds of services. The idea is to scan the blocks more heavily where positive behavior is more likely than others and vice versa.
 
 \subsection{Choosing the RDBI service to apply the approach to}
 
@@ -118,6 +118,8 @@ The distribution of positively answered identifiers over all available ECUs is v
 \end{figure}
 
 It is clearly visible that there are some areas where not a single identifier was answered positively, and some areas that are particularly covered, such as the beginning and the end. This behavior of the RDBI will be exploited in the remainder of this section.
+
+\newpage
 
 \subsection{Current behavior}
 
@@ -138,7 +140,9 @@ To reduce this range, first the 2\textsuperscript{16} area is divided into block
     \label{fig:rdbi-behavior-new}
 \end{figure}
 
-The first point to address is how the number of requests for each block is calculated. It is based on the probability of positive identifiers per block. For this, all positively answered identifiers of all available ECUs are combined to a set of identifiers. Then, for each block, it is obtained how many of its identifiers are included in this set. The resulting value is the number of samples for this block, but at least one request should be generated for each block. In summary, the number $r$ of requests for a block is calculated using
+The first point to address is how the number of requests for each block is calculated. It is based on the probability of positive identifiers per block. For this, the positively answered identifiers of all available ECUs are combined to a set of identifiers. Then, for each block, it is obtained how many of its identifiers are included in this set. The resulting value is the number of samples for this block, but at least one request should be generated for each block.
+
+In summary, the number $r$ of requests for a block is calculated using
 \[r(i, s)=\max(b_i(s), \,1)\]
 wherein $i$ stand for the index of the requested block, $s$ for the block size and $b$ for the function that counts the overlapping occurrences of the block identifiers and the positively answered identifiers. The requested identifiers of a block are randomly generated.
 
@@ -158,25 +162,25 @@ bgcolor=VeryLightGray,
 fontsize=\footnotesize,
 linenos]
 {python}
-coverages = []
-request_savings = []
+coverages_per_block_size = []
+request_per_block_size = []
 for exponent in range(2, 17):
     block_size = 2 ** exponent
-    samples_per_block = get_samples_per_block(ecus, block_size)
-    coverages_per_block = []
-    request_savings_per_block = []
+    sample_number_per_block = get_samples_per_block(ecus, block_size)
+    coverages_per_ecu = []
+    request_savings_per_ecu = []
     for ecu in ecus:
         for i in range(100):
-            req_random = random_samples(block_size, samples_per_block)
+            req_random = random_samples(block_size, sample_number_per_block)
             positive_identifiers = ecu.get_positive_identifiers(req_random)
-            req_block = to_blocks(positive_identifiers, block_size)
+            req_block = ids_to_blocks(positive_identifiers, block_size)
             positive_identifiers += ecu.get_positive_identifiers(req_block)
             count_reqs = len(samples) + len(req_block)
-            coverages_per_block.append(get_coverage(ecu, positive_identifiers))
-            request_savings_per_block.append(get_saving(count_reqs))
+            coverages_per_ecu.append(get_coverage(ecu, positive_identifiers))
+            request_savings_per_ecu.append(get_saving(count_reqs))
 
-    coverages[exponent] = avg(coverages_per_block)
-    request_savings[exponent] = avg(request_savings_per_block)
+    coverages_per_block_size[exponent] = avg(coverages_per_ecu)
+    request_per_block_size[exponent] = avg(request_savings_per_ecu)
 \end{minted}
 \caption{Simulation procedure for finding the best block size.}
 \label{lst:rdbi-sim}
@@ -197,15 +201,17 @@ The request saving is no longer linear; instead, it is highest for medium block 
 \section{Avoid the scan of unsupported services}
 \label{subsec:unsupported-services-elaboration}
 
-Each ECU usually supports only a subset of the services offered by the UDS standard. This approach aims to avoid scanning them in order to save requests and therefore, time.
+Each ECU usually supports only a subset of the services offered by the UDS standard. This approach aims to avoid scanning unsupported service in order to save requests and therefore, time.
 
 The first thing to know is how to determine whether a service is supported or not. The UDS standard defines the general server response behavior, shown in \autoref{fig:server-response-behaviour} with the important area highlighted.
 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{server-response-behaviour}
-    \caption{General server response behavior \cite{iso14229}. SID = service identifier.}
+    \caption{General server response behavior \cite{iso14229}.}
     \label{fig:server-response-behaviour}
 \end{figure}
 
-Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that the NRCs \mintinline{text}{0x11} and \mintinline{text}{0x7f} are relevant for this approach. \mintinline{text}{0x11} indicates that the requested service is not supported at all. \mintinline{text}{0x7f} is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current service scan with the current state and start with the next one. Although a \mintinline{text}{0x11} NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service per state, which in turn receives a \mintinline{text}{0x11} NRC again and then stops the service scan. However, the number of states detected is usually one-digit, so the number of requests generated is negligible. In the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
+Each request is answered by a response, either positive or negative. A negative response contains a negative response code (NRC). \autoref{fig:server-response-behaviour} shows that the NRCs \mintinline{text}{0x11} and \mintinline{text}{0x7f} are relevant for this approach. \mintinline{text}{0x11} indicates that the requested service is not supported at all. \mintinline{text}{0x7f} is a lighter response code because it shows that the requested service is not supported in the current state of the ECU. Both response codes are sufficient to stop the current service scan with the current state and start with the next one.
+
+Although a \mintinline{text}{0x11} NRC is received, this service is still probed in other states. This is because with this behavior, in the worst case, one request is generated for this service per state, which in turn receives a \mintinline{text}{0x11} NRC again and then stops the service scan. However, the number of states detected is usually one-digit, so the number of requests generated is negligible. In the best case the vendor has implemented the NRC incorrectly and the service is available in a different state.
