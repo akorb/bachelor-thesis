@@ -1,0 +1,10 @@
+@startuml
+hide empty description
+
+state "state n" as stateN
+
+[*] -right-> defaultState
+defaultState -right-> stateN : Received DSC request to DSC\nservice with parameter n
+
+stateN -left->  defaultState : timeout
+@enduml

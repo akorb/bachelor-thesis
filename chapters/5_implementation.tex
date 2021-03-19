@@ -6,7 +6,7 @@ In this chapter, the theoretical explanations of the previous chapters are trans
 
 First, an overview is given to make the implementation easier to follow.
 
-\subsection{Scapy modules}
+\subsection{Scapy modules for UDS scanning}
 
 \begin{figure}[htb]
     \centering
@@ -19,7 +19,7 @@ Scapy is a large program with many functions for all possible use cases. For a U
 
 \begin{itemize}
     \item An ISOTPSocket for communication with the ECU (see \autoref{subsec:isotp}).
-    \item The UDS data definitions to generate requests and interpret responses (see \autoref{subsec:uds-scapy}).
+    \item The UDS data structure definitions to generate requests and interpret responses (see \autoref{subsec:uds-scapy}).
     \item Service enumerators, which generate UDS requests. Only here changes were made.
     \item The UDS Scanner, which executes the enumerators and manages the state of the ECU.
 \end{itemize}
@@ -62,7 +62,9 @@ The enumerators and the UDS Scanner itself are implemented in Scapy. Therefore, 
 
 \subsection{Usage}
 
-A minimal example that uses the new enumerators and skips unsupported services can be run as shown in \autoref{lst:usage}.
+A minimal example that uses the new enumerators and skips unsupported services can be run as shown in \autoref{lst:usage}. All implementations of the approaches are used with this code. The \mintinline{python}{UDS_RCSelectiveEnumerator} (approach 1), the \mintinline{python}{UDS_RDBISelectiveEnumerator} (approach 2) and \mintinline{python}{exit_if_service_not_supported} (approach 3). Since this is a minimal example and neither the RC nor the RDBI service change the state of the ECU, this scan would not detect any other states besides the default state. To detect further states, the \mintinline{python}{UDS_DSCEnumerator} should be included.
+
+
 
 \begin{listing}[H]
 \begin{minted}
@@ -87,9 +89,10 @@ with ISOTPSocket("can0", sid=0x6fd, did=0x610, basecls=UDS) as tester:
 \section{Explaining the service enumerators of the UDS Scanner}
 \label{sec:enumerators}
 
+Enumerators are service-specific and generate UDS requests for a service.
 Each enumerator will be executed for each found state of the ECU. So, if an enumerator already was executed, and afterwards a new state is found by the UDS Scanner, this enumerator will be executed again within the same scan with the new-found state.
 
-For a better understanding, the \mintinline{python}{UDS_DSCEnumerator} implementation will be described exemplary.
+For a better understanding, the \mintinline{python}{UDS_DSCEnumerator} implementation for the DSC service will be described exemplary.
 
 \begin{listing}[H]
 \begin{minted}
@@ -110,7 +113,7 @@ class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
 \label{lst:dsc-enumerator}
 \end{listing}
 
-The method can be configured by keyword parameters. The only one read by this method implementation is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from \mintinline{text}{0x02} to \mintinline{text}{0xff}. So, this enumerator creates 254 requests for each state by default. It is also a \mintinline{python}{StateGenerator}, which means its requests can change the state of the ECU (see \autoref{subsec:states}). This is detected by the UDS Scanner and the new state will be scanned as well.
+Its \mintinline{python}{get_initial_requests} method can be configured by keyword parameters. The only one read by this method implementation is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from \mintinline{text}{0x02} to \mintinline{text}{0xff}. So, this enumerator creates 254 requests for each state by default. It is also a \mintinline{python}{StateGenerator}, which means its requests can change the state of the ECU (see \autoref{subsec:states}). This is detected by the UDS Scanner and the new state will be scanned as well.
 
 Enumerators can output their results as a text-table. For example a possible output of the UDS enumerator is:
 
@@ -132,7 +135,7 @@ A PenTester would be able to extract a state machine from this table (see \autor
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.68\textwidth]{state-machine-of-scan}
+    \includegraphics[width=0.68\textwidth]{uml/dsc-state-machine}
     \caption{Partial result for a PenTester of a UDS scan.}
     \label{fig:state-machine-of-scan}
 \end{figure}
