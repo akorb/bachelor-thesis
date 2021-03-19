@@ -18,7 +18,7 @@ First, an overview is given to make the implementation easier to follow.
 Scapy is a large program with many functions for all possible use cases. For a UDS scan, its modules shown in \autoref{fig:uml-context} are used together. Basically it needs four components:
 
 \begin{itemize}
-    \item An ISOTPSocket for communication with the ECU (see \autoref{subsec:isotp}).
+    \item An ISO-TP socket for communication with the ECU (see \autoref{subsec:isotp}).
     \item The UDS data structure definitions to generate requests and interpret responses (see \autoref{subsec:uds-scapy}).
     \item Service enumerators, which generate UDS requests. Only here changes were made.
     \item The UDS Scanner, which executes the enumerators and manages the state of the ECU.
@@ -48,7 +48,7 @@ The most important member of the enumerator classes is the \mintinline{python}{g
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.7\textwidth]{uml/scanners}
+    \includegraphics[width=0.6\textwidth]{uml/scanners}
     \caption{Class diagram of the protocol scanners.}
     \label{fig:uml-scanners}
 \end{figure}

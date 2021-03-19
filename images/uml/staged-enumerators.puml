@@ -1,5 +1,5 @@
-
 @startuml
+
 |defaultState|
 start
 :stage1;
@@ -11,4 +11,5 @@ start
 :stage1;
 :stage2;
 stop
+
 @enduml
