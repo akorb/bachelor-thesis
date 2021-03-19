@@ -1,0 +1,22 @@
+@startuml
+
+start
+
+repeat
+
+:reset ECU;
+
+:activate the state\nto be scanned;
+note left
+No action in the
+first iteration
+(default state).
+end note
+
+:scan UDS services;
+
+repeat while (New state found?) is (      yes)
+->no;
+stop
+
+@enduml

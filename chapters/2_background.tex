@@ -31,7 +31,7 @@ The maximum data rate is 1 Mbit/sec with a network length below 40\,m. The highe
 
 This bus is robust because it uses two lines with differential signals for communication, i.e. when one line is driven high, the other is driven low. Thus, the receiver can reliably detect interferences by comparing these signals.
 
-Moreover, CAN busses are using the bus network topology (as illustrated in \autoref{fig:with-without-can}). This results in a smaller number of wires compared to star topologies, resulting in lower weight, which is an important factor for manufacturers.
+Moreover, CAN busses are using the bus network topology (as illustrated in \autoref{fig:with-without-can}). This reduces the number of wires compared to star topologies, resulting in lower weight, which is an important factor for manufacturers.
 
 %with-without-can
 \begin{figure}[htb]
@@ -78,7 +78,7 @@ cansend vcan0 123#01.02
 \label{lst:can-utils}
 \end{listing}
 
-The most common toolkit to work with the CAN bus are the can-utils \cite{can-utils}, which can usually be installed with the package manager of the distributions. The candump command (line 2) displays all messages of the CAN bus on interface \mintinline{text}{vcan0} in a terminal:
+The most common toolkit to work with the CAN bus are the can-utils \cite{can-utils}, which can usually be installed with the package manager of the distributions. The \mintinline{text}{candump} command (line 2) displays all messages of the CAN bus on interface \mintinline{text}{vcan0} in a terminal.
 
 Adding the \mintinline{text}{-l} option changes the output to be more compact instead of human-readable and stores the received traffic in a \mintinline{text}{candump.log} file (line 3). All traffic recorded in this work was done with this command.
 
@@ -88,14 +88,14 @@ For sake of completeness, the \mintinline{text}{cansend} command (line 4) sends 
 
 CAN frames have a payload size of 8 bytes. This is sufficient for most UDS requests, but not for many UDS responses. Thus, ISO-TP is used as the transport protocol on the CAN bus for UDS communication.
 
-It is defined in ISO 15765-2 and increases the payload size from 8 bytes to 4095 bytes per message. At least one byte of the data of each CAN frame is then transport protocol information, indicating whether this frame contains the entire application data or only a fragment of it, with more frames to come.
+It is defined in ISO 15765-2 and increases the payload size to 4095 bytes per message. At least one byte of each CAN frame is then transport protocol information, indicating whether this segment contains the entire data or only a fragment of it, with more segments to come.
 
 \section{The UDS protocol}
 \label{sec:uds}
 
 UDS stands for \emph{Unified diagnostic services} and is an application protocol defined in ISO 14229. This protocol defines the structures of request and response data for diagnostic purposes sent over an arbitrary data link \cite{iso14229}.
 
-The reason for the development of such a protocol was that the cars developed in the last decades were more and more able to diagnose themselves. A car repair shop only had to request this information from the car. But since there was no universal standard, car manufacturers tended to implement company-specific protocols for this purpose. UDS solves this by being an international standard and not company-specific. The \emph{Unified} in its name underlines this. 
+The reason for designing such a protocol was that cars developed in the last decades were more and more capable of self-diagnosis. A car repair shop only had to request this information from the car. But since there was no universal standard, car manufacturers tended to implement company-specific protocols for this purpose. UDS solves this by being an international standard and not company-specific. The \emph{Unified} in its name underlines this. 
 
 %UDS stack
 \begin{figure}[htb]
@@ -107,19 +107,6 @@ The reason for the development of such a protocol was that the cars developed in
 
 As shown in \autoref{fig:uds-stack}, the most common data links for the UDS protocol are Ethernet and the CAN bus. Others can and are used as well, explicitly stated in the UDS standard are FlexRay, K-Line and LIN.
 
-\subsection{Data structure}
-
-\begin{figure}[htb]
-    \centering
-    \includegraphics[width=0.5\textwidth]{uds-structure}
-    \caption{The structure of UDS requests.}
-    \label{fig:uds-structure}
-\end{figure}
-
-\autoref{fig:uds-structure} shows how UDS requests are structured. Each service is identified by a Service Identifier (SID). This identifier is the first byte in all UDS data. It must not be confused with the identifier of the CAN frame. Then at least one parameter follows. Most common is only one parameter, but services with multiple parameters exist too.
-Negative responses have the SID \mintinline{text}{0x7f}.
-For positive responses it is defined as \mintinline{text}{0x40} added to the SID. Thus, a request with SID \mintinline{text}{0x27} would be responded with \mintinline{text}{0x27 + 0x40 = 0x67} (see \autoref{fig:key-seed}).
-
 \subsection{Services}
 \label{subsubsec:uds-services}
 
@@ -127,7 +114,7 @@ UDS defines various services with different purposes. The ones used later in thi
 
 The \emph{RoutineControl} (RC) service enables the management of predefined routines on the ECU. They can be started, stopped or their results requested. Examples for routines are resetting or learning adaptive data, running a self-test or closing convertible roofs. It has two parameters, namely the desired action and the identifier of the routine.
 
-Another service is called \emph{ReadDataByIdentifier} (RDBI). With this service, it is possible to retrieve one or more values of an ECU. This can be static information like the software version or dynamic values such as the current readings of sensors. The structure of RDBI requests is simple as it only contains an identifier as parameter.
+Another service is called \emph{ReadDataByIdentifier} (RDBI). With this service, it is possible to retrieve one or more values of an ECU. This can be static information like the software version or dynamic values such as the current readings of sensors. It contains only the identifier of the requested data as a parameter.
 
 The \emph{DiagnosticSessionControl} (DSC) service is used to enable different diagnostic states in the ECU, and the \emph{SecurityAccess} (SA) service to unlock restricted access to data or services. They are explained in more detail in the next section, as they affect the state of ECUs.
 
@@ -152,9 +139,22 @@ The \emph{SecurityAccess} (SA) service uses the challenge–response authenticat
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.7\textwidth]{uml/ecu-state-machine}
-    \caption{State machine example of ECUs for UDS.}
+    \caption{Example of a state machine from an ECU for UDS.}
     \label{fig:ecu-state-behavior}
 \end{figure}
+
+\subsection{Data structure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{uds-structure}
+    \caption{The structure of UDS requests.}
+    \label{fig:uds-structure}
+\end{figure}
+
+\autoref{fig:uds-structure} shows how UDS requests are structured. Each service is identified by a Service Identifier (SID). This identifier is the first byte in all UDS data. It must not be confused with the identifier of the CAN frame. Then at least one parameter follows. Most common is only one parameter, but services with multiple parameters exist too.
+Negative responses have the SID \mintinline{text}{0x7f}.
+For positive responses it is defined as \mintinline{text}{0x40} added to the SID. Thus, a request with SID \mintinline{text}{0x27} would be responded with \mintinline{text}{0x27 + 0x40 = 0x67} (see \autoref{fig:key-seed}).
 
 
 \section{The UDS Scanner}
@@ -185,33 +185,16 @@ As \autoref{fig:automotive-security-testing-process} shows, the security testing
 
 The UDS Scanner starts with scanning each service for the default state of the ECU (see \autoref{subsec:states}). While doing so, it detects new states, which will be scanned subsequently. Therefore, as long as new states are found during an iteration, the scan continues. After each iteration, the ECU is reset to return to the default state. Then, the next state to be scanned is activated by sending a sequence of UDS requests, which is an edge of the UDS Scanner's internally built state machine. An ECU reset is usually done by switching off the ECU, waiting a few seconds, and switching it back on, although there is an ECU Reset service in the UDS protocol. However, its specification defines that the behavior is implementation-specific, so a power-based reset is the cleaner way.
 
-The pseudocode of \autoref{lst:uds-scanner} aims to make the procedure easier to understand:
+\autoref{fig:uds-scanner-procedure} aims to make the procedure easier to understand.
 
-\begin{listing}[H]
-\begin{minted}
-[frame=single,
-framerule=0pt,
-framesep=2mm,
-baselinestretch=1.2,
-bgcolor=VeryLightGray,
-fontsize=\footnotesize,
-linenos]
-{python}
-class UDS_Scanner:
-    def scan():
-       states = [default_state]
-       for state in states:
-           ecu.reset()
-           ecu.enter_state(state)
-           for service in service_list:
-               service.scan() # detects new states
-       ecu.reset()
-\end{minted}
-\caption{Procedure of the UDS Scanner.}
-\label{lst:uds-scanner}
-\end{listing}
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{uml/uds-scanner-procedure}
+    \caption{Procedure of the UDS Scanner.}
+    \label{fig:uds-scanner-procedure}
+\end{figure}
 
-
+\newpage
 
 \section{The Scapy program}
 \label{sec:scapy}
@@ -287,7 +270,7 @@ This field is given three parameters:
     \item \mintinline{python}{services}: The dictionary mapping from machine-readable values to human-readable texts.
 \end{itemize}
 
-The Scapy implementation starts a new class whenever the subsequent fields depend on a field value of the current layer. This is the case here, since the next fields depend on the SID. The service specific fields are defined in their own classes, for example:
+The Scapy implementation starts a new class whenever the subsequent fields depend on a field value of the current layer. This is the case here, since the next fields depend on the SID. The service specific fields are defined in their own classes, for example the \mintinline{python}{UDS_DSC} class for the DSC service (see \autoref{lst:uds-dsc-implementation}).
 
 \begin{listing}[H]
 \begin{minted}
@@ -315,7 +298,7 @@ bind_layers(UDS, UDS_DSC, service=0x10)
 \label{lst:uds-dsc-implementation}
 \end{listing}
 
-The \mintinline{python}{bind_layers} call (line 11 of \autoref{lst:uds-dsc-implementation}) tells Scapy the relationship between the classes \mintinline{python}{UDS} and \mintinline{python}{UDS_DSC}. This information will be used by Scapy for building and interpreting data.
+The \mintinline{python}{bind_layers} call (line 11 of \autoref{lst:uds-dsc-implementation}) tells Scapy the relationship between the classes \mintinline{python}{UDS} and \mintinline{python}{UDS_DSC}. This information is used by Scapy for building and interpreting data. Note that the keyword argument \mintinline{python}{service} has the same name as the field for the SID in the \mintinline{python}{UDS} class (see \autoref{lst:uds-implementation}).
 Then, if UDS data is received with the SID \mintinline{text}{0x10}, it continues interpreting it with the field definitions of \mintinline{python}{UDS_DSC}. Vice versa, if \mintinline{python}{UDS_DSC} data is stacked on \mintinline{python}{UDS} data for building, its SID field is automatically set to \mintinline{text}{0x10}. Layers are stacked with the division operator of Python (see \autoref{lst:uds-dsc-stacking}). As can be seen, the SID of the UDS data is \mintinline{text}{0x10}, although it was never explicitly set. Scapy set it because of the previous binding.
 
 \begin{listing}[H]
