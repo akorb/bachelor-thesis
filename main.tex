@@ -20,12 +20,6 @@
 	%twoside,
 ]{scrreprt}
 
-%\usepackage{setspace}
-%\setstretch{1.3}
-
-%Todo Randausgleich
-%\usepackage[a4paper, left=3cm, right=3cm, %bindingoffset=0mm]{geometry}
-
 % No additional spacing in front of chapter heading
 \RedeclareSectionCommand[
   beforeskip=0pt
@@ -147,6 +141,7 @@
 \makeglossaries
 
 \input{acronyms.tex}
+\input{glossary.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%  Document begin  %%%%%%%%%%%
@@ -177,6 +172,9 @@
 \include{chapters/7_conclusion-and-future-work}
 
 \include{chapters/8_closing-words}
+
+\thispagestyle{plain}
+\printunsrtglossary
 
 \thispagestyle{plain}
 \printunsrtglossary[type=\acronymtype]
