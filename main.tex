@@ -54,21 +54,24 @@
 \usepackage{caption}
 \captionsetup[listing]{skip=3pt}
 
-\usepackage[hidelinks]{hyperref}
-
 %Embed references
 \usepackage{csquotes}
+
+%Colors
 \usepackage{xcolor}
-
 \definecolor{VeryLightGray}{RGB}{235, 235, 235}
-
 \definecolor{thi}{RGB}{0,90,155}
-\hypersetup{
-	colorlinks,
+
+%Color links and set meta data of generated pdf file
+\usepackage[
+	colorlinks, % for pdf
+    % hidelinks, % for print
 	linkcolor={thi},
 	urlcolor={thi},
 	citecolor={thi},
-}
+    pdfauthor={Andreas Korb},
+    pdftitle={Evaluating approaches for more efficient UDS protocol scanning}
+]{hyperref}
 
 % sorting=none that they appear in the order they're used
 \usepackage[sorting=none, sortcites]{biblatex}
