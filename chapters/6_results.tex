@@ -35,9 +35,9 @@ First, the coverages and request savings are assessed for each approach.
 
 9 of 11 ECUs had a full coverage, as shown in \autoref{tab:evaluation-approach1}. The coverage for the dashboard ECU is notable low. Therefore, a closer look was taken there. It turned out that the Dashboard only supports two identifiers. The identifier 515 for type1 and identifier 61,728 for type3. The former is detected, but the resulting range for type3 is far from the identifier 61,728. Hence, the loss and a coverage of 50\,\%.
 
-For each ECU the request saving is close to the theoretical maximum of $66.7$\,\%. It is so high because ECUs usually support only a few routines (see \autoref{fig:rc-distribution}). Hence, only a few identifiers are expanded to blocks and lead to more requests.
+For each ECU the request saving is close to the theoretical maximum of $66.7$\,\%. It is so high because ECUs usually support only a few routines (see \autoref{fig:rc-distribution}). Therefore, only a few identifiers are expanded to blocks and lead to more requests.
 
-This approach is applicable to scans of services with multiple parameters. This results in a high scan time for this service and thus a high time-saving potential. However, if an identifier is not recognized during the first scan, it will not be recognized in the next scans as well.
+This approach is applicable to scans of services with multiple parameters, because they have a high scan time and thus a high time-saving potential. However, if an identifier is not recognized in a full scan, it will not be recognized in any other full scan as well.
 
 
 \subsection{Using probabilities of positive answers based on blocks}
@@ -76,7 +76,7 @@ The biggest problem with this approach is the newly added random factor. The cov
 
 \autoref{fig:serviceNotSupported-savings} illustrates the number of saved requests for each ECU with this approach. It is only an approximation because for this graph, the responses with the both described NRCs (\mintinline{text}{0x11} and \mintinline{text}{0x7f}) were counted. But actually, not every request can be saved with this approach, since at least one request must first be made to detect that this service is not supported. But this number of requests is low and negligible, especially considering that the lowest value of saved requests is about 70,000.
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{serviceNotSupported-savings}
     \caption{Saved number of requests with this approach (approx).}
