@@ -20,41 +20,9 @@ Scapy is a large program with many functions for all possible use cases. For a U
 \begin{itemize}
     \item An ISO-TP socket for communication with the ECU (see \autoref{subsec:isotp}).
     \item The UDS data structure definitions to generate requests and interpret responses (see \autoref{subsec:uds-scapy}).
-    \item Service enumerators, which generate UDS requests. Only here changes were made.
+    \item Service enumerators, which generate UDS requests. Only here changes were made. They are explained in more detail in \autoref{sec:enumerators}.
     \item The UDS Scanner, which executes the enumerators and manages the state of the ECU.
 \end{itemize}
-
-
-\subsection{Service enumerators}
-
-Enumerators are service-specific and create all possible requests for a service. For example, the enumerator of the RDBI service is called \mintinline{python}{UDS_RDBIEnumerator}. They are explained in more detail in \autoref{sec:enumerators}.
-
-\begin{figure}[htb]
-    \centering
-    \includegraphics[width=1\textwidth]{uml/enumerators}
-    \caption{Class diagram of some enumerators.}
-    \label{fig:uml-enumerators}
-\end{figure}
-
-\autoref{fig:uml-enumerators} shows the class tree of some enumerators and their super classes. The classes with a darker background are the classes that were modified or created for this thesis.
-
-In general, scanners execute automotive test cases. For a normal UDS scan, these test cases are only service enumerators. However, other test cases are also conceivable. The root class of each enumerator is \mintinline{python}{AutomotiveTestCaseABC}. This is the type that is expected from scanners. Staged enumerators inherit from \mintinline{python}{StagedAutomotiveTestCase} and single enumerators from \mintinline{python}{AutomotiveTestCase}. The \mintinline{python}{UDS_Enumerator} defines UDS-specific behavior that it doesn't need to be specified again for each UDS enumerator. For example, how the negative response code (NRC) of a response is read.
-
-\mintinline{python}{AutomotiveTestCaseABC} requires each subclass to implement the \mintinline{python}{execute} method. Its first parameter \mintinline{python}{socket} specifies on which socket the requests and responses are communicated. \mintinline{python}{SuperSocket} is the root class of Scapy for all sockets. For the UDS Scanner, this is usually an \mintinline{python}{ISOTPSocket}.
-
-The most important member of the enumerator classes is the \mintinline{python}{get_initial_requests} method. The return value is an iterable object which contains the requests for this service. It actually has a parameter which enables the caller to configure the enumerator. Due to lack of space it is hidden in \autoref{fig:uml-enumerators}. The full diagram can be seen in \autoref{app:uml}.
-
-
-\subsection{Scanner classes}
-
-\begin{figure}[htb]
-    \centering
-    \vspace*{-0.5cm}\includegraphics[width=0.57\textwidth]{uml/scanners}
-    \caption{Class diagram of the protocol scanners.}
-    \label{fig:uml-scanners}
-\end{figure}
-
-\autoref{fig:uml-scanners} shows the class diagram of the three protocol scanners in Scapy. Each is given a list of test cases (see \autoref{fig:uml-enumerators}) and a socket that is passed to each test case's \mintinline{python}{execute} method. Their \mintinline{python}{scan} method starts the scan.
 
 \subsection{Dependencies}
 
@@ -87,11 +55,45 @@ scanner.scan()
 \label{lst:usage}
 \end{listing}
 
-\section{Explaining the service enumerators of the UDS Scanner}
+\newpage
+
+\section{Explaining the enumerators of the UDS Scanner}
 \label{sec:enumerators}
 
-Enumerators are service-specific and generate UDS requests for a service.
-Each enumerator will be executed for each found state of the ECU. So, if an enumerator already was executed, and afterwards a new state is found by the UDS Scanner, this enumerator will be executed again within the same scan with the new-found state.
+Enumerators are service-specific and create all possible requests for a service. For example, the enumerator of the RDBI service is called \mintinline{python}{UDS_RDBIEnumerator}.
+
+\subsection{Inheritance tree of the enumerators}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=1\textwidth]{uml/enumerators}
+    \caption{Class diagram of enumerators.}
+    \label{fig:uml-enumerators}
+\end{figure}
+
+\autoref{fig:uml-enumerators} shows the class tree of enumerators and their super classes. The classes with a darker background were modified or newly created for this thesis.
+
+In general, scanners execute automotive test cases. For a normal UDS scan, these test cases are only service enumerators. However, other test cases are also conceivable, for example for fuzzing. Each enumerator will be executed for each found state of the ECU. So, if an enumerator already was executed, and afterwards a new state is found by the UDS Scanner, this enumerator will be executed again within the same scan with the new-found state.
+
+The root class of each enumerator is \mintinline{python}{AutomotiveTestCaseABC}. This is the type that is expected from scanners. Staged enumerators inherit from \mintinline{python}{StagedAutomotiveTestCase} and single enumerators from \mintinline{python}{AutomotiveTestCase}. The \mintinline{python}{UDS_Enumerator} defines UDS-specific behavior that it doesn't need to be specified again for each UDS enumerator. For example, how the negative response code (NRC) of a negative response is read.
+
+\mintinline{python}{AutomotiveTestCaseABC} requires each subclass to implement the \mintinline{python}{execute} method. Its first parameter \mintinline{python}{socket} specifies on which socket the requests and responses are communicated. \mintinline{python}{SuperSocket} is the root class of Scapy for all sockets. For the UDS Scanner, this is usually an \mintinline{python}{ISOTPSocket}.
+
+
+\subsection{Scanner classes}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.6\textwidth]{uml/scanners}
+    \caption{Class diagram of the protocol scanners.}
+    \label{fig:uml-scanners}
+\end{figure}
+
+\autoref{fig:uml-scanners} shows the class diagram of the three protocol scanners in Scapy. Each is given a list of test cases (see \autoref{fig:uml-enumerators}) and a socket that is passed to each test case's \mintinline{python}{execute} method. Their \mintinline{python}{scan} method starts the scan.
+
+\subsection{Single enumerators create requests and evaluate responses}
+
+The most important member of these classes is the \mintinline{python}{get_initial_requests} method. The return value is an iterable object which contains the requests for this service. It actually has a parameter which enables the caller to configure the enumerator. Due to lack of space it is hidden in \autoref{fig:uml-enumerators}. The full diagram can be seen in \autoref{app:uml}.
 
 For a better understanding, the \mintinline{python}{UDS_DSCEnumerator} implementation for the DSC service will be described exemplary.
 
@@ -110,13 +112,13 @@ class UDS_DSCEnumerator(UDS_Enumerator, StateGenerator):
         session_range = kwargs.pop('session_range', range(2, 0x100))
         return UDS() / UDS_DSC(diagnosticSessionType=session_range)
 \end{minted}
-\caption{Implementation of the enumerator scanning the DSC service.}
+\caption{Implementation of the enumerator that scans the DSC service.}
 \label{lst:dsc-enumerator}
 \end{listing}
 
 Its \mintinline{python}{get_initial_requests} method can be configured by keyword parameters. The only one read by this method implementation is \mintinline{python}{session_range}. If none is given, which is usually the case, it defaults to the range from \mintinline{text}{0x02} to \mintinline{text}{0xff}. So, this enumerator creates 254 requests for each state by default. It is also a \mintinline{python}{StateGenerator}, which means its requests can change the state of the ECU (see \autoref{subsec:states}). This is detected by the UDS Scanner and the new state will be scanned as well.
 
-Enumerators can output their results as a text-table. For example a possible output of the UDS enumerator is:
+Enumerators can output their results as a text-table with their \mintinline{python}{show} method. A possible output of the DSC enumerator is:
 
 \begin{samepage}
 \begin{minted}[fontsize=\footnotesize]{text}
@@ -141,6 +143,8 @@ A PenTester is able to extract a state machine from this table (see \autoref{fig
     \label{fig:state-machine-of-scan}
 \end{figure}
 
+\subsection{Staged enumerators combine enumerators into a staged execution}
+
 So-called staged enumerators contain enumerators where each enumerator is a stage. They start executing the first enumerator for each state, followed by each subsequent enumerator in the same way (see \autoref{fig:uml-staged-enumerators}).
 
 
@@ -151,7 +155,7 @@ So-called staged enumerators contain enumerators where each enumerator is a stag
     \label{fig:uml-staged-enumerators}
 \end{figure}
 
-For each stage transition connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here, the results of the previous enumerator can be evaluated and the next enumerator can be configured accordingly. The connector will be automatically called by the UDS Scanner and expects a dictionary as return value that will be passed to the next enumerator. In \autoref{fig:uml-staged-enumerators}, each arrow represents a call of a connector, except for the first and last arrows. \autoref{lst:staged-enumerator} shows a simple definition of a staged enumerator.
+For each stage transition connectors can be defined. They are functions with two arguments, containing the previous enumerator and the new enumerator. Here, the results of the previous enumerator can be evaluated and the next enumerator can be configured accordingly. The connector will be automatically called by the UDS Scanner and expects a dictionary as return value that will be passed to the next enumerator. In \autoref{fig:uml-staged-enumerators}, the blue arrow represents the call of the connector. \autoref{lst:staged-enumerator} shows a simple definition of a staged enumerator.
 
 \begin{listing}[H]
 \begin{minted}
@@ -173,11 +177,15 @@ class MyStagedEnumerator(StagedAutomotiveTestCase):
     def __init__(self):
         super().__init__(
             [Stage1Enumerator(), Stage2Enumerator()],
+            # First element in the connectors list is never called because there is
+            # no connection from nothing to stage 1. Only actual stages are connected.
             connectors=[None, self.connector_stage1_stage2])
 \end{minted}
-\caption{Example implementation of a staged enumerator.}
+\caption{Example implementation of a two-staged enumerator.}
 \label{lst:staged-enumerator}
 \end{listing}
+
+\newpage
 
 \section{Implementing enumerators for the RC service}
 

@@ -3,12 +3,18 @@
 |defaultState|
 start
 :stage1;
-:stage2;
 |state2|
 :stage1;
-:stage2;
 |state3|
 :stage1;
+
+-[#blue]->
+
+|defaultState|
+:stage2;
+|state2|
+:stage2;
+|state3|
 :stage2;
 stop
 

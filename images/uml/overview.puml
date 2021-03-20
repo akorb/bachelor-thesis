@@ -36,16 +36,19 @@ class StagedAutomotiveTestCase {
     - test_cases : AutomotiveTestCaseABC[]
     - connectors : Callable[]
     + execute(socket : SuperSocket, state : EcuState) : void
+    + show() : void
 }
 
 abstract AutomotiveTestCaseABC {
     {abstract} + execute(socket : SuperSocket, state : EcuState) : void
+    {abstract} + show() : void
 }
 
 abstract AutomotiveTestCase {
     {abstract} # get_initial_requests(**kwargs) : Packet[]
     # evaluate_response(response : Packet) : bool
     + execute(socket : SuperSocket, state : EcuState) : void
+    + show() : void
 }
 
 abstract UDS_Enumerator {
