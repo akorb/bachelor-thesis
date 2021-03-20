@@ -366,7 +366,7 @@ class UDS_RDBIEnumerator(UDS_Enumerator):
 
 Since the RDBI service has only one parameter, its \mintinline{python}{get_initial_requests} remains simple, generating RDBI requests for identifiers from 0 to 65,535, if not configured otherwise.
 
-Implementing the \mintinline{python}{RDBIRandomEnumerator} was a challenge because it must include the count of requests for each block. With a block size of \textbf{64} (see \autoref{subsubsec:rdbi-behavior}), there would need to be a list with $\frac{2^{16}}{64} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on the fact that many blocks have a calculated number of requests of zero, but at least one request should be generated for each block. So, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to two. And for blocks for which no value is stored, the value one is derived. This automatically solves that each block is probed with at least one request. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements. The non-simplified version is shown in \autoref{app:random-not-compact}.
+Implementing the \mintinline{python}{RDBIRandomEnumerator} was a challenge because it must include the count of requests for each block. With a block size of \textbf{64} (see \autoref{subsubsec:rdbi-behavior}), there would need to be a list with $\frac{2^{16}}{64} = 1024$ elements. Thus, it is desirable to represent this information more compactly. A better representation is based on the fact that at least one request should be generated for each block. So, the number of samples is not stored for all blocks, but only for blocks whose number of samples is greater than or equal to two. And for blocks for which no value is stored, the value one is derived. This automatically solves that each block is probed with at least one request. These simplifications transformed the list of 1024 elements into a dictionary of only 109 elements. The non-simplified version is shown in \autoref{app:random-not-compact}.
 
 \begin{listing}[H]
 \begin{minted}
@@ -459,9 +459,11 @@ def points_to_blocks(points, block_size):
     for start in range(0, 2 ** 16, block_size):
         end = start + block_size
         pr_in_block = any((start <= identifier < end
-                        for identifier in points))
+                           for identifier in points))
         if pr_in_block:
+            # Add generator creating all identifiers of a block
             generators.append(range(start, end))
+    # Merge the generators
     scan_range = itertools.chain.from_iterable(generators)
     return scan_range
 \end{minted}
@@ -471,11 +473,13 @@ def points_to_blocks(points, block_size):
 
 Unlike \mintinline{python}{points_to_ranges}, its block boundaries are fixed. It traverses each block and checks if any of the given identifiers is part of that block. If this is the case, the block will be scanned completely.
 
-Unfortunately, this can lead to double-scanned identifiers, since instead of scanning only the remaining identifiers that have not yet been scanned in the respective blocks, the entire blocks are rescanned. Although an attempt was made to implement this, the UDS scanner does not provide the necessary interfaces to do so. The connectors only know the enumerators, but not the currently executed state. However, this is necessary to check which identifiers have already been scanned in the random enumerator for the current state. Nevertheless, the number of duplicate requests is low, so the request savings hardly decrease.
+Unfortunately, this can lead to double-scanned identifiers, since instead of scanning only the remaining identifiers that have not yet been scanned in the respective blocks, the entire blocks are rescanned. Although an attempt was made to implement this, the UDS Scanner does not provide the necessary interfaces to do so. Executing the connectors also for state transitions or grouping generated UDS requests by ECU states would be required to create UDS requests per state. However, the connectors are only executed for stage transitions (see \autoref{fig:uml-staged-enumerators}), and the \mintinline{python}{get_initial_requests} method does not take a state argument. So, neither of these functions are provided by the UDS Scanner. Nevertheless, the number of duplicate requests is small, so the request savings hardly decrease.
+
+\newpage
 
 \section{Extending the enumerators to skip unsupported services}
 
-In contrast to the previous approaches, this one is not applied to specific service enumerators, but to their super class. It evaluates each response, for example to detect if a new state was found. Here, a check was added for negative responses if they have an NRC of \mintinline{text}{0x11} or \mintinline{text}{0x7f}. If they do, the enumerator is set to completed for the currently executed state.
+In contrast to the previous approaches, this one is not applied to specific service enumerators, but to their super class \mintinline{python}{AutomotiveTestCase}. It evaluates each response, for example to detect if a new state was found. Here, a check was added for negative responses if they have a negative response code (NRC) of \mintinline{text}{0x11} or \mintinline{text}{0x7f}. If they do, the enumerator is set to completed for the currently executed state.
 
 \begin{listing}[H]
 \begin{minted}
@@ -497,11 +501,13 @@ class AutomotiveTestCase(AutomotiveTestCaseABC):
 
         # Removed code for simplification
 
+        # Negative responses contain the SID 0x7f
+        # Must not be confused with the NRC
         if exit_if_service_not_supported and response.service == 0x7f:
             response_code = self._get_negative_response_code(response)
             if response_code in [0x11, 0x7f]:
-                # execute of current state is completed,
-                # since a serviceNotSupported NR was received
+                # Execution for current state is completed,
+                # because a serviceNotSupported NR was received
                 current_state = self._results[-1].state
                 self._state_completed[current_state] = True
                 # stop current execute and exit
