@@ -64,9 +64,7 @@ Enumerators are service-specific and create requests for a service. For example,
 
 \subsection{Single enumerators create requests and evaluate responses}
 
-The most important member of these classes is the \mintinline{python}{get_initial_requests} method. The return value is an iterable object which contains the requests for this service. Its parameter \mintinline{python}{kwargs} enables the caller to configure the enumerator.
-
-For a better understanding, the \mintinline{python}{UDS_DSCEnumerator} implementation for the DSC service will be described exemplary (see \autoref{lst:dsc-enumerator}).
+The most important member of these classes is the \mintinline{python}{get_initial_requests} method. The return value is an iterable object which contains the requests for this service. Its parameter \mintinline{python}{kwargs} enables the caller to configure the enumerator. For a better understanding, the \mintinline{python}{UDS_DSCEnumerator} implementation for the DSC service will be described exemplary (see \autoref{lst:dsc-enumerator}).
 
 \begin{listing}[H]
 \begin{minted}
