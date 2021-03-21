@@ -30,6 +30,7 @@ StagedAutomotiveTestCase <|-- UDS_RCSelectiveEnumerator
 abstract AutomotiveTestCaseExecutor {
     + socket : SuperSocket
     + test_cases : AutomotiveTestCaseABC[]
+    + scan() : void
 }
 
 class StagedAutomotiveTestCase {
