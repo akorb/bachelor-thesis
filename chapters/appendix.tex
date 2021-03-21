@@ -6,7 +6,9 @@
     \includegraphics[height=0.9\textheight]{uml/overview}
 \end{figure}
 
-\chapter{First version of the RDBI Random enumerator}
+\chapter{Alternative versions of the RDBI implementation}
+
+\section{First version of the random enumerator}
 \label{app:random-not-compact}
 
 \begin{minted}
@@ -111,4 +113,42 @@ def _get_initial_requests(self, **kwargs):
 
     # Remaining code did not change
     # [...]
+\end{minted}
+
+
+\section{The RDBI connector using unofficial interfaces}
+\label{app:unofficial-implementation}
+
+\begin{minted}
+    [frame=single,
+    framerule=0pt,
+    framesep=2mm,
+    baselinestretch=1.2,
+    bgcolor=VeryLightGray,
+    fontsize=\footnotesize,
+    linenos]
+    {python}
+@staticmethod
+def __connector_random_to_sequential(rdbi_random, rdbi_sequential):
+    prs_grouped_by_state = defaultdict(list)
+    for r in rdbi_random.results_with_positive_response:
+        prs_grouped_by_state[r.state].append(r.resp.dataIdentifier)
+
+    block_size = UDS_RDBISelectiveEnumerator.block_size
+
+    reqs_grouped_by_state = {}
+    for state, ids in prs_grouped_by_state.items():
+        scan_range = points_to_blocks(ids, block_size)
+        req_ids = sorted(set(scan_range) - set(ids))
+        reqs_grouped_by_state[state] = iter(
+            (UDS() / UDS_RDBI(identifiers=[req_id]) for req_id in req_ids)
+        )
+
+    # By setting this, get_initial_requests of rdbi_sequential will never be called
+    # as the requests per state are already set here.
+    # Not intended by UDS Scanner developer
+    rdbi_sequential._request_iterators = reqs_grouped_by_state
+
+    # Do not return any configuration because it will not be used either way
+    return {}
 \end{minted}
